@@ -1,2 +1,2 @@
-copy /y /d "E:\Documents and Settings\zoidberg\Desktop\WalkmanMTP\WalkmanMTP\bin\debug\*" "z:\debug\"
+copy /y /d "E:\Documents and Settings\zoidberg\Desktop\projects\WalkmanMTP\WalkmanMTP\bin\Debug\*" "z:\debug\"
 rem pause

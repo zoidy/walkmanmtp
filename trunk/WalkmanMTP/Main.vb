@@ -305,23 +305,36 @@
     Private Sub playlistListView_ColumnClick(ByVal sender As Object, ByVal e As System.Windows.Forms.ColumnClickEventArgs)
         Dim lv As ListView = CType(sender, ListView)
         If e.Column <> playlistListView_lastColumnClicked Then
-            playlistListView_lastColumnClicked = e.Column
             lv.Sorting = SortOrder.Ascending
+            lv.Columns(e.Column).Text = lv.Columns(e.Column).Text & " ^"
+            If Not playlistListView_lastColumnClicked = -1 Then
+                'clean up the title of the previously clicked column
+                lv.Columns(playlistListView_lastColumnClicked).Text = lv.Columns(playlistListView_lastColumnClicked).Text.Replace(" ^", "").Replace(" v", "")
+            End If
+            playlistListView_lastColumnClicked = e.Column
         Else
             ' Determine what the last sort order was and change it.
-            If ListView1.Sorting = SortOrder.Ascending Then
-                ListView1.Sorting = SortOrder.Descending
+            If lv.Sorting = SortOrder.None Then
+                lv.Sorting = SortOrder.Ascending
+                lv.Columns(e.Column).Text = lv.Columns(e.Column).Text & " ^"
+            ElseIf lv.Sorting = SortOrder.Ascending Then
+                lv.Sorting = SortOrder.Descending
+                lv.Columns(e.Column).Text = lv.Columns(e.Column).Text.Replace(" ^", " v")
             Else
-                ListView1.Sorting = SortOrder.Ascending
+                lv.Sorting = SortOrder.None
+                lv.Columns(e.Column).Text = lv.Columns(e.Column).Text.Replace(" v", "")
             End If
 
         End If
-        lv.Sort()
-        lv.ListViewItemSorter = New PlaylistListViewItemComparer(e.Column, lv.Sorting)
 
-        'For Each c As ColumnHeader In lv.Columns
-        '    If c.Text.EndsWith("
-        'Next
+        If lv.Sorting = SortOrder.None Then
+            lv.ListViewItemSorter = Nothing
+        Else
+            lv.ListViewItemSorter = New PlaylistListViewItemComparer(e.Column, lv.Sorting)
+        End If
+
+
+
     End Sub
     Private Sub playlistListView_KeyDown(ByVal sender As Object, ByVal e As System.Windows.Forms.KeyEventArgs)
         'if DEL is pressed, delete selected items
@@ -554,6 +567,12 @@
             Dim subitem_x As ListViewItem.ListViewSubItem
             Dim subitem_y As ListViewItem.ListViewSubItem
 
+            'don't allow any other column other than 0 for now
+            'since the subitems are not yet implemented
+            If whichColumn <> 0 Then
+                Return 0
+            End If
+
             'subitem 0 is the main item
             subitem_x = CType(x, ListViewItem).SubItems(whichColumn)
             subitem_y = CType(y, ListViewItem).SubItems(whichColumn)
@@ -568,5 +587,6 @@
             Return ret
         End Function
     End Class
+
 
 End Class
