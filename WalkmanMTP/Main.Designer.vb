@@ -68,6 +68,8 @@ Partial Class Main
         Me.btnRefreshDevices = New System.Windows.Forms.Button
         Me.ToolTip1 = New System.Windows.Forms.ToolTip(Me.components)
         Me.btnSync = New System.Windows.Forms.Button
+        Me.btnPlaylistItemsMoveUp = New System.Windows.Forms.Button
+        Me.btnPlaylistItemsMoveDown = New System.Windows.Forms.Button
         Me.tvPlaylistsFilesOnDevice = New WalkmanMTP.MultiSelectTreeview.MultiSelectTreeview
         Me.MenuStrip1.SuspendLayout()
         Me.tabMain.SuspendLayout()
@@ -204,6 +206,8 @@ Partial Class Main
         '
         'SplitContainer1.Panel2
         '
+        Me.SplitContainer1.Panel2.Controls.Add(Me.btnPlaylistItemsMoveDown)
+        Me.SplitContainer1.Panel2.Controls.Add(Me.btnPlaylistItemsMoveUp)
         Me.SplitContainer1.Panel2.Controls.Add(Me.btnRenamePlaylist)
         Me.SplitContainer1.Panel2.Controls.Add(Me.btnDeleteAllLists)
         Me.SplitContainer1.Panel2.Controls.Add(Me.btnDelPlaylist)
@@ -236,11 +240,12 @@ Partial Class Main
         '
         'btnRenamePlaylist
         '
+        Me.btnRenamePlaylist.ImageIndex = 4
+        Me.btnRenamePlaylist.ImageList = Me.ImageList1
         Me.btnRenamePlaylist.Location = New System.Drawing.Point(8, 78)
         Me.btnRenamePlaylist.Name = "btnRenamePlaylist"
         Me.btnRenamePlaylist.Size = New System.Drawing.Size(25, 25)
         Me.btnRenamePlaylist.TabIndex = 2
-        Me.btnRenamePlaylist.Text = "r"
         Me.ToolTip1.SetToolTip(Me.btnRenamePlaylist, "Rename Playlist")
         Me.btnRenamePlaylist.UseVisualStyleBackColor = True
         '
@@ -258,7 +263,7 @@ Partial Class Main
         '
         'btnDelPlaylist
         '
-        Me.btnDelPlaylist.ImageKey = "Minus.png"
+        Me.btnDelPlaylist.ImageKey = "Trash.png"
         Me.btnDelPlaylist.ImageList = Me.ImageList1
         Me.btnDelPlaylist.Location = New System.Drawing.Point(8, 47)
         Me.btnDelPlaylist.Name = "btnDelPlaylist"
@@ -275,10 +280,15 @@ Partial Class Main
         Me.ImageList1.Images.SetKeyName(1, "Star.png")
         Me.ImageList1.Images.SetKeyName(2, "Plus.png")
         Me.ImageList1.Images.SetKeyName(3, "Minus.png")
+        Me.ImageList1.Images.SetKeyName(4, "Text.png")
+        Me.ImageList1.Images.SetKeyName(5, "Up.png")
+        Me.ImageList1.Images.SetKeyName(6, "Down.png")
+        Me.ImageList1.Images.SetKeyName(7, "Restart.png")
+        Me.ImageList1.Images.SetKeyName(8, "Trash.png")
         '
         'btnAddPlaylist
         '
-        Me.btnAddPlaylist.ImageIndex = 2
+        Me.btnAddPlaylist.ImageIndex = 7
         Me.btnAddPlaylist.ImageList = Me.ImageList1
         Me.btnAddPlaylist.Location = New System.Drawing.Point(8, 16)
         Me.btnAddPlaylist.Name = "btnAddPlaylist"
@@ -492,6 +502,27 @@ Partial Class Main
         Me.ToolTip1.SetToolTip(Me.btnSync, "All non empty playlists and albums will be written to the player")
         Me.btnSync.UseVisualStyleBackColor = True
         '
+        'btnPlaylistItemsMoveUp
+        '
+        Me.btnPlaylistItemsMoveUp.ImageIndex = 5
+        Me.btnPlaylistItemsMoveUp.ImageList = Me.ImageList1
+        Me.btnPlaylistItemsMoveUp.Location = New System.Drawing.Point(8, 146)
+        Me.btnPlaylistItemsMoveUp.Name = "btnPlaylistItemsMoveUp"
+        Me.btnPlaylistItemsMoveUp.Size = New System.Drawing.Size(25, 25)
+        Me.btnPlaylistItemsMoveUp.TabIndex = 3
+        Me.btnPlaylistItemsMoveUp.UseVisualStyleBackColor = True
+        '
+        'btnPlaylistItemsMoveDown
+        '
+        Me.btnPlaylistItemsMoveDown.ImageIndex = 6
+        Me.btnPlaylistItemsMoveDown.ImageList = Me.ImageList1
+        Me.btnPlaylistItemsMoveDown.Location = New System.Drawing.Point(8, 177)
+        Me.btnPlaylistItemsMoveDown.Name = "btnPlaylistItemsMoveDown"
+        Me.btnPlaylistItemsMoveDown.Size = New System.Drawing.Size(25, 25)
+        Me.btnPlaylistItemsMoveDown.TabIndex = 3
+        Me.btnPlaylistItemsMoveDown.Text = "Button1"
+        Me.btnPlaylistItemsMoveDown.UseVisualStyleBackColor = True
+        '
         'tvPlaylistsFilesOnDevice
         '
         Me.tvPlaylistsFilesOnDevice.Anchor = CType((((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Bottom) _
@@ -588,4 +619,6 @@ Partial Class Main
     Friend WithEvents ColumnHeader3 As System.Windows.Forms.ColumnHeader
     Friend WithEvents ColumnHeader4 As System.Windows.Forms.ColumnHeader
     Friend WithEvents ColumnHeader5 As System.Windows.Forms.ColumnHeader
+    Friend WithEvents btnPlaylistItemsMoveDown As System.Windows.Forms.Button
+    Friend WithEvents btnPlaylistItemsMoveUp As System.Windows.Forms.Button
 End Class
