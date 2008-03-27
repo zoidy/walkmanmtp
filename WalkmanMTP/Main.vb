@@ -1,6 +1,10 @@
-﻿Public Class Main
+﻿Imports WalkmanMTP.ListViewDnD
+Public Class Main
     Private axe As MTPAxe
 
+    'keeps track of what the original playlists were as of the last time
+    ' the playlists list was refreshed. this is to be able to
+    'distinguish which lists have to be deleted and added
     Private originalPlaylists As Collection
 
     'keeps track of what column was clicked last in order to enable 
@@ -184,7 +188,6 @@
         '1.any playlist ending with * is deleted from the player
         '2.any non empty playlist ending with * is then re-created on the player
 
-
         Dim tpage As TabPage
 
         'first search for playlists to delete and then delte then
@@ -252,7 +255,7 @@
 
     End Sub
 
-    
+
 
 #Region "Playlists"
     Private Sub btnPlaylistsFilesOnDeviceRefresh_LinkClicked(ByVal sender As System.Object, ByVal e As System.Windows.Forms.LinkLabelLinkClickedEventArgs) Handles btnPlaylistsFilesOnDeviceRefresh.LinkClicked
@@ -279,6 +282,7 @@
     Private Sub btnAddPlaylist_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnAddPlaylist.Click
         Dim newname As String
         newname = InputBox("Enter playlist name: ", "Create Playlist")
+        If newname = "" Then Exit Sub
 
         'check to see if the playlist name already exists
         For Each tpage As TabPage In Me.tabPlaylists.TabPages
@@ -303,7 +307,7 @@
 
     End Sub
     Private Sub playlistListView_ColumnClick(ByVal sender As Object, ByVal e As System.Windows.Forms.ColumnClickEventArgs)
-        Dim lv As ListView = CType(sender, ListView)
+        Dim lv As ListViewEx = CType(sender, ListView)
         If e.Column <> playlistListView_lastColumnClicked Then
             lv.Sorting = SortOrder.Ascending
             lv.Columns(e.Column).Text = lv.Columns(e.Column).Text & " ^"
@@ -337,30 +341,50 @@
 
     End Sub
     Private Sub playlistListView_KeyDown(ByVal sender As Object, ByVal e As System.Windows.Forms.KeyEventArgs)
+        Dim lv As ListView = CType(sender, ListViewEx)
+
         'if DEL is pressed, delete selected items
         If e.KeyCode = Keys.Delete Then
-            Dim lv As ListView = CType(sender, ListView)
-
             For Each lvItem As ListViewItem In lv.SelectedItems
                 lv.Items.Remove(lvItem)
             Next
 
+            markPlaylistChanged(lv)
         End If
+
     End Sub
     Private Sub playlistListView_dragenter(ByVal sender As Object, ByVal e As DragEventArgs)
         e.Effect = e.AllowedEffect
     End Sub
     Private Sub playlistListView_dragdrop(ByVal sender As Object, ByVal e As DragEventArgs)
-        Dim draggedNodes As List(Of TreeNode) = CType(e.Data.GetData(GetType(List(Of TreeNode))), List(Of TreeNode))
-        Dim lv As ListView = CType(sender, ListView)
+        Dim draggedNodes As List(Of TreeNode)
+        Dim lv As ListViewEx
 
-        lv.SmallImageList = Me.tvPlaylistsFilesOnDevice.ImageList
+        draggedNodes = CType(e.Data.GetData(GetType(List(Of TreeNode))), List(Of TreeNode))
+        lv = CType(sender, ListViewEx)
 
-        For Each draggedNode In draggedNodes
-            playlistListView_dragdrop_helper(lv, draggedNode)
-        Next
+        'check to see if the dragged data comes from our treeview
+        If Not draggedNodes Is Nothing Then
+            lv.SmallImageList = Me.tvPlaylistsFilesOnDevice.ImageList
+
+            For Each draggedNode In draggedNodes
+                playlistListView_dragdrop_helper(lv, draggedNode)
+            Next
+            markPlaylistChanged(lv)
+        Else
+            'if it's not from the treeview, check to see if it's from the ListViewEx itself
+            Dim draggedListviewItem As Object
+            draggedListviewItem = e.Data.GetData(GetType(ListViewEx.DragItemData))
+            If Not draggedListviewItem Is Nothing Then
+                markPlaylistChanged(lv)
+            Else
+                'if it's not from our treeview or the listvew, don't allow this drag operation
+                e.Effect = DragDropEffects.None
+            End If
+        End If
+
     End Sub
-    Private Sub playlistListView_dragdrop_helper(ByRef lv As ListView, ByVal root As TreeNode)
+    Private Sub playlistListView_dragdrop_helper(ByRef lv As ListViewEx, ByVal root As TreeNode)
         'lv is the listview to add the nodes to. root is the node to add (if its a file) or to
         'traverse (if its a folder)
         Dim attribs() As String
@@ -413,6 +437,11 @@
         originalPlaylists = New Collection
 
         tv = axe.getTreeViewByName("Playlists")
+        If tv.Nodes.Count = 0 Then
+            Trace.WriteLine("Error refreshing playlists")
+            MsgBox("Error refreshing playlists", MsgBoxStyle.Critical)
+            Exit Sub
+        End If
         Me.tvPlaylistsFilesOnDevice.ImageList = tv.ImageList
 
 
@@ -424,8 +453,8 @@
         'enumerate storage on the device (necessary for all other device related functions to work)
         'can use this enumeration to fill the directory tree
 
-        Dim lv As ListView
-        Dim tpage As TabPage
+        Dim lv As ListViewEx
+        Dim tpage, originalTabPage As TabPage
         Dim lvItem As ListViewItem
         For Each node As TreeNode In tv.Nodes(0).Nodes
             tv2 = axe.getPlaylistContentsAsTreeview(node.Text)
@@ -445,7 +474,14 @@
                 lv.Items.Add(lvItem)
             Next
 
-            originalPlaylists.Add(tpage)
+            'partially clone the tabpage to add to the originalplaylists list
+            'this is because the values in this list will change if the tabpage
+            'is modified (we don' want that)
+            originalTabPage = New TabPage
+            originalTabPage.Name = tpage.Name
+            originalTabPage.Text = tpage.Text
+            originalTabPage.Tag = tpage.Tag
+            originalPlaylists.Add(originalTabPage)
         Next
     End Sub
 
@@ -473,12 +509,15 @@
             name = name & "*"
         End If
 
+        'don't allow ':' in the name since that's what we use as a separator
+        name = name.Replace(":", "_")
+
         Dim tpage As TabPage
-        Dim lv As ListView
+        Dim lv As ListViewEx
 
         tpage = New TabPage(name)
         tpage.Name = "tpPl" & name
-        lv = New ListView
+        lv = New ListViewEx
         With lv
             .Dock = DockStyle.Fill
             .GridLines = True
@@ -486,11 +525,11 @@
             .View = View.Details
             .AllowDrop = True
             .FullRowSelect = True
-            .Columns.Add("File Name", 120, HorizontalAlignment.Left)
-            .Columns.Add("Title", 80, HorizontalAlignment.Left)
-            .Columns.Add("Artist", 80, HorizontalAlignment.Left)
-            .Columns.Add("Album", 80, HorizontalAlignment.Left)
-            .Columns.Add("Year", 80, HorizontalAlignment.Left)
+            .Columns.Add("File Name", 230, HorizontalAlignment.Left)
+            '.Columns.Add("Title", 80, HorizontalAlignment.Left)
+            '.Columns.Add("Artist", 80, HorizontalAlignment.Left)
+            '.Columns.Add("Album", 80, HorizontalAlignment.Left)
+            '.Columns.Add("Year", 80, HorizontalAlignment.Left)
             .Name = "lvPl" & name
             AddHandler .DragEnter, AddressOf playlistListView_dragenter
             AddHandler .DragDrop, AddressOf playlistListView_dragdrop
@@ -511,13 +550,41 @@
         End If
 
         Dim tpage As TabPage
+        Dim lv As ListView
 
         tpage = Me.tabPlaylists.SelectedTab
 
-        If newName.EndsWith("*") Then
-            tpage.Text = newName
-        Else
-            tpage.Text = newName & "*"
+        'search through playlists for duplicate names
+        For Each otherPage As TabPage In Me.tabPlaylists.TabPages
+            If newName = otherPage.Text.Replace("*", "") Then
+                If MsgBox("Warning: Duplicate playlist name '" & newName & "'. This may cause problems", MsgBoxStyle.Exclamation Or MsgBoxStyle.OkCancel, "Warining") = MsgBoxResult.Cancel Then
+                    Exit Sub
+                End If
+            End If
+        Next
+
+        'get the listview as well
+        lv = tpage.Controls(tpage.Name.Replace("tpPl", "lvPl"))
+
+        tpage.Text = newName & "*"
+        tpage.Name = "tpPl" & newName & "*"
+        lv.Name = "lvPl" & newName & "*"
+
+
+
+    End Sub
+    Private Sub markPlaylistChanged(ByVal lv As ListView)
+        'lv is the listview where the change occureed
+
+        'mark this list for update
+        Dim tpage As TabPage
+        tpage = Me.tabPlaylists.TabPages(lv.Name.Replace("lvPl", "tpPl"))
+        If Not tpage Is Nothing Then
+            If Not tpage.Text.EndsWith("*") Then
+                lv.Name = lv.Name & "*"
+                tpage.Name = tpage.Name & "*"
+                tpage.Text = tpage.Text & "*"
+            End If
         End If
     End Sub
 #End Region
