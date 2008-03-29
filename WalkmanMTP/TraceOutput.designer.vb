@@ -69,7 +69,9 @@ Partial Class TraceOutput
         Me.Controls.Add(Me.Button1)
         Me.Controls.Add(Me.TextBox1)
         Me.Name = "TraceOutput"
+        Me.ShowIcon = False
         Me.Text = "Debug Output Logger"
+        Me.WindowState = System.Windows.Forms.FormWindowState.Minimized
         Me.ResumeLayout(False)
         Me.PerformLayout()
 

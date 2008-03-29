@@ -44,13 +44,14 @@ Public Class TraceOutput
                 Try
                     logFile = New IO.StreamWriter(IO.Path.Combine(IO.Path.GetTempPath, "WMTP.log"))
                     logFile.AutoFlush = True
-                    logFile.WriteLine("Log start: " & Now)
+                    logFile.WriteLine("Walkman MTP Log start: " & Now)
+                    logFile.Write(Now & " " & text)
                 Catch ex As Exception
                     'TODO: do nothing?
                 End Try
             Else
                 Try
-                    logFile.WriteLine(text)
+                    logFile.Write(Now & " " & text)
                 Catch ex As Exception
                     'TODO: do nothing?
                 End Try
@@ -61,7 +62,7 @@ Public Class TraceOutput
             'calling thread to the thread ID of the creating thread.
             'If these threads are different, it returns true. and invokes the 
             'delegate
-            If Not Me.theForm.Visible Then Exit Sub
+            'If Not Me.theForm.Visible Then Exit Sub
             If Me.theTextBox.InvokeRequired Then
                 Dim d As New SetTextCallback(AddressOf SetText)
                 Try

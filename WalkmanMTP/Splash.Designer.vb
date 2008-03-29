@@ -28,16 +28,16 @@ Partial Class Splash
         '
         'ProgressBar1
         '
-        Me.ProgressBar1.Location = New System.Drawing.Point(64, 23)
+        Me.ProgressBar1.Location = New System.Drawing.Point(64, 12)
         Me.ProgressBar1.Name = "ProgressBar1"
-        Me.ProgressBar1.Size = New System.Drawing.Size(216, 27)
+        Me.ProgressBar1.Size = New System.Drawing.Size(216, 22)
         Me.ProgressBar1.Style = System.Windows.Forms.ProgressBarStyle.Marquee
         Me.ProgressBar1.TabIndex = 0
         '
         'Label1
         '
         Me.Label1.AutoSize = True
-        Me.Label1.Location = New System.Drawing.Point(100, 58)
+        Me.Label1.Location = New System.Drawing.Point(100, 37)
         Me.Label1.Name = "Label1"
         Me.Label1.Size = New System.Drawing.Size(156, 13)
         Me.Label1.TabIndex = 1
@@ -48,7 +48,7 @@ Partial Class Splash
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
-        Me.ClientSize = New System.Drawing.Size(365, 80)
+        Me.ClientSize = New System.Drawing.Size(365, 57)
         Me.Controls.Add(Me.Label1)
         Me.Controls.Add(Me.ProgressBar1)
         Me.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog

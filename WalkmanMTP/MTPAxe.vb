@@ -180,6 +180,7 @@
         '
         'where TYPE is a DWORD containing the type (must be AND'ed with WMDM_FILE_ATTR_FILE or
         'WMDM_FILE_ATTR_FOLDER to find out if the object is a file or folder)
+        Trace.WriteLine("MTPAxe: enumerating storage")
 
         Dim s As String
 
@@ -191,7 +192,7 @@
         s = sIn.ReadLine
 
         If s = "-1" Then
-            Trace.WriteLine(sErr.ReadLine)
+            Trace.WriteLine("MTPAxe: enumerating storage error - " & sErr.ReadLine)
             Return "-1"
         End If
 
@@ -201,6 +202,8 @@
         'gets the manufacturer of the current device
         'this function returns "-1" on error
         'MTPAxe returns -1 on error, name otherwise
+
+        Trace.WriteLine("MTPAxe: getting device manufacturer")
 
         Dim s As String
 
@@ -212,7 +215,7 @@
         s = sIn.ReadLine
 
         If s = "-1" Then
-            Trace.WriteLine(sErr.ReadLine)
+            Trace.WriteLine("MTPAxe: getting device manufacturer error - " & sErr.ReadLine)
             Return "-1"
         End If
 
@@ -222,6 +225,8 @@
         'gets the attributes of the current device
         'this function returns "-1" on error
         'MTPAxe returns -1 on error, ';' separated list otherwise
+
+        Trace.WriteLine("MTPAxe: getting device type")
 
         Dim s As String
 
@@ -233,7 +238,7 @@
         s = sIn.ReadLine
 
         If s = "-1" Then
-            Trace.WriteLine(sErr.ReadLine)
+            Trace.WriteLine("MTPAxe: getting device type error - " & sErr.ReadLine)
             Return "-1"
         End If
 
@@ -250,6 +255,7 @@
     ''' <remarks></remarks>
     Public Function getFullTreeView() As TreeView
         'returns the full directory structure of the device
+        Trace.WriteLine("MTPAxe: building full directory tree")
 
         If axe Is Nothing Then Throw New Exception("MTPAxe is not started")
 
@@ -257,21 +263,23 @@
 
         'get the directory tree from the device
         Dim strTree As String
-        strTree = enumerateStorage()
-        'strTree = "<0,295176,>Storage Media:<1,295200,Storage Media>DevIcon.fil:<1,295200,Storage Media>DevLogo.fil:<1,295200,Storage Media>capability_00.xml:<1,295176,Storage Media>MUSIC:<2,295176,MUSIC>Angra - Rebirth:<3,295200,Angra - Rebirth>01 - In Excelsis.m4a:<3,295200,Angra - Rebirth>02 - Nova Era.m4a:<3,295200,Angra - Rebirth>03 - Millenium Sun.m4a:<3,295200,Angra - Rebirth>04 - Acid Rain.m4a:<3,295200,Angra - Rebirth>05 - Heroes Of Sand.m4a:<3,295200,Angra - Rebirth>06 - Unholy Wars (Part I_ Imperial Crown; Part II_ Forgiven Return).m4a:<3,295200,Angra - Rebirth>07 - Rebirth.m4a:<3,295200,Angra - Rebirth>08 - Judgement Day.m4a:<3,295200,Angra - Rebirth>09 - Running Alone.m4a:<3,295200,Angra - Rebirth>10 - Visions Prelude.m4a:<2,295176,MUSIC>Falconer - The Sceptre Of Deception:<3,295200,Falconer - The Sceptre Of Deception>01 - The Coronation.m4a:<3,295200,Falconer - The Sceptre Of Deception>02 - The Trail Of Flames.m4a:<3,295200,Falconer - The Sceptre Of Deception>03 - Under The Sword.m4a:<3,295200,Falconer - The Sceptre Of Deception>04 - Night Of Infamy.m4a:<3,295200,Falconer - The Sceptre Of Deception>05 - Hooves Over Northland.m4a:<3,295200,Falconer - The Sceptre Of Deception>06 - Pledge For Freedom.m4a:<3,295200,Falconer - The Sceptre Of Deception>07 - Ravenhair.m4a:<3,295200,Falconer - The Sceptre Of Deception>08 - The Sceptre Of Deception.m4a:<3,295200,Falconer - The Sceptre Of Deception>09 - Hear Me Pray.m4a:<3,295200,Falconer - The Sceptre Of Deception>10 - Child Of Innocence.m4a:<2,295176,MUSIC>Dragonforce - Inhuman Rampage:<3,295200,Dragonforce - Inhuman Rampage>01 - Through The Fire And Flames.m4a:<3,295200,Dragonforce - Inhuman Rampage>02 - Revolution Deathsquad.m4a:<3,295200,Dragonforce - Inhuman Rampage>03 - Storming The Burning Fields.m4a:<3,295200,Dragonforce - Inhuman Rampage>04 - Operation Ground And Pound.m4a:<3,295200,Dragonforce - Inhuman Rampage>05 - Body Breakdown.m4a:<3,295200,Dragonforce - Inhuman Rampage>06 - Cry For Eternity.m4a:<3,295200,Dragonforce - Inhuman Rampage>07 - The Flame Of Youth.m4a:<3,295200,Dragonforce - Inhuman Rampage>08 - Trail Of Broken Hearts.m4a:<3,295200,Dragonforce - Inhuman Rampage>09 - Lost Souls In Endless Time.m4a:<2,295200,MUSIC>Bush - The Chemicals Between Us.mp3:<2,295176,MUSIC>Edu Falaschi - Almah:<3,295200,Edu Falaschi - Almah>01 - King.m4a:<3,295200,Edu Falaschi - Almah>02 - Take Back Your Spell.m4a:<3,295200,Edu Falaschi - Almah>03 - Forgotten Land (Com Edu Ardanu).m4a:<3,295200,Edu Falaschi - Almah>04 - Scary Zone.m4a:<3,295200,Edu Falaschi - Almah>05 - Children Of Lies.m4a:<3,295200,Edu Falaschi - Almah>06 - Break All The Welds.m4a:<3,295200,Edu Falaschi - Almah>07 - Golden Empire.m4a:<3,295200,Edu Falaschi - Almah>08 - Primitive Chaos.m4a:<3,295200,Edu Falaschi - Almah>09 - Breathe.m4a:<3,295200,Edu Falaschi - Almah>10 - Box Of Illusion.m4a:<3,295200,Edu Falaschi - Almah>11 - Almah.m4a:<2,295176,MUSIC>Kiko Loureiro - No Gravity:<3,295200,Kiko Loureiro - No Gravity>10 - In A Gentle Way.m4a:<3,295200,Kiko Loureiro - No Gravity>11 - Dilemma.m4a:<3,295200,Kiko Loureiro - No Gravity>12 - Feliz Desilusão.m4a:<3,295200,Kiko Loureiro - No Gravity>13 - Choro De Crianca.m4a:<3,295200,Kiko Loureiro - No Gravity>01 - Enfermo.m4a:<3,295200,Kiko Loureiro - No Gravity>02 - Endangered Species.m4a:<3,295200,Kiko Loureiro - No Gravity>03 - Escaping.m4a:<3,295200,Kiko Loureiro - No Gravity>04 - No Gravity.m4a:<3,295200,Kiko Loureiro - No Gravity>05 - Pau-De-Arara.m4a:<3,295200,Kiko Loureiro - No Gravity>06 - La Force De L'âme.m4a:<3,295200,Kiko Loureiro - No Gravity>07 - Tapping Into My Dark Tranquility.m4a:<3,295200,Kiko Loureiro - No Gravity>08 - Moment Of Truth.m4a:<3,295200,Kiko Loureiro - No Gravity>09 - Beautiful Language.m4a:<2,295176,MUSIC>MAG Project - MAG Project:<3,295200,MAG Project - MAG Project>11 - Coma.m4a:<3,295200,MAG Project - MAG Project>01 - Cosmic Disturbance.m4a:<3,295200,MAG Project - MAG Project>02 - A Drop In The Sea.m4a:<3,295200,MAG Project - MAG Project>03 - Nowhere In Sight.m4a:<3,295200,MAG Project - MAG Project>04 - More Or Less.m4a:<3,295200,MAG Project - MAG Project>05 - Open Up.m4a:<3,295200,MAG Project - MAG Project>06 - Eternity.m4a:<3,295200,MAG Project - MAG Project>07 - Looking Up.m4a:<3,295200,MAG Project - MAG Project>08 - Storm.m4a:<3,295200,MAG Project - MAG Project>09 - No One Like You.m4a:<3,295200,MAG Project - MAG Project>10 - Highway 80.m4a:<2,295200,MUSIC>testfile.mp3:<2,295200,MUSIC>theforgottenpt2.mp3:<2,295176,MUSIC>Live - Throwing Copper:<3,295200,Live - Throwing Copper>09 - T.B.D..m4a:<3,295200,Live - Throwing Copper>10 - Stage.m4a:<3,295200,Live - Throwing Copper>11 - Waitress.m4a:<3,295200,Live - Throwing Copper>12 - Pillar Of Davidson.m4a:<3,295200,Live - Throwing Copper>13 - White, Discussion.m4a:<3,295200,Live - Throwing Copper>14 - Horse.m4a:<3,295200,Live - Throwing Copper>01 - The Dam At Otter Creek.m4a:<3,295200,Live - Throwing Copper>02 - Selling The Drama.m4a:<3,295200,Live - Throwing Copper>03 - I Alone.m4a:<3,295200,Live - Throwing Copper>04 - Iris.m4a:<3,295200,Live - Throwing Copper>05 - Lightning Crashes.m4a:<3,295200,Live - Throwing Copper>06 - Top.m4a:<3,295200,Live - Throwing Copper>07 - All Over You.m4a:<3,295200,Live - Throwing Copper>08 - Shit Towne.m4a:<2,295176,MUSIC>Megadeth - Youthanasia:<3,295200,Megadeth - Youthanasia>09 - Youthanasia.m4a:<3,295200,Megadeth - Youthanasia>10 - I Thought I Knew It All.m4a:<3,295200,Megadeth - Youthanasia>11 - Black Curtain.m4a:<3,295200,Megadeth - Youthanasia>12 - Victory.m4a:<3,295200,Megadeth - Youthanasia>01 - Reckoning Day.m4a:<3,295200,Megadeth - Youthanasia>02 - Train of Consequences.m4a:<3,295200,Megadeth - Youthanasia>03 - Addicted to Chaos.m4a:<3,295200,Megadeth - Youthanasia>04 - A Tout Le Monde.m4a:<3,295200,Megadeth - Youthanasia>05 - Elysian Fields.m4a:<3,295200,Megadeth - Youthanasia>06 - The Killing Road.m4a:<3,295200,Megadeth - Youthanasia>07 - Blood of Heroes.m4a:<3,295200,Megadeth - Youthanasia>08 - Family Tree.m4a:<2,295176,MUSIC>Metallica - Reload:<3,295200,Metallica - Reload>06 - Slither.m4a:<3,295200,Metallica - Reload>07 - Carpe Diem Baby.m4a:<3,295200,Metallica - Reload>08 - Bad Seed.m4a:<3,295200,Metallica - Reload>09 - Where The Wild Things Are.m4a:<3,295200,Metallica - Reload>10 - Prince Charming.m4a:<3,295200,Metallica - Reload>11 - Low Man's Lyric.m4a:<3,295200,Metallica - Reload>12 - Attitude.m4a:<3,295200,Metallica - Reload>13 - Fixxxer.m4a:<3,295200,Metallica - Reload>01 - Fuel.m4a:<3,295200,Metallica - Reload>02 - The Memory Remains.m4a:<3,295200,Metallica - Reload>03 - Devil's Dance.m4a:<3,295200,Metallica - Reload>04 - The Unforgiven II.m4a:<3,295200,Metallica - Reload>05 - Better Than You.m4a:<2,295176,MUSIC>Joe Satriani - The Extremist:<3,295200,Joe Satriani - The Extremist>05 - Rubina's Blue Sky Happiness.m4a:<3,295200,Joe Satriani - The Extremist>06 - Summer Song.m4a:<3,295200,Joe Satriani - The Extremist>07 - Tears In The Rain.m4a:<3,295200,Joe Satriani - The Extremist>08 - Why.m4a:<3,295200,Joe Satriani - The Extremist>09 - Motorcycle Driver.m4a:<3,295200,Joe Satriani - The Extremist>10 - New Blues.m4a:<3,295200,Joe Satriani - The Extremist>01 - Friends.m4a:<3,295200,Joe Satriani - The Extremist>02 - The Extremist.m4a:<3,295200,Joe Satriani - The Extremist>03 - War.m4a:<3,295200,Joe Satriani - The Extremist>04 - Cryin'.m4a:<2,295176,MUSIC>Angra - Holy Land:<3,295200,Angra - Holy Land>05 - Holy Land.m4a:<3,295200,Angra - Holy Land>06 - The Shaman.m4a:<3,295200,Angra - Holy Land>Angra - Holy Land.jpg:<3,295200,Angra - Holy Land>07 - Make Believe.m4a:<3,295200,Angra - Holy Land>08 - Z.I.T.O..m4a:<3,295200,Angra - Holy Land>09 - Deep Blue.m4a:<3,295200,Angra - Holy Land>10 - Lullaby For Lucifer.m4a:<3,295200,Angra - Holy Land>FOLDER.JPG:<3,295200,Angra - Holy Land>01 - Crossing.m4a:<3,295200,Angra - Holy Land>02 - Nothing To Say.m4a:<3,295200,Angra - Holy Land>03 - Silence And Distance.m4a:<3,295200,Angra - Holy Land>04 - Carolina IV.m4a:<2,295176,MUSIC>Joe Satriani - Joe Satriani:<3,295200,Joe Satriani - Joe Satriani>05 - S.M.F..m4a:<3,295200,Joe Satriani - Joe Satriani>06 - Look My Way.m4a:<3,295200,Joe Satriani - Joe Satriani>07 - Home.m4a:<3,295200,Joe Satriani - Joe Satriani>08 - Moroccan Sunset.m4a:<3,295200,Joe Satriani - Joe Satriani>09 - Killer Bee Bop.m4a:<3,295200,Joe Satriani - Joe Satriani>10 - Slow Down Blues.m4a:<3,295200,Joe Satriani - Joe Satriani>11 - (You're) My World.m4a:<3,295200,Joe Satriani - Joe Satriani>12 - Sittin' Around.m4a:<3,295200,Joe Satriani - Joe Satriani>01 - Cool #9.m4a:<3,295200,Joe Satriani - Joe Satriani>02 - If.m4a:<3,295200,Joe Satriani - Joe Satriani>03 - Down, Down, Down.m4a:<3,295200,Joe Satriani - Joe Satriani>04 - Luminous Flesh Giants.m4a:<2,295176,MUSIC>Dream Theater - A Change Of Seasons EP:<3,295200,Dream Theater - A Change Of Seasons EP>05 - The Big Medley.m4a:<3,295200,Dream Theater - A Change Of Seasons EP>01 - A Change Of Seasons.m4a:<3,295200,Dream Theater - A Change Of Seasons EP>02 - Funeral For A Friend_Love Lies Bleeding.m4a:<3,295200,Dream Theater - A Change Of Seasons EP>03 - Perfect Strangers.m4a:<3,295200,Dream Theater - A Change Of Seasons EP>04 - The Rover_Achilles Last Stand_The Song Remains The Same.m4a:<2,295176,MUSIC>Moist - Creature:<3,295200,Moist - Creature>04 - Leave It Alone.m4a:<3,295200,Moist - Creature>05 - Creature.m4a:<3,295200,Moist - Creature>06 - Shotgun.m4a:<3,295200,Moist - Creature>07 - Disco Days.m4a:<3,295200,Moist - Creature>08 - Tangerine.m4a:<3,295200,Moist - Creature>09 - Better Than You.m4a:<3,295200,Moist - Creature>10 - Baby Skin Tattoo.m4a:<3,295200,Moist - Creature>11 - Ophelia.m4a:<3,295200,Moist - Creature>12 - Gasoline.m4a:<3,295200,Moist - Creature>01 - Hate.m4a:<3,295200,Moist - Creature>02 - Theme From Cola.m4a:<3,295200,Moist - Creature>03 - Resurrection.m4a:<2,295176,MUSIC>Metallica - The Black Album:<3,295200,Metallica - The Black Album>01 - Enter Sandman.m4a:<3,295200,Metallica - The Black Album>02 - Sad But True.m4a:<3,295200,Metallica - The Black Album>03 - Holier Than Thou.m4a:<3,295200,Metallica - The Black Album>04 - The Unforgiven.m4a:<3,295200,Metallica - The Black Album>05 - Wherever I May Roam.m4a:<3,295200,Metallica - The Black Album>06 - Don't Tread On Me.m4a:<3,295200,Metallica - The Black Album>07 - Through The Never.m4a:<3,295200,Metallica - The Black Album>08 - Nothing Else Matters.m4a:<3,295200,Metallica - The Black Album>09 - Of Wolf And Man.m4a:<3,295200,Metallica - The Black Album>10 - The God That Failed.m4a:<3,295200,Metallica - The Black Album>11 - My Friend Of Misery.m4a:<3,295200,Metallica - The Black Album>12 - The Struggle Within.m4a:<1,295176,Storage Media>DCIM:<1,295176,Storage Media>PICTURE:<1,295176,Storage Media>PICTURES:<2,295176,PICTURES>autoshow:<3,295200,autoshow>DSC00014.JPG:<3,295200,autoshow>DSC00015.JPG:<3,295200,autoshow>DSC00016.JPG:<3,295200,autoshow>DSC00017.JPG:<3,295200,autoshow>DSC00018.JPG:<3,295200,autoshow>DSC00019.JPG:<3,295200,autoshow>DSC00021.JPG:<3,295200,autoshow>DSC00020.JPG:<3,295200,autoshow>DSC00003.JPG:<3,295200,autoshow>DSC00004.JPG:<3,295200,autoshow>DSC00005.JPG:<3,295200,autoshow>DSC00006.JPG:<3,295200,autoshow>DSC00007.JPG:<3,295200,autoshow>DSC00008.JPG:<3,295200,autoshow>DSC00009.JPG:<3,295200,autoshow>DSC00010.JPG:<3,295200,autoshow>DSC00011.JPG:<3,295200,autoshow>DSC00012.JPG:<3,295200,autoshow>DSC00013.JPG:<1,295176,Storage Media>VIDEO:<2,295200,VIDEO>test.mp4:<2,295200,VIDEO>subtest.mp4:<2,295200,VIDEO>Reboot 2x09 Trust No One (Dinothunderblack).mp4:<2,295200,VIDEO>Blue Harvest.JPG:<2,295200,VIDEO>Blue Harvest.mp4:<1,295176,Storage Media>MP_ROOT:<1,295200,Storage Media>WMPInfo.xml:<1,295176,Storage Media>Albums"
+        strTree = enumerateStorage()        
         If Not strTree = "-1" Then
             Try
                 theTreeView = buildTreeViewFromDirectoryTree(strTree, False)
             Catch ex As Exception
                 theTreeView = New TreeView
+                Trace.WriteLine("MTPAxe: building full directory tree - empty tree returned")
             End Try
         End If
 
         Return theTreeView
     End Function
     Public Function getTreeViewByName(ByVal storageItemName As String) As TreeView
-        'returns the tree of the MUSIC directory only
+        'returns the tree of the specified directory only
         'returns an empty treeview on error
+
+        Trace.WriteLine("MTPAxe: building directory tree for " & storageItemName)
 
         If axe Is Nothing Then Throw New Exception("MTPAxe is not started")
 
@@ -280,7 +288,6 @@
         'get the directory tree from the device
         Dim strTree As String
         strTree = enumerateStorage()
-        'strTree = "<0,295176,>Storage Media:<1,295200,Storage Media>DevIcon.fil:<1,295200,Storage Media>DevLogo.fil:<1,295200,Storage Media>capability_00.xml:<1,295176,Storage Media>MUSIC:<2,295176,MUSIC>Angra - Rebirth:<3,295200,Angra - Rebirth>01 - In Excelsis.m4a:<3,295200,Angra - Rebirth>02 - Nova Era.m4a:<3,295200,Angra - Rebirth>03 - Millenium Sun.m4a:<3,295200,Angra - Rebirth>04 - Acid Rain.m4a:<3,295200,Angra - Rebirth>05 - Heroes Of Sand.m4a:<3,295200,Angra - Rebirth>06 - Unholy Wars (Part I_ Imperial Crown; Part II_ Forgiven Return).m4a:<3,295200,Angra - Rebirth>07 - Rebirth.m4a:<3,295200,Angra - Rebirth>08 - Judgement Day.m4a:<3,295200,Angra - Rebirth>09 - Running Alone.m4a:<3,295200,Angra - Rebirth>10 - Visions Prelude.m4a:<2,295176,MUSIC>Falconer - The Sceptre Of Deception:<3,295200,Falconer - The Sceptre Of Deception>01 - The Coronation.m4a:<3,295200,Falconer - The Sceptre Of Deception>02 - The Trail Of Flames.m4a:<3,295200,Falconer - The Sceptre Of Deception>03 - Under The Sword.m4a:<3,295200,Falconer - The Sceptre Of Deception>04 - Night Of Infamy.m4a:<3,295200,Falconer - The Sceptre Of Deception>05 - Hooves Over Northland.m4a:<3,295200,Falconer - The Sceptre Of Deception>06 - Pledge For Freedom.m4a:<3,295200,Falconer - The Sceptre Of Deception>07 - Ravenhair.m4a:<3,295200,Falconer - The Sceptre Of Deception>08 - The Sceptre Of Deception.m4a:<3,295200,Falconer - The Sceptre Of Deception>09 - Hear Me Pray.m4a:<3,295200,Falconer - The Sceptre Of Deception>10 - Child Of Innocence.m4a:<2,295176,MUSIC>Dragonforce - Inhuman Rampage:<3,295200,Dragonforce - Inhuman Rampage>01 - Through The Fire And Flames.m4a:<3,295200,Dragonforce - Inhuman Rampage>02 - Revolution Deathsquad.m4a:<3,295200,Dragonforce - Inhuman Rampage>03 - Storming The Burning Fields.m4a:<3,295200,Dragonforce - Inhuman Rampage>04 - Operation Ground And Pound.m4a:<3,295200,Dragonforce - Inhuman Rampage>05 - Body Breakdown.m4a:<3,295200,Dragonforce - Inhuman Rampage>06 - Cry For Eternity.m4a:<3,295200,Dragonforce - Inhuman Rampage>07 - The Flame Of Youth.m4a:<3,295200,Dragonforce - Inhuman Rampage>08 - Trail Of Broken Hearts.m4a:<3,295200,Dragonforce - Inhuman Rampage>09 - Lost Souls In Endless Time.m4a:<2,295200,MUSIC>Bush - The Chemicals Between Us.mp3:<2,295176,MUSIC>Edu Falaschi - Almah:<3,295200,Edu Falaschi - Almah>01 - King.m4a:<3,295200,Edu Falaschi - Almah>02 - Take Back Your Spell.m4a:<3,295200,Edu Falaschi - Almah>03 - Forgotten Land (Com Edu Ardanu).m4a:<3,295200,Edu Falaschi - Almah>04 - Scary Zone.m4a:<3,295200,Edu Falaschi - Almah>05 - Children Of Lies.m4a:<3,295200,Edu Falaschi - Almah>06 - Break All The Welds.m4a:<3,295200,Edu Falaschi - Almah>07 - Golden Empire.m4a:<3,295200,Edu Falaschi - Almah>08 - Primitive Chaos.m4a:<3,295200,Edu Falaschi - Almah>09 - Breathe.m4a:<3,295200,Edu Falaschi - Almah>10 - Box Of Illusion.m4a:<3,295200,Edu Falaschi - Almah>11 - Almah.m4a:<2,295176,MUSIC>Kiko Loureiro - No Gravity:<3,295200,Kiko Loureiro - No Gravity>10 - In A Gentle Way.m4a:<3,295200,Kiko Loureiro - No Gravity>11 - Dilemma.m4a:<3,295200,Kiko Loureiro - No Gravity>12 - Feliz Desilusão.m4a:<3,295200,Kiko Loureiro - No Gravity>13 - Choro De Crianca.m4a:<3,295200,Kiko Loureiro - No Gravity>01 - Enfermo.m4a:<3,295200,Kiko Loureiro - No Gravity>02 - Endangered Species.m4a:<3,295200,Kiko Loureiro - No Gravity>03 - Escaping.m4a:<3,295200,Kiko Loureiro - No Gravity>04 - No Gravity.m4a:<3,295200,Kiko Loureiro - No Gravity>05 - Pau-De-Arara.m4a:<3,295200,Kiko Loureiro - No Gravity>06 - La Force De L'âme.m4a:<3,295200,Kiko Loureiro - No Gravity>07 - Tapping Into My Dark Tranquility.m4a:<3,295200,Kiko Loureiro - No Gravity>08 - Moment Of Truth.m4a:<3,295200,Kiko Loureiro - No Gravity>09 - Beautiful Language.m4a:<2,295176,MUSIC>MAG Project - MAG Project:<3,295200,MAG Project - MAG Project>11 - Coma.m4a:<3,295200,MAG Project - MAG Project>01 - Cosmic Disturbance.m4a:<3,295200,MAG Project - MAG Project>02 - A Drop In The Sea.m4a:<3,295200,MAG Project - MAG Project>03 - Nowhere In Sight.m4a:<3,295200,MAG Project - MAG Project>04 - More Or Less.m4a:<3,295200,MAG Project - MAG Project>05 - Open Up.m4a:<3,295200,MAG Project - MAG Project>06 - Eternity.m4a:<3,295200,MAG Project - MAG Project>07 - Looking Up.m4a:<3,295200,MAG Project - MAG Project>08 - Storm.m4a:<3,295200,MAG Project - MAG Project>09 - No One Like You.m4a:<3,295200,MAG Project - MAG Project>10 - Highway 80.m4a:<2,295200,MUSIC>testfile.mp3:<2,295200,MUSIC>theforgottenpt2.mp3:<2,295176,MUSIC>Live - Throwing Copper:<3,295200,Live - Throwing Copper>09 - T.B.D..m4a:<3,295200,Live - Throwing Copper>10 - Stage.m4a:<3,295200,Live - Throwing Copper>11 - Waitress.m4a:<3,295200,Live - Throwing Copper>12 - Pillar Of Davidson.m4a:<3,295200,Live - Throwing Copper>13 - White, Discussion.m4a:<3,295200,Live - Throwing Copper>14 - Horse.m4a:<3,295200,Live - Throwing Copper>01 - The Dam At Otter Creek.m4a:<3,295200,Live - Throwing Copper>02 - Selling The Drama.m4a:<3,295200,Live - Throwing Copper>03 - I Alone.m4a:<3,295200,Live - Throwing Copper>04 - Iris.m4a:<3,295200,Live - Throwing Copper>05 - Lightning Crashes.m4a:<3,295200,Live - Throwing Copper>06 - Top.m4a:<3,295200,Live - Throwing Copper>07 - All Over You.m4a:<3,295200,Live - Throwing Copper>08 - Shit Towne.m4a:<2,295176,MUSIC>Megadeth - Youthanasia:<3,295200,Megadeth - Youthanasia>09 - Youthanasia.m4a:<3,295200,Megadeth - Youthanasia>10 - I Thought I Knew It All.m4a:<3,295200,Megadeth - Youthanasia>11 - Black Curtain.m4a:<3,295200,Megadeth - Youthanasia>12 - Victory.m4a:<3,295200,Megadeth - Youthanasia>01 - Reckoning Day.m4a:<3,295200,Megadeth - Youthanasia>02 - Train of Consequences.m4a:<3,295200,Megadeth - Youthanasia>03 - Addicted to Chaos.m4a:<3,295200,Megadeth - Youthanasia>04 - A Tout Le Monde.m4a:<3,295200,Megadeth - Youthanasia>05 - Elysian Fields.m4a:<3,295200,Megadeth - Youthanasia>06 - The Killing Road.m4a:<3,295200,Megadeth - Youthanasia>07 - Blood of Heroes.m4a:<3,295200,Megadeth - Youthanasia>08 - Family Tree.m4a:<2,295176,MUSIC>Metallica - Reload:<3,295200,Metallica - Reload>06 - Slither.m4a:<3,295200,Metallica - Reload>07 - Carpe Diem Baby.m4a:<3,295200,Metallica - Reload>08 - Bad Seed.m4a:<3,295200,Metallica - Reload>09 - Where The Wild Things Are.m4a:<3,295200,Metallica - Reload>10 - Prince Charming.m4a:<3,295200,Metallica - Reload>11 - Low Man's Lyric.m4a:<3,295200,Metallica - Reload>12 - Attitude.m4a:<3,295200,Metallica - Reload>13 - Fixxxer.m4a:<3,295200,Metallica - Reload>01 - Fuel.m4a:<3,295200,Metallica - Reload>02 - The Memory Remains.m4a:<3,295200,Metallica - Reload>03 - Devil's Dance.m4a:<3,295200,Metallica - Reload>04 - The Unforgiven II.m4a:<3,295200,Metallica - Reload>05 - Better Than You.m4a:<2,295176,MUSIC>Joe Satriani - The Extremist:<3,295200,Joe Satriani - The Extremist>05 - Rubina's Blue Sky Happiness.m4a:<3,295200,Joe Satriani - The Extremist>06 - Summer Song.m4a:<3,295200,Joe Satriani - The Extremist>07 - Tears In The Rain.m4a:<3,295200,Joe Satriani - The Extremist>08 - Why.m4a:<3,295200,Joe Satriani - The Extremist>09 - Motorcycle Driver.m4a:<3,295200,Joe Satriani - The Extremist>10 - New Blues.m4a:<3,295200,Joe Satriani - The Extremist>01 - Friends.m4a:<3,295200,Joe Satriani - The Extremist>02 - The Extremist.m4a:<3,295200,Joe Satriani - The Extremist>03 - War.m4a:<3,295200,Joe Satriani - The Extremist>04 - Cryin'.m4a:<2,295176,MUSIC>Angra - Holy Land:<3,295200,Angra - Holy Land>05 - Holy Land.m4a:<3,295200,Angra - Holy Land>06 - The Shaman.m4a:<3,295200,Angra - Holy Land>Angra - Holy Land.jpg:<3,295200,Angra - Holy Land>07 - Make Believe.m4a:<3,295200,Angra - Holy Land>08 - Z.I.T.O..m4a:<3,295200,Angra - Holy Land>09 - Deep Blue.m4a:<3,295200,Angra - Holy Land>10 - Lullaby For Lucifer.m4a:<3,295200,Angra - Holy Land>FOLDER.JPG:<3,295200,Angra - Holy Land>01 - Crossing.m4a:<3,295200,Angra - Holy Land>02 - Nothing To Say.m4a:<3,295200,Angra - Holy Land>03 - Silence And Distance.m4a:<3,295200,Angra - Holy Land>04 - Carolina IV.m4a:<2,295176,MUSIC>Joe Satriani - Joe Satriani:<3,295200,Joe Satriani - Joe Satriani>05 - S.M.F..m4a:<3,295200,Joe Satriani - Joe Satriani>06 - Look My Way.m4a:<3,295200,Joe Satriani - Joe Satriani>07 - Home.m4a:<3,295200,Joe Satriani - Joe Satriani>08 - Moroccan Sunset.m4a:<3,295200,Joe Satriani - Joe Satriani>09 - Killer Bee Bop.m4a:<3,295200,Joe Satriani - Joe Satriani>10 - Slow Down Blues.m4a:<3,295200,Joe Satriani - Joe Satriani>11 - (You're) My World.m4a:<3,295200,Joe Satriani - Joe Satriani>12 - Sittin' Around.m4a:<3,295200,Joe Satriani - Joe Satriani>01 - Cool #9.m4a:<3,295200,Joe Satriani - Joe Satriani>02 - If.m4a:<3,295200,Joe Satriani - Joe Satriani>03 - Down, Down, Down.m4a:<3,295200,Joe Satriani - Joe Satriani>04 - Luminous Flesh Giants.m4a:<2,295176,MUSIC>Dream Theater - A Change Of Seasons EP:<3,295200,Dream Theater - A Change Of Seasons EP>05 - The Big Medley.m4a:<3,295200,Dream Theater - A Change Of Seasons EP>01 - A Change Of Seasons.m4a:<3,295200,Dream Theater - A Change Of Seasons EP>02 - Funeral For A Friend_Love Lies Bleeding.m4a:<3,295200,Dream Theater - A Change Of Seasons EP>03 - Perfect Strangers.m4a:<3,295200,Dream Theater - A Change Of Seasons EP>04 - The Rover_Achilles Last Stand_The Song Remains The Same.m4a:<2,295176,MUSIC>Moist - Creature:<3,295200,Moist - Creature>04 - Leave It Alone.m4a:<3,295200,Moist - Creature>05 - Creature.m4a:<3,295200,Moist - Creature>06 - Shotgun.m4a:<3,295200,Moist - Creature>07 - Disco Days.m4a:<3,295200,Moist - Creature>08 - Tangerine.m4a:<3,295200,Moist - Creature>09 - Better Than You.m4a:<3,295200,Moist - Creature>10 - Baby Skin Tattoo.m4a:<3,295200,Moist - Creature>11 - Ophelia.m4a:<3,295200,Moist - Creature>12 - Gasoline.m4a:<3,295200,Moist - Creature>01 - Hate.m4a:<3,295200,Moist - Creature>02 - Theme From Cola.m4a:<3,295200,Moist - Creature>03 - Resurrection.m4a:<2,295176,MUSIC>Metallica - The Black Album:<3,295200,Metallica - The Black Album>01 - Enter Sandman.m4a:<3,295200,Metallica - The Black Album>02 - Sad But True.m4a:<3,295200,Metallica - The Black Album>03 - Holier Than Thou.m4a:<3,295200,Metallica - The Black Album>04 - The Unforgiven.m4a:<3,295200,Metallica - The Black Album>05 - Wherever I May Roam.m4a:<3,295200,Metallica - The Black Album>06 - Don't Tread On Me.m4a:<3,295200,Metallica - The Black Album>07 - Through The Never.m4a:<3,295200,Metallica - The Black Album>08 - Nothing Else Matters.m4a:<3,295200,Metallica - The Black Album>09 - Of Wolf And Man.m4a:<3,295200,Metallica - The Black Album>10 - The God That Failed.m4a:<3,295200,Metallica - The Black Album>11 - My Friend Of Misery.m4a:<3,295200,Metallica - The Black Album>12 - The Struggle Within.m4a:<1,295176,Storage Media>DCIM:<1,295176,Storage Media>PICTURE:<1,295176,Storage Media>PICTURES:<2,295176,PICTURES>autoshow:<3,295200,autoshow>DSC00014.JPG:<3,295200,autoshow>DSC00015.JPG:<3,295200,autoshow>DSC00016.JPG:<3,295200,autoshow>DSC00017.JPG:<3,295200,autoshow>DSC00018.JPG:<3,295200,autoshow>DSC00019.JPG:<3,295200,autoshow>DSC00021.JPG:<3,295200,autoshow>DSC00020.JPG:<3,295200,autoshow>DSC00003.JPG:<3,295200,autoshow>DSC00004.JPG:<3,295200,autoshow>DSC00005.JPG:<3,295200,autoshow>DSC00006.JPG:<3,295200,autoshow>DSC00007.JPG:<3,295200,autoshow>DSC00008.JPG:<3,295200,autoshow>DSC00009.JPG:<3,295200,autoshow>DSC00010.JPG:<3,295200,autoshow>DSC00011.JPG:<3,295200,autoshow>DSC00012.JPG:<3,295200,autoshow>DSC00013.JPG:<1,295176,Storage Media>VIDEO:<2,295200,VIDEO>test.mp4:<2,295200,VIDEO>subtest.mp4:<2,295200,VIDEO>Reboot 2x09 Trust No One (Dinothunderblack).mp4:<2,295200,VIDEO>Blue Harvest.JPG:<2,295200,VIDEO>Blue Harvest.mp4:<1,295176,Storage Media>MP_ROOT:<1,295200,Storage Media>WMPInfo.xml:<1,295176,Storage Media>Albums"
         If Not strTree = "-1" Then
             Try
                 'get the full tree first
@@ -300,6 +307,7 @@
 
             Catch ex As Exception
                 theTreeView = New TreeView
+                Trace.WriteLine("MTPAxe: building directory tree for " & storageItemName & " - empty tree returned")
             End Try
 
         End If
@@ -493,6 +501,8 @@
         'this function returns "-1" on error otherwise
         'MTPAxe returns -1 on error, 0 otherwise
 
+        Trace.WriteLine("MTPAxe: creating playlist " & playlistName)
+
         Dim s As String
 
         If axe Is Nothing Then Throw New Exception("MTPAxe is not started")
@@ -505,7 +515,7 @@
         s = sIn.ReadLine
 
         If s = "-1" Then
-            Trace.WriteLine(sErr.ReadLine)
+            Trace.WriteLine("MTPAxe: creating playlist" & sErr.ReadLine)
             Return "-1"
         End If
 
@@ -516,6 +526,8 @@
         'the first one is deleted
         'this function returns "-1" on error otherwise
         'MTPAxe returns -1 on error, 0 otherwise
+
+        Trace.WriteLine("MTPAxe: deleting playlist " & playlistName)
 
         Dim s As String
 
@@ -528,7 +540,7 @@
         s = sIn.ReadLine
 
         If s = "-1" Then
-            Trace.WriteLine(sErr.ReadLine)
+            Trace.WriteLine("MTPAxe: deleting playlist error - " & sErr.ReadLine)
             Return "-1"
         End If
 
@@ -538,6 +550,8 @@
         'gets the contents of a playlist in the same format as enumerateStorage
         'this function returns "-1" on error otherwise
         'MTPAxe returns -1 on error, 0 otherwise
+
+        Trace.WriteLine("MTPAxe: enumerating playlist contents")
 
         Dim s As String
 
@@ -550,7 +564,7 @@
         s = sIn.ReadLine
 
         If s = "-1" Then
-            Trace.WriteLine(sErr.ReadLine)
+            Trace.WriteLine("MTPAxe: enumerating playlist contents error - " & sErr.ReadLine)
             Return "-1"
         End If
 
@@ -560,6 +574,7 @@
         'returns the full directory structure of the device
         'returns an empty treeview if theplaylist is empty
 
+        Trace.WriteLine("MTPAxe: bulding playlist contents")
         If axe Is Nothing Then Throw New Exception("MTPAxe is not started")
 
         Dim theTreeView As New TreeView
@@ -567,12 +582,12 @@
         'get the directory tree from the device
         Dim strTree As String
         strTree = enumeratePlaylist(name)
-        'strTree = "<0,295176,>Storage Media:<1,295200,Storage Media>DevIcon.fil:<1,295200,Storage Media>DevLogo.fil:<1,295200,Storage Media>capability_00.xml:<1,295176,Storage Media>MUSIC:<2,295176,MUSIC>Angra - Rebirth:<3,295200,Angra - Rebirth>01 - In Excelsis.m4a:<3,295200,Angra - Rebirth>02 - Nova Era.m4a:<3,295200,Angra - Rebirth>03 - Millenium Sun.m4a:<3,295200,Angra - Rebirth>04 - Acid Rain.m4a:<3,295200,Angra - Rebirth>05 - Heroes Of Sand.m4a:<3,295200,Angra - Rebirth>06 - Unholy Wars (Part I_ Imperial Crown; Part II_ Forgiven Return).m4a:<3,295200,Angra - Rebirth>07 - Rebirth.m4a:<3,295200,Angra - Rebirth>08 - Judgement Day.m4a:<3,295200,Angra - Rebirth>09 - Running Alone.m4a:<3,295200,Angra - Rebirth>10 - Visions Prelude.m4a:<2,295176,MUSIC>Falconer - The Sceptre Of Deception:<3,295200,Falconer - The Sceptre Of Deception>01 - The Coronation.m4a:<3,295200,Falconer - The Sceptre Of Deception>02 - The Trail Of Flames.m4a:<3,295200,Falconer - The Sceptre Of Deception>03 - Under The Sword.m4a:<3,295200,Falconer - The Sceptre Of Deception>04 - Night Of Infamy.m4a:<3,295200,Falconer - The Sceptre Of Deception>05 - Hooves Over Northland.m4a:<3,295200,Falconer - The Sceptre Of Deception>06 - Pledge For Freedom.m4a:<3,295200,Falconer - The Sceptre Of Deception>07 - Ravenhair.m4a:<3,295200,Falconer - The Sceptre Of Deception>08 - The Sceptre Of Deception.m4a:<3,295200,Falconer - The Sceptre Of Deception>09 - Hear Me Pray.m4a:<3,295200,Falconer - The Sceptre Of Deception>10 - Child Of Innocence.m4a:<2,295176,MUSIC>Dragonforce - Inhuman Rampage:<3,295200,Dragonforce - Inhuman Rampage>01 - Through The Fire And Flames.m4a:<3,295200,Dragonforce - Inhuman Rampage>02 - Revolution Deathsquad.m4a:<3,295200,Dragonforce - Inhuman Rampage>03 - Storming The Burning Fields.m4a:<3,295200,Dragonforce - Inhuman Rampage>04 - Operation Ground And Pound.m4a:<3,295200,Dragonforce - Inhuman Rampage>05 - Body Breakdown.m4a:<3,295200,Dragonforce - Inhuman Rampage>06 - Cry For Eternity.m4a:<3,295200,Dragonforce - Inhuman Rampage>07 - The Flame Of Youth.m4a:<3,295200,Dragonforce - Inhuman Rampage>08 - Trail Of Broken Hearts.m4a:<3,295200,Dragonforce - Inhuman Rampage>09 - Lost Souls In Endless Time.m4a:<2,295200,MUSIC>Bush - The Chemicals Between Us.mp3:<2,295176,MUSIC>Edu Falaschi - Almah:<3,295200,Edu Falaschi - Almah>01 - King.m4a:<3,295200,Edu Falaschi - Almah>02 - Take Back Your Spell.m4a:<3,295200,Edu Falaschi - Almah>03 - Forgotten Land (Com Edu Ardanu).m4a:<3,295200,Edu Falaschi - Almah>04 - Scary Zone.m4a:<3,295200,Edu Falaschi - Almah>05 - Children Of Lies.m4a:<3,295200,Edu Falaschi - Almah>06 - Break All The Welds.m4a:<3,295200,Edu Falaschi - Almah>07 - Golden Empire.m4a:<3,295200,Edu Falaschi - Almah>08 - Primitive Chaos.m4a:<3,295200,Edu Falaschi - Almah>09 - Breathe.m4a:<3,295200,Edu Falaschi - Almah>10 - Box Of Illusion.m4a:<3,295200,Edu Falaschi - Almah>11 - Almah.m4a:<2,295176,MUSIC>Kiko Loureiro - No Gravity:<3,295200,Kiko Loureiro - No Gravity>10 - In A Gentle Way.m4a:<3,295200,Kiko Loureiro - No Gravity>11 - Dilemma.m4a:<3,295200,Kiko Loureiro - No Gravity>12 - Feliz Desilusão.m4a:<3,295200,Kiko Loureiro - No Gravity>13 - Choro De Crianca.m4a:<3,295200,Kiko Loureiro - No Gravity>01 - Enfermo.m4a:<3,295200,Kiko Loureiro - No Gravity>02 - Endangered Species.m4a:<3,295200,Kiko Loureiro - No Gravity>03 - Escaping.m4a:<3,295200,Kiko Loureiro - No Gravity>04 - No Gravity.m4a:<3,295200,Kiko Loureiro - No Gravity>05 - Pau-De-Arara.m4a:<3,295200,Kiko Loureiro - No Gravity>06 - La Force De L'âme.m4a:<3,295200,Kiko Loureiro - No Gravity>07 - Tapping Into My Dark Tranquility.m4a:<3,295200,Kiko Loureiro - No Gravity>08 - Moment Of Truth.m4a:<3,295200,Kiko Loureiro - No Gravity>09 - Beautiful Language.m4a:<2,295176,MUSIC>MAG Project - MAG Project:<3,295200,MAG Project - MAG Project>11 - Coma.m4a:<3,295200,MAG Project - MAG Project>01 - Cosmic Disturbance.m4a:<3,295200,MAG Project - MAG Project>02 - A Drop In The Sea.m4a:<3,295200,MAG Project - MAG Project>03 - Nowhere In Sight.m4a:<3,295200,MAG Project - MAG Project>04 - More Or Less.m4a:<3,295200,MAG Project - MAG Project>05 - Open Up.m4a:<3,295200,MAG Project - MAG Project>06 - Eternity.m4a:<3,295200,MAG Project - MAG Project>07 - Looking Up.m4a:<3,295200,MAG Project - MAG Project>08 - Storm.m4a:<3,295200,MAG Project - MAG Project>09 - No One Like You.m4a:<3,295200,MAG Project - MAG Project>10 - Highway 80.m4a:<2,295200,MUSIC>testfile.mp3:<2,295200,MUSIC>theforgottenpt2.mp3:<2,295176,MUSIC>Live - Throwing Copper:<3,295200,Live - Throwing Copper>09 - T.B.D..m4a:<3,295200,Live - Throwing Copper>10 - Stage.m4a:<3,295200,Live - Throwing Copper>11 - Waitress.m4a:<3,295200,Live - Throwing Copper>12 - Pillar Of Davidson.m4a:<3,295200,Live - Throwing Copper>13 - White, Discussion.m4a:<3,295200,Live - Throwing Copper>14 - Horse.m4a:<3,295200,Live - Throwing Copper>01 - The Dam At Otter Creek.m4a:<3,295200,Live - Throwing Copper>02 - Selling The Drama.m4a:<3,295200,Live - Throwing Copper>03 - I Alone.m4a:<3,295200,Live - Throwing Copper>04 - Iris.m4a:<3,295200,Live - Throwing Copper>05 - Lightning Crashes.m4a:<3,295200,Live - Throwing Copper>06 - Top.m4a:<3,295200,Live - Throwing Copper>07 - All Over You.m4a:<3,295200,Live - Throwing Copper>08 - Shit Towne.m4a:<2,295176,MUSIC>Megadeth - Youthanasia:<3,295200,Megadeth - Youthanasia>09 - Youthanasia.m4a:<3,295200,Megadeth - Youthanasia>10 - I Thought I Knew It All.m4a:<3,295200,Megadeth - Youthanasia>11 - Black Curtain.m4a:<3,295200,Megadeth - Youthanasia>12 - Victory.m4a:<3,295200,Megadeth - Youthanasia>01 - Reckoning Day.m4a:<3,295200,Megadeth - Youthanasia>02 - Train of Consequences.m4a:<3,295200,Megadeth - Youthanasia>03 - Addicted to Chaos.m4a:<3,295200,Megadeth - Youthanasia>04 - A Tout Le Monde.m4a:<3,295200,Megadeth - Youthanasia>05 - Elysian Fields.m4a:<3,295200,Megadeth - Youthanasia>06 - The Killing Road.m4a:<3,295200,Megadeth - Youthanasia>07 - Blood of Heroes.m4a:<3,295200,Megadeth - Youthanasia>08 - Family Tree.m4a:<2,295176,MUSIC>Metallica - Reload:<3,295200,Metallica - Reload>06 - Slither.m4a:<3,295200,Metallica - Reload>07 - Carpe Diem Baby.m4a:<3,295200,Metallica - Reload>08 - Bad Seed.m4a:<3,295200,Metallica - Reload>09 - Where The Wild Things Are.m4a:<3,295200,Metallica - Reload>10 - Prince Charming.m4a:<3,295200,Metallica - Reload>11 - Low Man's Lyric.m4a:<3,295200,Metallica - Reload>12 - Attitude.m4a:<3,295200,Metallica - Reload>13 - Fixxxer.m4a:<3,295200,Metallica - Reload>01 - Fuel.m4a:<3,295200,Metallica - Reload>02 - The Memory Remains.m4a:<3,295200,Metallica - Reload>03 - Devil's Dance.m4a:<3,295200,Metallica - Reload>04 - The Unforgiven II.m4a:<3,295200,Metallica - Reload>05 - Better Than You.m4a:<2,295176,MUSIC>Joe Satriani - The Extremist:<3,295200,Joe Satriani - The Extremist>05 - Rubina's Blue Sky Happiness.m4a:<3,295200,Joe Satriani - The Extremist>06 - Summer Song.m4a:<3,295200,Joe Satriani - The Extremist>07 - Tears In The Rain.m4a:<3,295200,Joe Satriani - The Extremist>08 - Why.m4a:<3,295200,Joe Satriani - The Extremist>09 - Motorcycle Driver.m4a:<3,295200,Joe Satriani - The Extremist>10 - New Blues.m4a:<3,295200,Joe Satriani - The Extremist>01 - Friends.m4a:<3,295200,Joe Satriani - The Extremist>02 - The Extremist.m4a:<3,295200,Joe Satriani - The Extremist>03 - War.m4a:<3,295200,Joe Satriani - The Extremist>04 - Cryin'.m4a:<2,295176,MUSIC>Angra - Holy Land:<3,295200,Angra - Holy Land>05 - Holy Land.m4a:<3,295200,Angra - Holy Land>06 - The Shaman.m4a:<3,295200,Angra - Holy Land>Angra - Holy Land.jpg:<3,295200,Angra - Holy Land>07 - Make Believe.m4a:<3,295200,Angra - Holy Land>08 - Z.I.T.O..m4a:<3,295200,Angra - Holy Land>09 - Deep Blue.m4a:<3,295200,Angra - Holy Land>10 - Lullaby For Lucifer.m4a:<3,295200,Angra - Holy Land>FOLDER.JPG:<3,295200,Angra - Holy Land>01 - Crossing.m4a:<3,295200,Angra - Holy Land>02 - Nothing To Say.m4a:<3,295200,Angra - Holy Land>03 - Silence And Distance.m4a:<3,295200,Angra - Holy Land>04 - Carolina IV.m4a:<2,295176,MUSIC>Joe Satriani - Joe Satriani:<3,295200,Joe Satriani - Joe Satriani>05 - S.M.F..m4a:<3,295200,Joe Satriani - Joe Satriani>06 - Look My Way.m4a:<3,295200,Joe Satriani - Joe Satriani>07 - Home.m4a:<3,295200,Joe Satriani - Joe Satriani>08 - Moroccan Sunset.m4a:<3,295200,Joe Satriani - Joe Satriani>09 - Killer Bee Bop.m4a:<3,295200,Joe Satriani - Joe Satriani>10 - Slow Down Blues.m4a:<3,295200,Joe Satriani - Joe Satriani>11 - (You're) My World.m4a:<3,295200,Joe Satriani - Joe Satriani>12 - Sittin' Around.m4a:<3,295200,Joe Satriani - Joe Satriani>01 - Cool #9.m4a:<3,295200,Joe Satriani - Joe Satriani>02 - If.m4a:<3,295200,Joe Satriani - Joe Satriani>03 - Down, Down, Down.m4a:<3,295200,Joe Satriani - Joe Satriani>04 - Luminous Flesh Giants.m4a:<2,295176,MUSIC>Dream Theater - A Change Of Seasons EP:<3,295200,Dream Theater - A Change Of Seasons EP>05 - The Big Medley.m4a:<3,295200,Dream Theater - A Change Of Seasons EP>01 - A Change Of Seasons.m4a:<3,295200,Dream Theater - A Change Of Seasons EP>02 - Funeral For A Friend_Love Lies Bleeding.m4a:<3,295200,Dream Theater - A Change Of Seasons EP>03 - Perfect Strangers.m4a:<3,295200,Dream Theater - A Change Of Seasons EP>04 - The Rover_Achilles Last Stand_The Song Remains The Same.m4a:<2,295176,MUSIC>Moist - Creature:<3,295200,Moist - Creature>04 - Leave It Alone.m4a:<3,295200,Moist - Creature>05 - Creature.m4a:<3,295200,Moist - Creature>06 - Shotgun.m4a:<3,295200,Moist - Creature>07 - Disco Days.m4a:<3,295200,Moist - Creature>08 - Tangerine.m4a:<3,295200,Moist - Creature>09 - Better Than You.m4a:<3,295200,Moist - Creature>10 - Baby Skin Tattoo.m4a:<3,295200,Moist - Creature>11 - Ophelia.m4a:<3,295200,Moist - Creature>12 - Gasoline.m4a:<3,295200,Moist - Creature>01 - Hate.m4a:<3,295200,Moist - Creature>02 - Theme From Cola.m4a:<3,295200,Moist - Creature>03 - Resurrection.m4a:<2,295176,MUSIC>Metallica - The Black Album:<3,295200,Metallica - The Black Album>01 - Enter Sandman.m4a:<3,295200,Metallica - The Black Album>02 - Sad But True.m4a:<3,295200,Metallica - The Black Album>03 - Holier Than Thou.m4a:<3,295200,Metallica - The Black Album>04 - The Unforgiven.m4a:<3,295200,Metallica - The Black Album>05 - Wherever I May Roam.m4a:<3,295200,Metallica - The Black Album>06 - Don't Tread On Me.m4a:<3,295200,Metallica - The Black Album>07 - Through The Never.m4a:<3,295200,Metallica - The Black Album>08 - Nothing Else Matters.m4a:<3,295200,Metallica - The Black Album>09 - Of Wolf And Man.m4a:<3,295200,Metallica - The Black Album>10 - The God That Failed.m4a:<3,295200,Metallica - The Black Album>11 - My Friend Of Misery.m4a:<3,295200,Metallica - The Black Album>12 - The Struggle Within.m4a:<1,295176,Storage Media>DCIM:<1,295176,Storage Media>PICTURE:<1,295176,Storage Media>PICTURES:<2,295176,PICTURES>autoshow:<3,295200,autoshow>DSC00014.JPG:<3,295200,autoshow>DSC00015.JPG:<3,295200,autoshow>DSC00016.JPG:<3,295200,autoshow>DSC00017.JPG:<3,295200,autoshow>DSC00018.JPG:<3,295200,autoshow>DSC00019.JPG:<3,295200,autoshow>DSC00021.JPG:<3,295200,autoshow>DSC00020.JPG:<3,295200,autoshow>DSC00003.JPG:<3,295200,autoshow>DSC00004.JPG:<3,295200,autoshow>DSC00005.JPG:<3,295200,autoshow>DSC00006.JPG:<3,295200,autoshow>DSC00007.JPG:<3,295200,autoshow>DSC00008.JPG:<3,295200,autoshow>DSC00009.JPG:<3,295200,autoshow>DSC00010.JPG:<3,295200,autoshow>DSC00011.JPG:<3,295200,autoshow>DSC00012.JPG:<3,295200,autoshow>DSC00013.JPG:<1,295176,Storage Media>VIDEO:<2,295200,VIDEO>test.mp4:<2,295200,VIDEO>subtest.mp4:<2,295200,VIDEO>Reboot 2x09 Trust No One (Dinothunderblack).mp4:<2,295200,VIDEO>Blue Harvest.JPG:<2,295200,VIDEO>Blue Harvest.mp4:<1,295176,Storage Media>MP_ROOT:<1,295200,Storage Media>WMPInfo.xml:<1,295176,Storage Media>Albums"
         If Not strTree = "-1" Then
             Try
                 theTreeView = buildTreeViewFromDirectoryTree(strTree, True)
             Catch ex As Exception
                 theTreeView = New TreeView
+                Trace.WriteLine("MTPAxe: bulding playlist contents - empty playlist")
             End Try
         End If
 
@@ -583,6 +598,8 @@
     Public Function getDeviceIcon(ByVal savePath As String) As String
         'gets the device icon
         'this function returns "-1" on error, 0 otherwise
+
+        Trace.WriteLine("MTPAxe: saving device icon")
 
         Dim s As String
 
@@ -597,7 +614,7 @@
         s = sIn.ReadLine
 
         If s = "-1" Then
-            Trace.WriteLine(sErr.ReadLine)
+            Trace.WriteLine("MTPAxe: saving device icon error - " & sErr.ReadLine)
             Return "-1"
         End If
 
@@ -605,6 +622,8 @@
     End Function
     Public Function getDeviceCapacity() As String
         'returns the capacity of the current device and free space as a : separated string, -1 on error
+
+        Trace.WriteLine("MTPAxe: getting device capacity")
 
         Dim s As String
 
@@ -616,7 +635,7 @@
         s = sIn.ReadLine
 
         If s = "-1" Then
-            Trace.WriteLine(sErr.ReadLine)
+            Trace.WriteLine("MTPAxe: getting device capacity error - " & sErr.ReadLine)
             Return "-1"
         End If
 
@@ -624,11 +643,5 @@
     End Function
 
 #End Region
-
-
-
-
-
-
 
 End Class
