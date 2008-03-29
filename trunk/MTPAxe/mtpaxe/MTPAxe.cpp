@@ -11,6 +11,7 @@ HRESULT hr;
 //used for controlling whether to output to console or no
 //useful when calling routines internally
 bool gl_output_enabled=true;
+bool gl_output_to_file=false;
 
 //the device manager. all interaction after authentication
 //is done with the device manager
@@ -62,24 +63,42 @@ int _tmain(int argc, _TCHAR* argv[])
 						//deviceDeletePlaylist("playlist_name2");
 
 						break;}
-				case -2:
-					deviceDeletePlaylist(":io");
-					break;
 				case -3:
 					playlistEnumerateContents("playlist_name2");
 					break;
-				case -4:
-					{char items[MTPAXE_DEVICEENUMSTORAGE_MAXOUTPUTSTRINGSIZE];					
-					sprintf(items,"%s","<2,295200,MUSIC>testfile.mp3");
-					deviceCreatePlaylist("playlist_name2",items);
-					break;}
-				case -5:
-					{char items[MTPAXE_DEVICEENUMSTORAGE_MAXOUTPUTSTRINGSIZE];
-					//sprintf(items,"%s","<2,295200,MUSIC>testfile.mp3:<2,295200,MUSIC>Bush - The Chemicals Between Us.mp3");
-					sprintf(items,"%s","<3,295200,Angra - Rebirth>01 - In Excelsis.m4a:<2,295200,MUSIC>Bush - The Chemicals Between Us.mp3");
-					deviceCreatePlaylist("playlist_name2",items);
-					break;}
-
+				case -100:{
+					//this is for troubleshooting purposes
+					gl_output_to_file=true;
+					wmdmAuthenticate();
+					printf("Available devices:\n");
+					enumerateDevices();
+					char name[30];
+					printf("enter the device to enumerate (case sensitive): ");
+					scanf("%s",name);
+					setCurrentDevice(name);
+					printf("enumerating storage...");
+					deviceEnumerateStorage();
+					gl_output_to_file=false;
+					printf("\nenter 0 to exit:");
+					break;
+						 }
+				case -101:{
+					//for trouble shooting purposes, deltes a playlist if nothing else can delete it
+					wmdmAuthenticate();
+					printf("Available devices:\n");
+					enumerateDevices();
+					char name[30];
+					printf("enter the device to enumerate (case sensitive): ");
+					scanf("%s",name);
+					setCurrentDevice(name);
+					printf("enumerating storage...");
+					deviceEnumerateStorage();
+					printf("\nEnter name of playlist to delete: ");
+					scanf("%s",name);
+					deviceDeletePlaylist(name);
+					printf("enter 0 to exit:");
+					break;
+						  }
 				case MTPAXE_M_DEVICEMANAGER_GETREVISION:
 					getDeviceManagerRevision();
 					break;
@@ -141,7 +160,7 @@ int _tmain(int argc, _TCHAR* argv[])
 				default: break;
 
 			}
-		}else{returnMsg("MTPAxe by Dr. Zoidberg v0.2\n");}
+		}else{returnMsg("MTPAxe by Dr. Zoidberg v0.2.1\n");}
 
 	}while(!msg==MTPAXE_M_QUIT);
 
@@ -160,6 +179,24 @@ void returnMsg(char *value,char *errorMsg)
 		if(!errorMsg==NULL){
 			fprintf(stderr,"%s",errorMsg);
 			_flushall();
+		}
+	}
+
+	if(gl_output_to_file)
+	{
+		FILE *f;
+		f=fopen("MTPAxe_dump.txt", "w, ccs=UNICODE");
+		if(f==NULL)
+			printf("couldn't create dump file");
+		else{
+			_towchar theStringW(value);
+			fwprintf(f,L"%s\n",(LPWSTR)theStringW);
+			if(errorMsg!=NULL)
+			{
+				_towchar theErrorW(errorMsg);
+				fwprintf(f,L"error: %s\n",(LPWSTR)theErrorW);
+			}
+			fclose(f);
 		}
 	}
 }

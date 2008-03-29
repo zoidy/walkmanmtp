@@ -18,6 +18,7 @@ Public Class Main
     Private Sub ShowDebugWindowToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles ShowDebugWindowToolStripMenuItem.Click
         If Me.ShowDebugWindowToolStripMenuItem.Checked Then
             TraceOutput.Visible = True
+            TraceOutput.WindowState = FormWindowState.Normal
         Else
             TraceOutput.Visible = False
         End If
@@ -33,6 +34,7 @@ Public Class Main
         If Not axe Is Nothing Then
             If Not axe.stopAxe Then
                 MsgBox("Could not close MTPAxe")
+                Trace.WriteLine("Main form Closing: could not close MTPAxe")
             End If
             axe = Nothing
         End If
@@ -48,13 +50,14 @@ Public Class Main
                 .Location = New Point(-3, 16)
                 .Size = New Size(353, 418)
             End With
-            Me.initAndRefreshApp()
 
+            TraceOutput.Show(Me)
             TraceOutput.Visible = False
-            TraceOutput.Owner = Me
 
+            Trace.WriteLine("Application Starting...")
+            Me.initAndRefreshApp()
             Me.Activate()
-
+            Trace.WriteLine("Application Starting...Completed")
         End If
     End Sub
     Private Sub btnRefreshDevices_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnRefreshDevices.Click
@@ -71,7 +74,9 @@ Public Class Main
         t.SetApartmentState(Threading.ApartmentState.MTA)
         t.Start()
 
+        Trace.WriteLine("Start sync operation...")
         syncPlaylists()
+        Trace.WriteLine("Start sync operation...Completed")
 
         'check what tab is open when this button is clicked
         'that way, we can only refresh the necessary things instead of the whole app
@@ -87,6 +92,7 @@ Public Class Main
 
     Private Sub initAndRefreshApp()
         Splash.setText("Initializing and Reading Devices")
+
         Dim t As New Threading.Thread(New Threading.ThreadStart(AddressOf Splash.ShowDialog))
         t.SetApartmentState(Threading.ApartmentState.MTA)
         t.Start()
@@ -99,10 +105,11 @@ Public Class Main
             axe = Nothing
         End If
 
+        Trace.WriteLine("initAndRefresh: opening MTPAxe")
         axe = New MTPAxe
         If Not axe.startAxe Then
-            Trace.WriteLine("refreshDevices: could not start MTPAXE")
-            MsgBox("refreshDevices: could not start MTPAXE")
+            Trace.WriteLine("initAndRefresh: could not start MTPAXE")
+            MsgBox("initAndRefresh: could not start MTPAXE", MsgBoxStyle.Critical Or MsgBoxStyle.ApplicationModal)
             axe = Nothing
             Exit Sub
         End If
@@ -110,12 +117,13 @@ Public Class Main
 
 
         'enumerate devices 
+        Trace.WriteLine("initAndRefresh: enumerating devices")
         Dim devarr() As String
         Dim ret As String
         ret = axe.enumerateDevices
         If ret = "-1" Then
-            Trace.WriteLine("refreshDevices: no devices found")
-            MsgBox("no devices found")
+            Trace.WriteLine("initAndRefresh: no devices found")
+            MsgBox("no devices found", MsgBoxStyle.Critical Or MsgBoxStyle.ApplicationModal)
             Exit Sub
         End If
 
@@ -132,7 +140,7 @@ Public Class Main
     Private Sub initSelectedDevice(ByVal devName As String)
         If axe Is Nothing Then
             Trace.WriteLine("initSelectedDevice: MTPAxe is not initialized")
-            MsgBox("initSelectedDevice: MTPAxe is not initialized")
+            MsgBox("initSelectedDevice: MTPAxe is not initialized", MsgBoxStyle.Critical Or MsgBoxStyle.ApplicationModal)
             Exit Sub
         End If
 
@@ -140,6 +148,7 @@ Public Class Main
 
         Try
             'IMPORTANT: set the active device
+            Trace.WriteLine("initSelectedDevice: initializing device " & devName)
             If axe.setCurrentDevice(devName) = "-1" Then
                 Trace.WriteLine("initSelectedDevice: error setting " & devName & " to the current device")
                 Exit Sub
@@ -152,6 +161,7 @@ Public Class Main
             Me.lblManufacturer.Text = axe.getDeviceManufacturer()
 
             'get capacity
+            Trace.WriteLine("initSelectedDevice: getting device capacity")
             Dim ret() As String
             ret = axe.getDeviceCapacity().Split(":"c)
             If ret(0) = "-1" Then
@@ -166,16 +176,19 @@ Public Class Main
             Me.lblCapacity.Text = capacity & " MB"
 
             'get the icon
+            Trace.WriteLine("initSelectedDevice: getting device icon")
             Dim iconPath, retstr As String, mtpIcon As Icon
             iconPath = System.IO.Path.Combine(System.IO.Path.GetTempPath, "DevIcon.fil")
             retstr = axe.getDeviceIcon(iconPath.Replace("\"c, "\\"))
             If Not retstr = "-1" Then
                 mtpIcon = New Icon(iconPath, New Size(500, 500))
                 Me.pboxDevIcon.Image = mtpIcon.ToBitmap
+            Else
+                Trace.WriteLine("initSelectedDevice: device icon not found")
             End If
         Catch ex As Exception
-            Trace.WriteLine("Error initializing '" & devName & "'" & vbCrLf & ex.Message)
-            MsgBox("Error initializing '" & devName & "'" & vbCrLf & ex.Message, MsgBoxStyle.Critical)
+            Trace.WriteLine("initSelectedDevice: Error initializing '" & devName & "'" & vbCrLf & ex.Message)
+            MsgBox("Error initializing '" & devName & "'" & vbCrLf & ex.Message, MsgBoxStyle.Critical Or MsgBoxStyle.ApplicationModal)
         End Try
 
         Cursor.Current = Cursors.Default
@@ -187,6 +200,8 @@ Public Class Main
         '0.any playlist ending with * is a new or modified playlist
         '1.any playlist ending with * is deleted from the player
         '2.any non empty playlist ending with * is then re-created on the player
+
+        Trace.WriteLine("Syncing playlists...Deleting old playlists")
 
         Dim tpage As TabPage
 
@@ -211,11 +226,13 @@ Public Class Main
                 'so the wrong one could still be deleted
                 If axe.deletePlaylist(tpage.Text) = "-1" Then
                     Trace.WriteLine("Sync: error deleting playlist " & tpage.Text)
-                    MsgBox("Sync: error deleting playlist " & tpage.Text, MsgBoxStyle.Critical)
+                    MsgBox("Sync: error deleting playlist " & tpage.Text, MsgBoxStyle.Critical Or MsgBoxStyle.ApplicationModal)
                     Exit Sub
                 End If
             End If
         Next
+
+        Trace.WriteLine("Syncing playlists...adding new playlists")
 
         'any playlist ending in '*' that is not empty needs to be added to the player
         Dim lv As ListView
@@ -245,7 +262,7 @@ Public Class Main
 
                     If axe.createPlaylist(tpage.Text.Remove(tpage.Text.Length - 1, 1), str) = "-1" Then
                         Trace.WriteLine("Sync: error creating playlist " & tpage.Text)
-                        MsgBox("Sync: error creating playlist " & tpage.Text, MsgBoxStyle.Critical)
+                        MsgBox("Sync: error creating playlist " & tpage.Text, MsgBoxStyle.Critical Or MsgBoxStyle.Critical)
                         Exit Sub
                     End If
 
@@ -253,6 +270,7 @@ Public Class Main
             End If 'tpage.text.endswith
         Next
 
+        Trace.WriteLine("Syncing playlists...Done")
     End Sub
 
 
@@ -421,11 +439,13 @@ Public Class Main
 
         Me.tvPlaylistsFilesOnDevice.Nodes.Clear()
 
+        Trace.WriteLine("Getting music files...")
         tv = axe.getTreeViewByName("MUSIC")
+        Trace.WriteLine("Getting music files...Complete")
+
         Me.tvPlaylistsFilesOnDevice.ImageList = tv.ImageList
 
-        'enumerate storage on the device (necessary for all other device related functions to work)
-        'can use this enumeration to fill the directory tree
+
         For Each node As TreeNode In tv.Nodes
             Me.tvPlaylistsFilesOnDevice.Nodes.Add(node.Clone)
         Next
@@ -433,6 +453,8 @@ Public Class Main
     End Sub
     Private Sub refreshPlaylistsList()
         Dim tv, tv2 As TreeView
+
+        Trace.WriteLine("Refreshing playlists...")
 
         originalPlaylists = New Collection
 
@@ -483,6 +505,7 @@ Public Class Main
             originalTabPage.Tag = tpage.Tag
             originalPlaylists.Add(originalTabPage)
         Next
+        Trace.WriteLine("Refreshing playlists...complete")
     End Sub
 
 
@@ -592,6 +615,8 @@ Public Class Main
 #Region "FileTransfers"
 
     Private Sub refreshFileTransfersDeviceFiles()
+        Trace.WriteLine("Refreshing file list...")
+
         Dim tv As TreeView
 
         tv = axe.getFullTreeView
@@ -604,6 +629,8 @@ Public Class Main
             Me.TreeView1.Nodes.Add(node.Clone)
         Next
         Me.TreeView1.ExpandAll()
+
+        Trace.WriteLine("Refreshing file list...Complete")
     End Sub
 #End Region
 

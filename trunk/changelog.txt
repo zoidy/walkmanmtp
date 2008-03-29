@@ -1,0 +1,8 @@
+0.2.1 29-mar-08
+	-added lots of tracing code to aid in troubleshooting
+	-added some debug modes to MTPAxe
+0.2 27-mar-08
+	-improved the playlist making ability
+	-lots of bug fixes regarding playlist making
+0.1 28-mar-08
+	-initial preview release (a lot of stuff doesn't work)

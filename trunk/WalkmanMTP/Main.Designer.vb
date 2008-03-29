@@ -38,11 +38,10 @@ Partial Class Main
         Me.tabMain = New System.Windows.Forms.TabControl
         Me.tabpagePlaylists = New System.Windows.Forms.TabPage
         Me.SplitContainer1 = New System.Windows.Forms.SplitContainer
-        Me.tvPlaylistsFilesOnDevice = New WalkmanMTP.MultiSelectTreeview.MultiSelectTreeview
         Me.Label4 = New System.Windows.Forms.Label
         Me.btnPlaylistsFilesOnDeviceRefresh = New System.Windows.Forms.LinkLabel
-        Me.ImageList1 = New System.Windows.Forms.ImageList(Me.components)
         Me.btnRenamePlaylist = New System.Windows.Forms.Button
+        Me.ImageList1 = New System.Windows.Forms.ImageList(Me.components)
         Me.btnDeleteAllLists = New System.Windows.Forms.LinkLabel
         Me.btnDelPlaylist = New System.Windows.Forms.Button
         Me.btnAddPlaylist = New System.Windows.Forms.Button
@@ -69,6 +68,7 @@ Partial Class Main
         Me.btnRefreshDevices = New System.Windows.Forms.Button
         Me.ToolTip1 = New System.Windows.Forms.ToolTip(Me.components)
         Me.btnSync = New System.Windows.Forms.Button
+        Me.tvPlaylistsFilesOnDevice = New WalkmanMTP.MultiSelectTreeview.MultiSelectTreeview
         Me.MenuStrip1.SuspendLayout()
         Me.tabMain.SuspendLayout()
         Me.tabpagePlaylists.SuspendLayout()
@@ -117,21 +117,21 @@ Partial Class Main
         Me.ShowDeviceIconToolStripMenuItem.Checked = True
         Me.ShowDeviceIconToolStripMenuItem.CheckState = System.Windows.Forms.CheckState.Checked
         Me.ShowDeviceIconToolStripMenuItem.Name = "ShowDeviceIconToolStripMenuItem"
-        Me.ShowDeviceIconToolStripMenuItem.Size = New System.Drawing.Size(224, 22)
+        Me.ShowDeviceIconToolStripMenuItem.Size = New System.Drawing.Size(228, 22)
         Me.ShowDeviceIconToolStripMenuItem.Text = "Show device Icon"
         '
         'ToolStripSeparator2
         '
         Me.ToolStripSeparator2.Name = "ToolStripSeparator2"
-        Me.ToolStripSeparator2.Size = New System.Drawing.Size(221, 6)
+        Me.ToolStripSeparator2.Size = New System.Drawing.Size(225, 6)
         '
         'ShowDebugWindowToolStripMenuItem
         '
         Me.ShowDebugWindowToolStripMenuItem.CheckOnClick = True
         Me.ShowDebugWindowToolStripMenuItem.Name = "ShowDebugWindowToolStripMenuItem"
         Me.ShowDebugWindowToolStripMenuItem.ShortcutKeys = CType((System.Windows.Forms.Keys.Control Or System.Windows.Forms.Keys.B), System.Windows.Forms.Keys)
-        Me.ShowDebugWindowToolStripMenuItem.Size = New System.Drawing.Size(224, 22)
-        Me.ShowDebugWindowToolStripMenuItem.Text = "Show Debug Window"
+        Me.ShowDebugWindowToolStripMenuItem.Size = New System.Drawing.Size(228, 22)
+        Me.ShowDebugWindowToolStripMenuItem.Text = "Show Verbose Output"
         '
         'HelpToolStripMenuItem
         '
@@ -213,17 +213,6 @@ Partial Class Main
         Me.SplitContainer1.SplitterDistance = 351
         Me.SplitContainer1.TabIndex = 0
         '
-        'tvPlaylistsFilesOnDevice
-        '
-        Me.tvPlaylistsFilesOnDevice.Anchor = CType((((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Bottom) _
-                    Or System.Windows.Forms.AnchorStyles.Left) _
-                    Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
-        Me.tvPlaylistsFilesOnDevice.Location = New System.Drawing.Point(-3, 16)
-        Me.tvPlaylistsFilesOnDevice.Name = "tvPlaylistsFilesOnDevice"
-        Me.tvPlaylistsFilesOnDevice.SelectedNodes = CType(resources.GetObject("tvPlaylistsFilesOnDevice.SelectedNodes"), System.Collections.Generic.List(Of System.Windows.Forms.TreeNode))
-        Me.tvPlaylistsFilesOnDevice.Size = New System.Drawing.Size(353, 418)
-        Me.tvPlaylistsFilesOnDevice.TabIndex = 0
-        '
         'Label4
         '
         Me.Label4.AutoSize = True
@@ -245,6 +234,17 @@ Partial Class Main
         Me.btnPlaylistsFilesOnDeviceRefresh.TabStop = True
         Me.btnPlaylistsFilesOnDeviceRefresh.Text = "Refresh"
         '
+        'btnRenamePlaylist
+        '
+        Me.btnRenamePlaylist.ImageIndex = 4
+        Me.btnRenamePlaylist.ImageList = Me.ImageList1
+        Me.btnRenamePlaylist.Location = New System.Drawing.Point(8, 78)
+        Me.btnRenamePlaylist.Name = "btnRenamePlaylist"
+        Me.btnRenamePlaylist.Size = New System.Drawing.Size(25, 25)
+        Me.btnRenamePlaylist.TabIndex = 2
+        Me.ToolTip1.SetToolTip(Me.btnRenamePlaylist, "Rename Playlist")
+        Me.btnRenamePlaylist.UseVisualStyleBackColor = True
+        '
         'ImageList1
         '
         Me.ImageList1.ImageStream = CType(resources.GetObject("ImageList1.ImageStream"), System.Windows.Forms.ImageListStreamer)
@@ -258,17 +258,6 @@ Partial Class Main
         Me.ImageList1.Images.SetKeyName(6, "Down.png")
         Me.ImageList1.Images.SetKeyName(7, "Restart.png")
         Me.ImageList1.Images.SetKeyName(8, "Trash.png")
-        '
-        'btnRenamePlaylist
-        '
-        Me.btnRenamePlaylist.ImageIndex = 4
-        Me.btnRenamePlaylist.ImageList = Me.ImageList1
-        Me.btnRenamePlaylist.Location = New System.Drawing.Point(8, 78)
-        Me.btnRenamePlaylist.Name = "btnRenamePlaylist"
-        Me.btnRenamePlaylist.Size = New System.Drawing.Size(25, 25)
-        Me.btnRenamePlaylist.TabIndex = 2
-        Me.ToolTip1.SetToolTip(Me.btnRenamePlaylist, "Rename Playlist")
-        Me.btnRenamePlaylist.UseVisualStyleBackColor = True
         '
         'btnDeleteAllLists
         '
@@ -508,6 +497,17 @@ Partial Class Main
         Me.btnSync.Text = "Sync"
         Me.ToolTip1.SetToolTip(Me.btnSync, "All non empty playlists and albums will be written to the player")
         Me.btnSync.UseVisualStyleBackColor = True
+        '
+        'tvPlaylistsFilesOnDevice
+        '
+        Me.tvPlaylistsFilesOnDevice.Anchor = CType((((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Bottom) _
+                    Or System.Windows.Forms.AnchorStyles.Left) _
+                    Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
+        Me.tvPlaylistsFilesOnDevice.Location = New System.Drawing.Point(-3, 16)
+        Me.tvPlaylistsFilesOnDevice.Name = "tvPlaylistsFilesOnDevice"
+        Me.tvPlaylistsFilesOnDevice.SelectedNodes = CType(resources.GetObject("tvPlaylistsFilesOnDevice.SelectedNodes"), System.Collections.Generic.List(Of System.Windows.Forms.TreeNode))
+        Me.tvPlaylistsFilesOnDevice.Size = New System.Drawing.Size(353, 418)
+        Me.tvPlaylistsFilesOnDevice.TabIndex = 0
         '
         'Main
         '
