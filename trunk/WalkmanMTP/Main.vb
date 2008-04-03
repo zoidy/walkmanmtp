@@ -612,26 +612,121 @@ Public Class Main
     End Sub
 #End Region
 
-#Region "FileTransfers"
-
+#Region "FileManagement"
+    Private fullFileListing As TreeView
     Private Sub refreshFileTransfersDeviceFiles()
         Trace.WriteLine("Refreshing file list...")
 
-        Dim tv As TreeView
+        'get the stuff on the device (keep it in a global variable
+        'so we don't have to read the device whenever a folder is opened
+        fullFileListing = axe.getFullTreeView
+        Me.tvFileManagementDeviceFolders.ImageList = fullFileListing.ImageList
+        Me.tvFileManagementDeviceFolders.Nodes.Clear()
 
-        tv = axe.getFullTreeView
-        Me.TreeView1.ImageList = tv.ImageList
-        Me.TreeView1.Nodes.Clear()
 
-        'enumerate storage on the device (necessary for all other device related functions to work)
-        'can use this enumeration to fill the directory tree
-        For Each node As TreeNode In tv.Nodes
-            Me.TreeView1.Nodes.Add(node.Clone)
+        'add the folders directly without the root 'storage media' node
+        For Each node As TreeNode In fullFileListing.Nodes(0).Nodes
+            If node.Text = "MUSIC" Or node.Text = "PICTURES" Or node.Text = "VIDEO" Then
+                Me.tvFileManagementDeviceFolders.Nodes.Add(node.Clone)
+            End If
         Next
-        Me.TreeView1.ExpandAll()
+
+
+        'show only folders to the treeview
+        For Each node As TreeNode In Me.tvFileManagementDeviceFolders.Nodes
+            Me.refreshFileTransfersDeviceFiles_helper(node)
+        Next
+
+        Me.tvFileManagementDeviceFolders.ExpandAll()
+
 
         Trace.WriteLine("Refreshing file list...Complete")
     End Sub
+    Private Sub refreshFileTransfersDeviceFiles_helper(ByRef root As TreeNode)
+        Dim attribs() As String
+
+        Dim i As Integer = 0
+        Dim node As TreeNode
+
+        'show only folders. cant use for..each here because calling node.remove
+        'modifies the collection count and that screws up the enumerator
+        While i < root.Nodes.Count
+            node = root.Nodes(i)
+            i += 1
+            attribs = node.Tag.Split(","c)
+            If (Integer.Parse(attribs(1)) And MTPAxe.WMDM_FILE_ATTR_FOLDER) <> MTPAxe.WMDM_FILE_ATTR_FOLDER Then
+                If node.Text <> "MUSIC" And node.Text <> "VIDEOS" And node.Text <> "PICTURES" Then
+                    node.Remove()
+                    i = 0 'if we remove a node, reset the counter so we will look at the updated nodes list
+                End If
+            Else
+                Me.refreshFileTransfersDeviceFiles_helper(node)
+            End If
+        End While
+
+
+    End Sub
+
+
+
+    Private Sub tvFileManagementDeviceFolders_AfterSelect(ByVal sender As Object, ByVal e As System.Windows.Forms.TreeViewEventArgs) Handles tvFileManagementDeviceFolders.AfterSelect
+        Dim theNode As TreeNode = Me.tvFileManagementDeviceFolders_AfterSelect_helper(fullFileListing.Nodes(0), e.Node)
+        Dim attribs() As String
+
+        If theNode IsNot Nothing Then
+            'get all files in this folder (except other subfolders)
+            Me.lvFileManagementDeviceFilesInFolder.Items.Clear()
+            Me.lvFileManagementDeviceFilesInFolder.SmallImageList = fullFileListing.ImageList
+
+   
+            Dim lvItem As ListViewItem
+            For Each node As TreeNode In theNode.Nodes
+                'only add files
+                attribs = node.Tag.Split(","c)
+                If (attribs(1) And MTPAxe.WMDM_FILE_ATTR_FILE) = MTPAxe.WMDM_FILE_ATTR_FILE Then
+                    lvItem = New ListViewItem
+                    lvItem.Tag = node.Tag
+                    lvItem.Text = node.Text
+                    lvItem.ImageKey = node.ImageKey
+                    lvFileManagementDeviceFilesInFolder.Items.Add(lvItem)
+                End If
+            Next
+
+            If lvFileManagementDeviceFilesInFolder.Items.Count = 0 Then
+                lvFileManagementDeviceFilesInFolder.Items.Add("No files found")
+            End If
+
+
+        Else
+            MsgBox("Error finding " & e.Node.Text)
+            Trace.WriteLine("Error finding " & e.Node.Text)
+        End If
+    End Sub
+    Private Function tvFileManagementDeviceFolders_AfterSelect_helper(ByRef root As TreeNode, ByRef theNode As TreeNode) As TreeNode
+        'search for the specified node in the fullFileListing tree and 
+        'return it
+        Dim ret As TreeNode = Nothing
+
+        If root.Tag = theNode.Tag And root.Text = theNode.Text Then
+            Return root
+        End If
+
+        For Each node As TreeNode In root.Nodes
+            If node.Tag = theNode.Tag And node.Text = theNode.Text Then
+                ret = node 'check if the node is the folder we're looking for
+            ElseIf node.Nodes.Count > 0 Then
+                'else check the child nodes
+                ret = Me.tvFileManagementDeviceFolders_AfterSelect_helper(node, theNode)
+            End If
+
+            'if we found it, return it
+            If ret IsNot Nothing Then
+                Return ret
+            End If
+        Next
+
+        Return ret
+    End Function
 #End Region
 
 
@@ -681,6 +776,7 @@ Public Class Main
             Return ret
         End Function
     End Class
+
 
 
 End Class
