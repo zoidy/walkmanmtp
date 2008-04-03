@@ -25,6 +25,8 @@
 #define MTPAXE_M_DEVICE_DELETEPLAYLIST 27
 #define MTPAXE_M_PLAYLIST_ENUMERATECONTENTS 30
 #define MTPAXE_M_STORAGE_GETSIZEINFO 40
+#define MTPAXE_M_STORAGE_CREATEFROMFILE 41
+
 
 #define MTPAXE_DEVICEENUMSTORAGE_MAXOUTPUTSTRINGSIZE 512000
 #define MTPAXE_MAXNUMBEROFSTORAGEITEMS 40000
@@ -45,6 +47,7 @@ void deviceGetSupportedFormats(void);
 void deviceCreatePlaylist(char *,char *);
 void deviceDeletePlaylist(char*);
 void storageGetSizeInfo(void);
+void storageCreateFromFile(char*,char*);
 void playlistEnumerateContents(char*);
 
 
@@ -54,3 +57,4 @@ IWMDMDevice3 * findDevice(char*);
 void deviceCreatePlaylist_helper(char*,unsigned long*,IWMDMStorage**);
 void deviceEnumerateStorage_helper(IWMDMEnumStorage*,IWMDMStorage3*,char*,int);
 void deviceGetSupportedFormats_helper(WMDM_FORMATCODE *,char *);
+IWMDMStorage3 * storageCreateFromFile_helper(char *,int*);

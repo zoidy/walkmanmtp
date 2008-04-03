@@ -60,7 +60,9 @@ int _tmain(int argc, _TCHAR* argv[])
 						setCurrentDevice("WALKMAN");
 						deviceEnumerateStorage();
 						
-						//deviceDeletePlaylist("playlist_name2");
+						char s[100];
+						sprintf(s,"<1,295176,Storage Media>MUSIC");
+						storageCreateFromFile("c:\\01 - Cosmic Disturbance.m4a",s);
 
 						break;}
 				case -3:
@@ -156,11 +158,19 @@ int _tmain(int argc, _TCHAR* argv[])
 				case MTPAXE_M_STORAGE_GETSIZEINFO:
 					storageGetSizeInfo();
 					break;
+				case MTPAXE_M_STORAGE_CREATEFROMFILE:{
+					char item[MTPAXE_MAXFILENAMESIZE];
+					scanf("%\n",items);
+					scanf("%[^\n]",items);
+					scanf("%\n",buffer);	
+					scanf("%[^\n]",buffer);
+					storageCreateFromFile(item,buffer);
+					break;}
 
 				default: break;
 
 			}
-		}else{returnMsg("MTPAxe by Dr. Zoidberg v0.2.1\n");}
+		}else{returnMsg("MTPAxe by Dr. Zoidberg v0.2.2\n");}
 
 	}while(!msg==MTPAXE_M_QUIT);
 
@@ -921,9 +931,6 @@ void deviceCreatePlaylist_helper(char *items,unsigned long *pFoundItemsCount,IWM
 		//move to the next item
 		item=tokenizer[0].GetNext(":");
 	}
-
-
-
 }
 
 void playlistEnumerateContents(char *playlistName)
@@ -1029,6 +1036,94 @@ void playlistEnumerateContents(char *playlistName)
 
 
 	CoTaskMemFree(pReferencesArray);
+}
+void storageCreateFromFile(char *itemPath,char *destStorage)
+{	//copies a file to the specified destination storage.
+	//item path is the path to the file to copy. dest storge is a astring specifying
+	//the storage in the same format as returned by enumerateStorage
+	//returns 0 on success, -1 on error
+
+	if(m_pIdvMgr==NULL){returnMsg("-1\n","storageCreateFromFile: DeviceManager not initialized\n");return;}
+	if(pCurrDev==NULL){returnMsg("-1\n","storageCreateFromFile: no active device is set\n");return;}
+
+	IWMDMStorage3 *pDestStor=NULL;
+	int level=-1;
+	pDestStor=storageCreateFromFile_helper(destStorage,&level);
+	if(pDestStor==NULL){returnMsg("-1\n","storageCreateFromFile: destination storage not found or it is not a folder\n");return;}
+
+	//now have a storage item of the destination
+
+	IWMDMStorageControl3 *pDestStorCtrl;
+	hr = pDestStor->QueryInterface(IID_IWMDMStorageControl3, (void**)&pDestStorCtrl);
+	if(FAILED(hr)){returnMsg("-1\n","storageCreateFromFile: could not get StorageControl3 interface from destination storage\n");return;}
+
+	//now have a storagecontrol3 interface
+
+	//convert the path to LPWSTR
+	_towchar itemPathW(itemPath);
+
+	IWMDMStorage *insertedStorage=NULL;
+	hr=pDestStorCtrl->Insert(WMDM_MODE_BLOCK | WMDM_STORAGECONTROL_INSERTINTO | WMDM_CONTENT_FILE,
+							 itemPathW,NULL,NULL,&insertedStorage);
+	if(FAILED(hr)){returnMsg("-1\n","storageCreateFromFile: insert failed\n");return;}
+
+	//insert was successful. now add the new storage item to the array
+
+	IWMDMStorage3 *insertedStorage3=NULL;
+	hr=insertedStorage->QueryInterface(IID_IWMDMStorage3,(void**)&insertedStorage3);
+	if(FAILED(hr)){returnMsg("-1\n","storageCreateFromFile: couln't get storage3 interface of inserted item\n");return;}
+
+	numStorageItems++;
+	arrStorageItem plItem;
+	plItem.level=level+1;
+	plItem.pStorage3=insertedStorage3;
+	plItem.pStorage3Parent=pDestStor;
+	plItem.type=WMDM_FILE_ATTR_FILE;
+	arrStorageItems[numStorageItems]=plItem;
+
+
+	returnMsg("0\n");
+}
+IWMDMStorage3 * storageCreateFromFile_helper(char *destStorage,int *theLevel)
+{	//searches for destStorage in the arrStorItems array. if it's not found, NULL is returned
+	//the level of the destination is returned in varible level.  this is needed
+	//for inserting into the arrStorItems array later.
+
+	//first thing to do is parse the destStorage string
+	char *item;
+	char *attribs;
+	int level;
+	char *clevel;
+	unsigned long type;  //DWORD
+	char *ctype;
+	char parent[MTPAXE_MAXFILENAMESIZE];
+	char *name;
+
+	CStrTok tokenizer[3]; //the tokenizer
+	item=tokenizer[0].GetFirst(destStorage,"<");//remove the leading <
+
+	//get the item attributes string
+	attribs=tokenizer[1].GetFirst(item,">");
+
+	//get each attribute from the attributes string
+	clevel=tokenizer[2].GetFirst(attribs,",");
+	level=atoi(clevel);
+	ctype=tokenizer[2].GetNext(",");
+	type=strtoul(ctype,NULL,10);
+	sprintf(parent,"%s",tokenizer[2].GetNext(","));
+
+	//get the item name
+	name=tokenizer[1].GetNext(">");
+
+	//string is now parsed
+
+	//check if it's a folder
+	if (!(type & WMDM_FILE_ATTR_FOLDER)){return NULL;}
+
+	*theLevel=level;
+
+	//search for this storage
+	return findStorageFromPath(level,type,name);
 }
 /*TODO*/ 
 void deviceGetSupportedFormats(void)
@@ -1180,7 +1275,7 @@ IWMDMDevice3 * findDevice(char* deviceName)
 IWMDMStorage3 * findStorageFromPath(int path,int type, char *name)
 {	//traverse the storage item array (created by deviceEnumerateStorage) for the current
 	//device and retruns the first storage with matching level,type and name. returns NULL if no
-	//matches are not found
+	//matches are found
 	//
 	//note: for this function to work properly, the storage for the current device 
 	//must have been already enumerated. don't waste extra time here enumerating it again
