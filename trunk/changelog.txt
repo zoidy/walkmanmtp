@@ -1,5 +1,10 @@
 Change log <release date>:<WalkmanMTP version> - <MTPAxe version>
 
+04-apr-08: 0.3.0.1 - 0.2.3
+	-fixed bug where it would give an error and not allow new playlists to be added if
+	 the Playlists folder wasn't present on the player
+	-added a few menu items + minor UI changes
+
 04-apr-08: 0.3.0 - 0.2.3
 	-can now upload any file/folder to the player via drag and drop. this bypasses
 	 the explorer drag and drop limitation that allows uploads of supported types only.

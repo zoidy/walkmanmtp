@@ -26,7 +26,17 @@ Public Class Main
     Private Sub AboutToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles AboutToolStripMenuItem.Click
         MsgBox("WalkmanMTP by Dr. Zoidberg" & vbCr & "v" & Application.ProductVersion, MsgBoxStyle.Information, "About")
     End Sub
-
+    Private Sub InformationToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles InformationToolStripMenuItem.Click
+        Dim readme As String = IO.Path.Combine(Application.StartupPath, "readme.txt")
+        Try
+            Process.Start(readme)
+        Catch ex As Exception
+            MsgBox("Couldn't open " & readme)
+        End Try
+    End Sub
+    Private Sub SyncDeviceToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles SyncDeviceToolStripMenuItem.Click
+        btnSync_Click(Nothing, Nothing)
+    End Sub
 #End Region
 
 
@@ -65,8 +75,7 @@ Public Class Main
     End Sub
     Private Sub btnSync_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnSync.Click
         If MsgBox("All non empty playlists created, modified or deleted will be sync'ed." & vbCrLf & _
-                  "All albums created, modified or deleted will be updated" & vbCrLf & _
-                  "Any other selected files will be uploaded or deleted", MsgBoxStyle.Exclamation Or MsgBoxStyle.OkCancel, "Sync device?") = MsgBoxResult.Cancel Then
+                  "All albums created, modified or deleted will be updated", MsgBoxStyle.Exclamation Or MsgBoxStyle.OkCancel, "Sync device?") = MsgBoxResult.Cancel Then
             Exit Sub
         End If
         Splash.setText("Syncing")
@@ -110,6 +119,7 @@ Public Class Main
         Trace.WriteLine("initAndRefresh: opening MTPAxe")
         axe = New MTPAxe
         If Not axe.startAxe Then
+            Splash.Close()
             Trace.WriteLine("initAndRefresh: could not start MTPAXE")
             MsgBox("initAndRefresh: could not start MTPAXE", MsgBoxStyle.Critical Or MsgBoxStyle.ApplicationModal)
             axe = Nothing
@@ -124,6 +134,7 @@ Public Class Main
         Dim ret As String
         ret = axe.enumerateDevices
         If ret = "-1" Then
+            Splash.Close()
             Trace.WriteLine("initAndRefresh: no devices found")
             MsgBox("no devices found", MsgBoxStyle.Critical Or MsgBoxStyle.ApplicationModal)
             Exit Sub
@@ -189,8 +200,8 @@ Public Class Main
                 Trace.WriteLine("initSelectedDevice: device icon not found")
             End If
         Catch ex As Exception
-            Trace.WriteLine("initSelectedDevice: Error initializing '" & devName & "'" & vbCrLf & ex.Message)
-            MsgBox("Error initializing '" & devName & "'" & vbCrLf & ex.Message, MsgBoxStyle.Critical Or MsgBoxStyle.ApplicationModal)
+            Trace.WriteLine("initSelectedDevice: Error initializing '" & devName & "'" & ":" & ex.Message & ":" & ex.Source)
+            MsgBox("Error initializing '" & devName & "'" & vbCrLf & ex.Message & ex.Source, MsgBoxStyle.Critical Or MsgBoxStyle.ApplicationModal)
         End Try
 
         Cursor.Current = Cursors.Default
@@ -460,19 +471,17 @@ Public Class Main
 
         originalPlaylists = New Collection
 
+
+        'create a blacnk playlist by default
+        Me.tabPlaylists.TabPages.Clear()
+        createNewPlaylist("New Playlist", False)
+
         tv = axe.getTreeViewByName("Playlists")
         If tv.Nodes.Count = 0 Then
-            Trace.WriteLine("Error refreshing playlists")
-            MsgBox("Error refreshing playlists", MsgBoxStyle.Critical)
+            Trace.WriteLine("Error refreshing playlists - empty playlist")
             Exit Sub
         End If
         Me.tvPlaylistsFilesOnDevice.ImageList = tv.ImageList
-
-
-        Me.tabPlaylists.TabPages.Clear()
-
-        'create a blacnk playlist by default
-        createNewPlaylist("New Playlist", False)
 
         'enumerate storage on the device (necessary for all other device related functions to work)
         'can use this enumeration to fill the directory tree
@@ -550,7 +559,7 @@ Public Class Main
             .View = View.Details
             .AllowDrop = True
             .FullRowSelect = True
-            .Columns.Add("File Name", 230, HorizontalAlignment.Left)
+            .Columns.Add("File Name", 260, HorizontalAlignment.Left)
             '.Columns.Add("Title", 80, HorizontalAlignment.Left)
             '.Columns.Add("Artist", 80, HorizontalAlignment.Left)
             '.Columns.Add("Album", 80, HorizontalAlignment.Left)
@@ -755,6 +764,7 @@ Public Class Main
 
         Me.lvFileManagementDeviceFilesInFolder.Tag.expandall()
 
+        Splash.resetProgBar()
         t.Abort()
         Me.Activate()
     End Sub
@@ -957,6 +967,7 @@ Public Class Main
     End Class
 
 #End Region
+
 
 
 
