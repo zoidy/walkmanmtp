@@ -30,7 +30,11 @@ Making albums:
 -not yet supported
 
 Uploading files:
--not yet supported
+-Go to the file management tab and select the folder you wish to copy files to.
+-then drag and drop files and folders to the right pane.  they will be uploaded
+ immediately.  Note that it is possible to upload any kind of file, as long as
+ there is enough space on the device.
+
 
 Troubleshooting
 ================

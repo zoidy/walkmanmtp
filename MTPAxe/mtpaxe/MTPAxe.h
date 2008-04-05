@@ -47,7 +47,7 @@ void deviceGetSupportedFormats(void);
 void deviceCreatePlaylist(char *,char *);
 void deviceDeletePlaylist(char*);
 void storageGetSizeInfo(void);
-void storageCreateFromFile(char*,char*);
+void storageCreateFromFile(char*,char*,int);
 void playlistEnumerateContents(char*);
 
 

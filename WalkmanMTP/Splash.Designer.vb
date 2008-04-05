@@ -23,33 +23,36 @@ Partial Class Splash
     <System.Diagnostics.DebuggerStepThrough()> _
     Private Sub InitializeComponent()
         Me.ProgressBar1 = New System.Windows.Forms.ProgressBar
-        Me.Label1 = New System.Windows.Forms.Label
+        Me.txtText = New System.Windows.Forms.TextBox
         Me.SuspendLayout()
         '
         'ProgressBar1
         '
-        Me.ProgressBar1.Location = New System.Drawing.Point(64, 12)
+        Me.ProgressBar1.Location = New System.Drawing.Point(28, 12)
         Me.ProgressBar1.Name = "ProgressBar1"
-        Me.ProgressBar1.Size = New System.Drawing.Size(216, 22)
+        Me.ProgressBar1.Size = New System.Drawing.Size(313, 22)
         Me.ProgressBar1.Style = System.Windows.Forms.ProgressBarStyle.Marquee
         Me.ProgressBar1.TabIndex = 0
         '
-        'Label1
+        'txtText
         '
-        Me.Label1.AutoSize = True
-        Me.Label1.Location = New System.Drawing.Point(100, 37)
-        Me.Label1.Name = "Label1"
-        Me.Label1.Size = New System.Drawing.Size(156, 13)
-        Me.Label1.TabIndex = 1
-        Me.Label1.Text = "Initializing and Reading devices"
-        Me.Label1.TextAlign = System.Drawing.ContentAlignment.MiddleCenter
+        Me.txtText.BackColor = System.Drawing.SystemColors.Control
+        Me.txtText.BorderStyle = System.Windows.Forms.BorderStyle.None
+        Me.txtText.Location = New System.Drawing.Point(5, 39)
+        Me.txtText.Name = "txtText"
+        Me.txtText.ReadOnly = True
+        Me.txtText.Size = New System.Drawing.Size(357, 13)
+        Me.txtText.TabIndex = 2
+        Me.txtText.TabStop = False
+        Me.txtText.Text = "..."
+        Me.txtText.TextAlign = System.Windows.Forms.HorizontalAlignment.Center
         '
         'Splash
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.ClientSize = New System.Drawing.Size(365, 57)
-        Me.Controls.Add(Me.Label1)
+        Me.Controls.Add(Me.txtText)
         Me.Controls.Add(Me.ProgressBar1)
         Me.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog
         Me.MaximizeBox = False
@@ -64,5 +67,5 @@ Partial Class Splash
 
     End Sub
     Friend WithEvents ProgressBar1 As System.Windows.Forms.ProgressBar
-    Friend WithEvents Label1 As System.Windows.Forms.Label
+    Friend WithEvents txtText As System.Windows.Forms.TextBox
 End Class
