@@ -61,8 +61,11 @@ int _tmain(int argc, _TCHAR* argv[])
 						deviceEnumerateStorage();
 						
 						char s[100];
-						sprintf(s,"<1,295176,Storage Media>MUSIC");
-						storageCreateFromFile("c:\\01 - Cosmic Disturbance.m4a",s);
+						
+						//sprintf(s,"<1,295176,Storage Media>MUSIC");
+						//sprintf(s,"<1,17039624,Storage Media>PICTURES");
+						//storageCreateFromFile("c:\\01 - Cosmic Disturbance.m4a",s,0);
+						//storageCreateFromFile("c:\\testart.jpg",s,0);
 
 						break;}
 				case -3:
@@ -160,17 +163,20 @@ int _tmain(int argc, _TCHAR* argv[])
 					break;
 				case MTPAXE_M_STORAGE_CREATEFROMFILE:{
 					char item[MTPAXE_MAXFILENAMESIZE];
-					scanf("%\n",items);
-					scanf("%[^\n]",items);
+					char type[2];
+					scanf("%\n",item);
+					scanf("%[^\n]",item);
 					scanf("%\n",buffer);	
 					scanf("%[^\n]",buffer);
-					storageCreateFromFile(item,buffer);
+					scanf("%\n",type);	
+					scanf("%[^\n]",type);
+					storageCreateFromFile(item,buffer,atoi(type));
 					break;}
 
 				default: break;
 
 			}
-		}else{returnMsg("MTPAxe by Dr. Zoidberg v0.2.2\n");}
+		}else{returnMsg("MTPAxe by Dr. Zoidberg v0.2.3\n");}
 
 	}while(!msg==MTPAXE_M_QUIT);
 
@@ -1037,10 +1043,11 @@ void playlistEnumerateContents(char *playlistName)
 
 	CoTaskMemFree(pReferencesArray);
 }
-void storageCreateFromFile(char *itemPath,char *destStorage)
+void storageCreateFromFile(char *itemPath,char *destStorage, int type)
 {	//copies a file to the specified destination storage.
 	//item path is the path to the file to copy. dest storge is a astring specifying
 	//the storage in the same format as returned by enumerateStorage
+	//type is 0=file, 1=folder. when type=1, itemPath specifes the name of the folder
 	//returns 0 on success, -1 on error
 
 	if(m_pIdvMgr==NULL){returnMsg("-1\n","storageCreateFromFile: DeviceManager not initialized\n");return;}
@@ -1063,8 +1070,17 @@ void storageCreateFromFile(char *itemPath,char *destStorage)
 	_towchar itemPathW(itemPath);
 
 	IWMDMStorage *insertedStorage=NULL;
-	hr=pDestStorCtrl->Insert(WMDM_MODE_BLOCK | WMDM_STORAGECONTROL_INSERTINTO | WMDM_CONTENT_FILE,
+	if (type==0)
+	{
+		hr=pDestStorCtrl->Insert(WMDM_MODE_BLOCK | WMDM_STORAGECONTROL_INSERTINTO | WMDM_CONTENT_FILE,
+							     itemPathW,NULL,NULL,&insertedStorage);
+	}else
+	{
+		hr=pDestStorCtrl->Insert(WMDM_MODE_BLOCK | WMDM_STORAGECONTROL_INSERTINTO | WMDM_CONTENT_FOLDER,
 							 itemPathW,NULL,NULL,&insertedStorage);
+	}
+
+	
 	if(FAILED(hr)){returnMsg("-1\n","storageCreateFromFile: insert failed\n");return;}
 
 	//insert was successful. now add the new storage item to the array
@@ -1078,7 +1094,7 @@ void storageCreateFromFile(char *itemPath,char *destStorage)
 	plItem.level=level+1;
 	plItem.pStorage3=insertedStorage3;
 	plItem.pStorage3Parent=pDestStor;
-	plItem.type=WMDM_FILE_ATTR_FILE;
+	if(type==0){plItem.type=WMDM_FILE_ATTR_FILE;}else{plItem.type=WMDM_FILE_ATTR_FOLDER;}
 	arrStorageItems[numStorageItems]=plItem;
 
 

@@ -1,8 +1,14 @@
-0.2.1 29-mar-08
+Change log <release date>:<WalkmanMTP version> - <MTPAxe version>
+
+04-apr-08: 0.3.0 - 0.2.3
+	-can now upload any file/folder to the player via drag and drop. this bypasses
+	 the explorer drag and drop limitation that allows uploads of supported types only.
+	-small changes to MTPAxe to accomodate this new feature
+29-mar-08: 0.2.1 - 0.2.1
 	-added lots of tracing code to aid in troubleshooting
 	-added some debug modes to MTPAxe
-0.2 27-mar-08
+27-mar-08: 0.2.0 - 0.2.0
 	-improved the playlist making ability
 	-lots of bug fixes regarding playlist making
-0.1 28-mar-08
+28-mar-08: 0.1.0 - 0.1.0
 	-initial preview release (a lot of stuff doesn't work)

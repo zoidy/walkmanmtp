@@ -15,6 +15,7 @@
     Private Const MTPAXE_M_DEVICE_DELETEPLAYLIST = 27
     Private Const MTPAXE_M_PLAYLIST_ENUMERATECONTENTS = 30
     Private Const MTPAXE_M_STORAGE_GETSIZEINFO = 40
+    Private Const MTPAXE_M_STORAGE_CREATEFROMFILE = 41
 
     Public Const WMDM_FILE_ATTR_FOLDER = &H8
     Public Const WMDM_FILE_ATTR_FILE = &H20
@@ -429,13 +430,14 @@
                                           shinfo, _
                                           System.Runtime.InteropServices.Marshal.SizeOf(shinfo), _
                                           SHGFI_ICON Or SHGFI_SMALLICON Or SHGFI_USEFILEATTRIBUTES)
+                tn.ImageKey = "*"
             End If
 
 
 
             myIcon = System.Drawing.Icon.FromHandle(shinfo.hIcon)
             Try
-                imglst.Images.Add(fileExt, myIcon) 'Add icon to imageList
+                imglst.Images.Add(tn.ImageKey, myIcon) 'Add icon to imageList
             Catch ex As Exception
                 'image already exists
             End Try
@@ -594,7 +596,34 @@
         Return theTreeView
     End Function
 
+    Public Function uploadFile(ByVal path As String, ByVal destination As String, ByVal type As Integer) As String
+        'copies the file specified by path to the folder specified by destination
+        'destination is in the same format returned by enumerateStorage
+        'type specifies is path is a file or a folder. 0=file 1=folder
+        'for folders, path specifies the name of the folder. the contents are not uploaded automatically
+        'returns 0 on ok, -1 on error
 
+        Trace.WriteLine("MTPAxe: uploading file " & path)
+
+        Dim s As String
+
+        If axe Is Nothing Then Throw New Exception("MTPAxe is not started")
+
+        sOut.WriteLine(MTPAXE_M_STORAGE_CREATEFROMFILE)
+        sOut.WriteLine(path.Replace("\"c, "\\"))
+        sOut.WriteLine(destination)
+        sOut.WriteLine(type)
+
+        'now wait for the return value to be sent to the buffer
+        s = sIn.ReadLine
+
+        If s = "-1" Then
+            Trace.WriteLine("MTPAxe: creating playlist" & sErr.ReadLine)
+            Return "-1"
+        End If
+
+        Return s
+    End Function
     Public Function getDeviceIcon(ByVal savePath As String) As String
         'gets the device icon
         'this function returns "-1" on error, 0 otherwise

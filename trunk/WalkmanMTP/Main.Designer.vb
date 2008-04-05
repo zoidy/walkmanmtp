@@ -56,6 +56,13 @@ Partial Class Main
         Me.ColumnHeader5 = New System.Windows.Forms.ColumnHeader
         Me.TabPage2 = New System.Windows.Forms.TabPage
         Me.tabpageFileManagement = New System.Windows.Forms.TabPage
+        Me.SplitContainer2 = New System.Windows.Forms.SplitContainer
+        Me.btnFileManagementRefresh = New System.Windows.Forms.LinkLabel
+        Me.Label5 = New System.Windows.Forms.Label
+        Me.tvFileManagementDeviceFolders = New System.Windows.Forms.TreeView
+        Me.lvFileManagementDeviceFilesInFolder = New WalkmanMTP.ListViewDnD.ListViewEx
+        Me.ColumnHeader6 = New System.Windows.Forms.ColumnHeader
+        Me.lblFileManagementSelectedFolder = New System.Windows.Forms.Label
         Me.LinkLabel1 = New System.Windows.Forms.LinkLabel
         Me.Label2 = New System.Windows.Forms.Label
         Me.Label3 = New System.Windows.Forms.Label
@@ -66,10 +73,6 @@ Partial Class Main
         Me.btnRefreshDevices = New System.Windows.Forms.Button
         Me.ToolTip1 = New System.Windows.Forms.ToolTip(Me.components)
         Me.btnSync = New System.Windows.Forms.Button
-        Me.SplitContainer2 = New System.Windows.Forms.SplitContainer
-        Me.tvFileManagementDeviceFolders = New System.Windows.Forms.TreeView
-        Me.lvFileManagementDeviceFilesInFolder = New WalkmanMTP.ListViewDnD.ListViewEx
-        Me.ColumnHeader6 = New System.Windows.Forms.ColumnHeader
         Me.MenuStrip1.SuspendLayout()
         Me.tabMain.SuspendLayout()
         Me.tabpagePlaylists.SuspendLayout()
@@ -79,11 +82,11 @@ Partial Class Main
         Me.tabPlaylists.SuspendLayout()
         Me.TabPage4.SuspendLayout()
         Me.tabpageFileManagement.SuspendLayout()
-        Me.gbDevIcon.SuspendLayout()
-        CType(Me.pboxDevIcon, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.SplitContainer2.Panel1.SuspendLayout()
         Me.SplitContainer2.Panel2.SuspendLayout()
         Me.SplitContainer2.SuspendLayout()
+        Me.gbDevIcon.SuspendLayout()
+        CType(Me.pboxDevIcon, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.SuspendLayout()
         '
         'MenuStrip1
@@ -389,6 +392,92 @@ Partial Class Main
         Me.tabpageFileManagement.Text = "File Management"
         Me.tabpageFileManagement.UseVisualStyleBackColor = True
         '
+        'SplitContainer2
+        '
+        Me.SplitContainer2.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D
+        Me.SplitContainer2.Dock = System.Windows.Forms.DockStyle.Fill
+        Me.SplitContainer2.Location = New System.Drawing.Point(0, 0)
+        Me.SplitContainer2.Name = "SplitContainer2"
+        '
+        'SplitContainer2.Panel1
+        '
+        Me.SplitContainer2.Panel1.Controls.Add(Me.btnFileManagementRefresh)
+        Me.SplitContainer2.Panel1.Controls.Add(Me.Label5)
+        Me.SplitContainer2.Panel1.Controls.Add(Me.tvFileManagementDeviceFolders)
+        '
+        'SplitContainer2.Panel2
+        '
+        Me.SplitContainer2.Panel2.Controls.Add(Me.lvFileManagementDeviceFilesInFolder)
+        Me.SplitContainer2.Panel2.Controls.Add(Me.lblFileManagementSelectedFolder)
+        Me.SplitContainer2.Size = New System.Drawing.Size(817, 444)
+        Me.SplitContainer2.SplitterDistance = 391
+        Me.SplitContainer2.TabIndex = 2
+        '
+        'btnFileManagementRefresh
+        '
+        Me.btnFileManagementRefresh.Anchor = CType((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
+        Me.btnFileManagementRefresh.AutoSize = True
+        Me.btnFileManagementRefresh.Location = New System.Drawing.Point(340, 0)
+        Me.btnFileManagementRefresh.Name = "btnFileManagementRefresh"
+        Me.btnFileManagementRefresh.Size = New System.Drawing.Size(44, 13)
+        Me.btnFileManagementRefresh.TabIndex = 9
+        Me.btnFileManagementRefresh.TabStop = True
+        Me.btnFileManagementRefresh.Text = "Refresh"
+        '
+        'Label5
+        '
+        Me.Label5.AutoSize = True
+        Me.Label5.Font = New System.Drawing.Font("Tahoma", 8.25!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.Label5.Location = New System.Drawing.Point(1, 0)
+        Me.Label5.Name = "Label5"
+        Me.Label5.Size = New System.Drawing.Size(42, 13)
+        Me.Label5.TabIndex = 8
+        Me.Label5.Text = "Folders"
+        '
+        'tvFileManagementDeviceFolders
+        '
+        Me.tvFileManagementDeviceFolders.Anchor = CType((((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Bottom) _
+                    Or System.Windows.Forms.AnchorStyles.Left) _
+                    Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
+        Me.tvFileManagementDeviceFolders.FullRowSelect = True
+        Me.tvFileManagementDeviceFolders.HideSelection = False
+        Me.tvFileManagementDeviceFolders.Location = New System.Drawing.Point(0, 16)
+        Me.tvFileManagementDeviceFolders.Name = "tvFileManagementDeviceFolders"
+        Me.tvFileManagementDeviceFolders.ShowNodeToolTips = True
+        Me.tvFileManagementDeviceFolders.Size = New System.Drawing.Size(387, 424)
+        Me.tvFileManagementDeviceFolders.TabIndex = 0
+        '
+        'lvFileManagementDeviceFilesInFolder
+        '
+        Me.lvFileManagementDeviceFilesInFolder.AllowDrop = True
+        Me.lvFileManagementDeviceFilesInFolder.AllowReorder = True
+        Me.lvFileManagementDeviceFilesInFolder.Anchor = CType((((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Bottom) _
+                    Or System.Windows.Forms.AnchorStyles.Left) _
+                    Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
+        Me.lvFileManagementDeviceFilesInFolder.Columns.AddRange(New System.Windows.Forms.ColumnHeader() {Me.ColumnHeader6})
+        Me.lvFileManagementDeviceFilesInFolder.FullRowSelect = True
+        Me.lvFileManagementDeviceFilesInFolder.LineColor = System.Drawing.Color.Red
+        Me.lvFileManagementDeviceFilesInFolder.Location = New System.Drawing.Point(0, 16)
+        Me.lvFileManagementDeviceFilesInFolder.Name = "lvFileManagementDeviceFilesInFolder"
+        Me.lvFileManagementDeviceFilesInFolder.Size = New System.Drawing.Size(418, 424)
+        Me.lvFileManagementDeviceFilesInFolder.TabIndex = 0
+        Me.lvFileManagementDeviceFilesInFolder.UseCompatibleStateImageBehavior = False
+        Me.lvFileManagementDeviceFilesInFolder.View = System.Windows.Forms.View.Details
+        '
+        'ColumnHeader6
+        '
+        Me.ColumnHeader6.Text = "File Name"
+        Me.ColumnHeader6.Width = 393
+        '
+        'lblFileManagementSelectedFolder
+        '
+        Me.lblFileManagementSelectedFolder.AutoSize = True
+        Me.lblFileManagementSelectedFolder.Font = New System.Drawing.Font("Tahoma", 8.25!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.lblFileManagementSelectedFolder.Location = New System.Drawing.Point(3, 0)
+        Me.lblFileManagementSelectedFolder.Name = "lblFileManagementSelectedFolder"
+        Me.lblFileManagementSelectedFolder.Size = New System.Drawing.Size(0, 13)
+        Me.lblFileManagementSelectedFolder.TabIndex = 8
+        '
         'LinkLabel1
         '
         Me.LinkLabel1.AutoSize = True
@@ -482,53 +571,6 @@ Partial Class Main
         Me.ToolTip1.SetToolTip(Me.btnSync, "All non empty playlists and albums will be written to the player")
         Me.btnSync.UseVisualStyleBackColor = True
         '
-        'SplitContainer2
-        '
-        Me.SplitContainer2.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D
-        Me.SplitContainer2.Dock = System.Windows.Forms.DockStyle.Fill
-        Me.SplitContainer2.Location = New System.Drawing.Point(0, 0)
-        Me.SplitContainer2.Name = "SplitContainer2"
-        '
-        'SplitContainer2.Panel1
-        '
-        Me.SplitContainer2.Panel1.Controls.Add(Me.tvFileManagementDeviceFolders)
-        '
-        'SplitContainer2.Panel2
-        '
-        Me.SplitContainer2.Panel2.Controls.Add(Me.lvFileManagementDeviceFilesInFolder)
-        Me.SplitContainer2.Size = New System.Drawing.Size(817, 444)
-        Me.SplitContainer2.SplitterDistance = 391
-        Me.SplitContainer2.TabIndex = 2
-        '
-        'tvFileManagementDeviceFolders
-        '
-        Me.tvFileManagementDeviceFolders.Dock = System.Windows.Forms.DockStyle.Fill
-        Me.tvFileManagementDeviceFolders.FullRowSelect = True
-        Me.tvFileManagementDeviceFolders.Location = New System.Drawing.Point(0, 0)
-        Me.tvFileManagementDeviceFolders.Name = "tvFileManagementDeviceFolders"
-        Me.tvFileManagementDeviceFolders.Size = New System.Drawing.Size(387, 440)
-        Me.tvFileManagementDeviceFolders.TabIndex = 0
-        '
-        'lvFileManagementDeviceFilesInFolder
-        '
-        Me.lvFileManagementDeviceFilesInFolder.AllowDrop = True
-        Me.lvFileManagementDeviceFilesInFolder.AllowReorder = True
-        Me.lvFileManagementDeviceFilesInFolder.Columns.AddRange(New System.Windows.Forms.ColumnHeader() {Me.ColumnHeader6})
-        Me.lvFileManagementDeviceFilesInFolder.Dock = System.Windows.Forms.DockStyle.Fill
-        Me.lvFileManagementDeviceFilesInFolder.FullRowSelect = True
-        Me.lvFileManagementDeviceFilesInFolder.LineColor = System.Drawing.Color.Red
-        Me.lvFileManagementDeviceFilesInFolder.Location = New System.Drawing.Point(0, 0)
-        Me.lvFileManagementDeviceFilesInFolder.Name = "lvFileManagementDeviceFilesInFolder"
-        Me.lvFileManagementDeviceFilesInFolder.Size = New System.Drawing.Size(418, 440)
-        Me.lvFileManagementDeviceFilesInFolder.TabIndex = 0
-        Me.lvFileManagementDeviceFilesInFolder.UseCompatibleStateImageBehavior = False
-        Me.lvFileManagementDeviceFilesInFolder.View = System.Windows.Forms.View.Details
-        '
-        'ColumnHeader6
-        '
-        Me.ColumnHeader6.Text = "File Name"
-        Me.ColumnHeader6.Width = 393
-        '
         'Main
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
@@ -562,11 +604,13 @@ Partial Class Main
         Me.tabPlaylists.ResumeLayout(False)
         Me.TabPage4.ResumeLayout(False)
         Me.tabpageFileManagement.ResumeLayout(False)
+        Me.SplitContainer2.Panel1.ResumeLayout(False)
+        Me.SplitContainer2.Panel1.PerformLayout()
+        Me.SplitContainer2.Panel2.ResumeLayout(False)
+        Me.SplitContainer2.Panel2.PerformLayout()
+        Me.SplitContainer2.ResumeLayout(False)
         Me.gbDevIcon.ResumeLayout(False)
         CType(Me.pboxDevIcon, System.ComponentModel.ISupportInitialize).EndInit()
-        Me.SplitContainer2.Panel1.ResumeLayout(False)
-        Me.SplitContainer2.Panel2.ResumeLayout(False)
-        Me.SplitContainer2.ResumeLayout(False)
         Me.ResumeLayout(False)
         Me.PerformLayout()
 
@@ -617,4 +661,7 @@ Partial Class Main
     Friend WithEvents tvFileManagementDeviceFolders As System.Windows.Forms.TreeView
     Friend WithEvents lvFileManagementDeviceFilesInFolder As WalkmanMTP.ListViewDnD.ListViewEx
     Friend WithEvents ColumnHeader6 As System.Windows.Forms.ColumnHeader
+    Friend WithEvents btnFileManagementRefresh As System.Windows.Forms.LinkLabel
+    Friend WithEvents Label5 As System.Windows.Forms.Label
+    Friend WithEvents lblFileManagementSelectedFolder As System.Windows.Forms.Label
 End Class

@@ -70,6 +70,7 @@ Public Class Main
             Exit Sub
         End If
         Splash.setText("Syncing")
+        Splash.setTitle("Syncing...")
         Dim t As New Threading.Thread(New Threading.ThreadStart(AddressOf Splash.ShowDialog))
         t.SetApartmentState(Threading.ApartmentState.MTA)
         t.Start()
@@ -92,6 +93,7 @@ Public Class Main
 
     Private Sub initAndRefreshApp()
         Splash.setText("Initializing and Reading Devices")
+        Splash.setTitle("Initializing...")
 
         Dim t As New Threading.Thread(New Threading.ThreadStart(AddressOf Splash.ShowDialog))
         t.SetApartmentState(Threading.ApartmentState.MTA)
@@ -638,7 +640,7 @@ Public Class Main
         Next
 
         Me.tvFileManagementDeviceFolders.ExpandAll()
-
+        Me.tvFileManagementDeviceFolders.SelectedNode = Me.tvFileManagementDeviceFolders.Nodes(0)
 
         Trace.WriteLine("Refreshing file list...Complete")
     End Sub
@@ -666,30 +668,39 @@ Public Class Main
 
 
     End Sub
-
+    Private Sub btnFileManagementRefresh_LinkClicked(ByVal sender As System.Object, ByVal e As System.Windows.Forms.LinkLabelLinkClickedEventArgs) Handles btnFileManagementRefresh.LinkClicked
+        Splash.setText("refreshing files...")
+        Splash.setTitle("File Management")
+        Dim t As New Threading.Thread(New Threading.ThreadStart(AddressOf Splash.ShowDialog))
+        t.SetApartmentState(Threading.ApartmentState.MTA)
+        t.Start()
+        Application.DoEvents()
+        Me.refreshFileTransfersDeviceFiles()
+        t.Abort()
+    End Sub
 
 
     Private Sub tvFileManagementDeviceFolders_AfterSelect(ByVal sender As Object, ByVal e As System.Windows.Forms.TreeViewEventArgs) Handles tvFileManagementDeviceFolders.AfterSelect
-        Dim theNode As TreeNode = Me.tvFileManagementDeviceFolders_AfterSelect_helper(fullFileListing.Nodes(0), e.Node)
-        Dim attribs() As String
+        Dim theNode As TreeNode = findTreeNode(fullFileListing.Nodes(0), e.Node)
 
         If theNode IsNot Nothing Then
+            'save the selected node into list view so we can easily get the currently displayed
+            'folder
+            Me.lvFileManagementDeviceFilesInFolder.Tag = Me.tvFileManagementDeviceFolders.SelectedNode
+            Me.lblFileManagementSelectedFolder.Text = theNode.FullPath
+
             'get all files in this folder (except other subfolders)
             Me.lvFileManagementDeviceFilesInFolder.Items.Clear()
             Me.lvFileManagementDeviceFilesInFolder.SmallImageList = fullFileListing.ImageList
 
-   
+
             Dim lvItem As ListViewItem
             For Each node As TreeNode In theNode.Nodes
-                'only add files
-                attribs = node.Tag.Split(","c)
-                If (attribs(1) And MTPAxe.WMDM_FILE_ATTR_FILE) = MTPAxe.WMDM_FILE_ATTR_FILE Then
-                    lvItem = New ListViewItem
-                    lvItem.Tag = node.Tag
-                    lvItem.Text = node.Text
-                    lvItem.ImageKey = node.ImageKey
-                    lvFileManagementDeviceFilesInFolder.Items.Add(lvItem)
-                End If
+                lvItem = New ListViewItem
+                lvItem.Tag = node.Tag
+                lvItem.Text = node.Text
+                lvItem.ImageKey = node.ImageKey
+                lvFileManagementDeviceFilesInFolder.Items.Add(lvItem)
             Next
 
             If lvFileManagementDeviceFilesInFolder.Items.Count = 0 Then
@@ -702,9 +713,179 @@ Public Class Main
             Trace.WriteLine("Error finding " & e.Node.Text)
         End If
     End Sub
-    Private Function tvFileManagementDeviceFolders_AfterSelect_helper(ByRef root As TreeNode, ByRef theNode As TreeNode) As TreeNode
+
+    
+    'required delegates for updating the treeview from the uploading worker thread
+    Private Delegate Sub updateTreeviewDelegate(ByVal parentnode As TreeNode, ByVal childnode As TreeNode)
+    Private Sub updateTreeview(ByVal parentnode As TreeNode, ByVal childnode As TreeNode)
+        parentnode.Nodes.Add(childnode)
+    End Sub
+    Private Sub lvFileManagementDeviceFilesInFolder_DragDrop(ByVal sender As Object, ByVal e As System.Windows.Forms.DragEventArgs) Handles lvFileManagementDeviceFilesInFolder.DragDrop
+        'check to see if files and folders are being dragged from explorer
+        Dim draggedFiles() As String
+        draggedFiles = e.Data.GetData(DataFormats.FileDrop)
+        If draggedFiles IsNot Nothing Then
+
+            'worker threat to do the actual uploading. this prevents blocking of explorer
+            'due to the dragdrop operation
+            Dim tWork As New Threading.Thread(AddressOf lvFileManagementDeviceFilesInFolder_DragDrop_helper_starter)
+            tWork.Start(draggedFiles)
+        End If
+        'Me.Activate()
+    End Sub
+    Private Sub lvFileManagementDeviceFilesInFolder_DragDrop_helper_starter(ByVal draggedfiles As Object)
+        'this is the worker thread for uploading files
+
+        Splash.setText("...")
+        Splash.setTitle("Uploading...")
+        Dim t As New Threading.Thread(New Threading.ThreadStart(AddressOf Splash.ShowDialog))
+        t.SetApartmentState(Threading.ApartmentState.MTA)
+        t.Start()
+
+        'get the total number of files to transfer
+        Dim totalNumFiles As Integer = 0
+        For Each draggedfile As String In draggedfiles
+            totalNumFiles += countAllFiles(draggedfile)
+        Next
+        Splash.initProgBar(totalNumFiles)
+
+        For Each draggedfile As String In draggedfiles
+            lvFileManagementDeviceFilesInFolder_DragDrop_helper(draggedfile, CType(Me.lvFileManagementDeviceFilesInFolder.Tag, TreeNode))
+        Next
+
+        Me.lvFileManagementDeviceFilesInFolder.Tag.expandall()
+
+        t.Abort()
+        Me.Activate()
+    End Sub
+    Private Sub lvFileManagementDeviceFilesInFolder_DragDrop_helper(ByVal path As String, ByVal parentNode As TreeNode)
+        'adds files specified by path to the folder  specified by parentNode
+
+        'get the attributes of the parent node (will need them to add new storage items to the tree)
+        Dim parentAttribs() As String = parentNode.Tag.split(",")
+
+        If IO.Directory.Exists(path) Then
+            'draggedfile was a directory. now add it and all it's children
+
+            'first create the folder on the device
+            Dim folderName = path.Split("\")(path.Split("\").Length - 1)
+
+            Splash.setText("Creating directory '" & folderName & "'")
+
+            If axe.uploadFile(folderName, "<" & parentNode.Tag & ">" & parentNode.Text, 1) = "-1" Then
+                Trace.WriteLine("fileManagement: error creating folder '" & folderName & "'")
+                MsgBox("fileManagement: error creating folder '" & folderName & "'. Maybe device is full?", MsgBoxStyle.Critical, "error")
+                Exit Sub
+            End If
+
+            'since this is a folder, we add it to the treeview as well as the listview
+            'add it to the listview
+            If lvFileManagementDeviceFilesInFolder.Items(0) IsNot Nothing Then
+                If lvFileManagementDeviceFilesInFolder.Items(0).Text = "No files found" Then
+                    lvFileManagementDeviceFilesInFolder.Items.Clear()
+                End If
+            End If
+            If Me.lvFileManagementDeviceFilesInFolder.Tag Is parentNode Then
+                lvFileManagementDeviceFilesInFolder.Items.Add(folderName, "*")
+            End If
+
+            'add it to the treeview
+            Dim newNode As New TreeNode
+            newNode.Text = folderName
+            newNode.Tag = parentAttribs(0) + 1 & ",295176," & parentNode.Text
+            newNode.ImageKey = "*"
+
+            'invoke the delegate to update the treeview from the main thread
+            Me.Invoke(New updateTreeviewDelegate(AddressOf updateTreeview), New TreeNode() {parentNode, newNode})
+
+
+            'now that the folder has been successfully created, add it to the fullFileListing tree
+            parentNode = findTreeNode(fullFileListing.Nodes(0), parentNode)
+            parentNode.Nodes.Add(newNode.Clone)
+
+            For Each filesystementry As String In IO.Directory.GetFileSystemEntries(path)
+                lvFileManagementDeviceFilesInFolder_DragDrop_helper(filesystementry, newNode)
+            Next
+        Else
+            'if were here, file was really just a file
+            Dim ext As String = IO.Path.GetExtension(path)
+            Dim fname As String = IO.Path.GetFileName(path)
+
+            Splash.setText("Uploading '" & fname & "'")
+
+            If axe.uploadFile(path, "<" & parentNode.Tag & ">" & parentNode.Text, 0) = "-1" Then
+                Trace.WriteLine("fileManagement: error uploading file '" & path & "'")
+                MsgBox("fileManagement: error uploading file '" & path & "'. Maybe device is full?", MsgBoxStyle.Critical, "error")
+                Exit Sub
+            Else
+                If lvFileManagementDeviceFilesInFolder.Items(0) IsNot Nothing Then
+                    If lvFileManagementDeviceFilesInFolder.Items(0).Text = "No files found" Then
+                        lvFileManagementDeviceFilesInFolder.Items.Clear()
+                    End If
+                End If
+
+
+                'add it to the listview only if the file is actually contained in the selected folder 
+                'without this, all files are added to the listview, even ones in subfolders
+                If Me.lvFileManagementDeviceFilesInFolder.Tag Is parentNode Then
+                    lvFileManagementDeviceFilesInFolder.Items.Add(fname, ext)
+                End If
+
+                'add this item to the fulltree so it will appear in the listview if the parent node
+                'is selected again. could also enumerate the storage again, but this would be too slow
+                parentNode = findTreeNode(fullFileListing.Nodes(0), parentNode)
+
+                'get the parentNode attribs, so we can add the new node in the correct spot
+                'we also need to define the type attribute so as to have a complete picture of the node
+                'type seems to be 295176 for normal folders and 295200 for normal files
+                Dim newNode As New TreeNode
+                newNode.Text = fname
+                newNode.Tag = parentAttribs(0) + 1 & ",295200," & parentNode.Text
+                newNode.ImageKey = ext
+                parentNode.Nodes.Add(newNode)
+
+                Splash.incProgBar()
+            End If
+        End If
+
+
+    End Sub
+
+
+    Private Sub lvFileManagementDeviceFilesInFolder_DragEnter(ByVal sender As Object, ByVal e As System.Windows.Forms.DragEventArgs) Handles lvFileManagementDeviceFilesInFolder.DragEnter
+        Me.Activate()
+        e.Effect = e.AllowedEffect
+    End Sub
+    Private Sub lvFileManagementDeviceFilesInFolder_KeyDown(ByVal sender As Object, ByVal e As System.Windows.Forms.KeyEventArgs) Handles lvFileManagementDeviceFilesInFolder.KeyDown
+        If e.KeyValue = Keys.Delete Then
+            MsgBox("Deleting items is not yet supported. use explorer to delete files")
+        End If
+    End Sub
+#End Region
+
+
+#Region "misc. helpers"
+    Private Function countAllFiles(ByVal path As String) As Integer
+        'counts how many files there are in a given path. subdirectories are recursed
+        Dim count As Integer = 0
+
+        If IO.Directory.Exists(path) Then
+            'path is a folder
+
+            For Each filesystementry As String In IO.Directory.GetFileSystemEntries(path)
+                count += countAllFiles(filesystementry)
+            Next
+        Else
+            'its a file
+            count += 1
+        End If
+
+        Return count
+    End Function
+    Private Function findTreeNode(ByRef root As TreeNode, ByRef theNode As TreeNode) As TreeNode
         'search for the specified node in the fullFileListing tree and 
-        'return it
+        'return it. if not found, nothing is returned
+        'root is the node to search, theNode is the node we're looking for
         Dim ret As TreeNode = Nothing
 
         If root.Tag = theNode.Tag And root.Text = theNode.Text Then
@@ -716,7 +897,7 @@ Public Class Main
                 ret = node 'check if the node is the folder we're looking for
             ElseIf node.Nodes.Count > 0 Then
                 'else check the child nodes
-                ret = Me.tvFileManagementDeviceFolders_AfterSelect_helper(node, theNode)
+                ret = findTreeNode(node, theNode)
             End If
 
             'if we found it, return it
@@ -727,8 +908,6 @@ Public Class Main
 
         Return ret
     End Function
-#End Region
-
 
     'comparer for playlistitems listview sorting
     Private Class PlaylistListViewItemComparer
@@ -776,6 +955,9 @@ Public Class Main
             Return ret
         End Function
     End Class
+
+#End Region
+
 
 
 
