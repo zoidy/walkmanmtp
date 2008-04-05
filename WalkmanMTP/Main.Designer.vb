@@ -38,7 +38,6 @@ Partial Class Main
         Me.tabMain = New System.Windows.Forms.TabControl
         Me.tabpagePlaylists = New System.Windows.Forms.TabPage
         Me.SplitContainer1 = New System.Windows.Forms.SplitContainer
-        Me.tvPlaylistsFilesOnDevice = New WalkmanMTP.MultiSelectTreeview.MultiSelectTreeview
         Me.Label4 = New System.Windows.Forms.Label
         Me.btnPlaylistsFilesOnDeviceRefresh = New System.Windows.Forms.LinkLabel
         Me.btnRenamePlaylist = New System.Windows.Forms.Button
@@ -60,8 +59,6 @@ Partial Class Main
         Me.btnFileManagementRefresh = New System.Windows.Forms.LinkLabel
         Me.Label5 = New System.Windows.Forms.Label
         Me.tvFileManagementDeviceFolders = New System.Windows.Forms.TreeView
-        Me.lvFileManagementDeviceFilesInFolder = New WalkmanMTP.ListViewDnD.ListViewEx
-        Me.ColumnHeader6 = New System.Windows.Forms.ColumnHeader
         Me.lblFileManagementSelectedFolder = New System.Windows.Forms.Label
         Me.LinkLabel1 = New System.Windows.Forms.LinkLabel
         Me.Label2 = New System.Windows.Forms.Label
@@ -73,6 +70,12 @@ Partial Class Main
         Me.btnRefreshDevices = New System.Windows.Forms.Button
         Me.ToolTip1 = New System.Windows.Forms.ToolTip(Me.components)
         Me.btnSync = New System.Windows.Forms.Button
+        Me.InformationToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem
+        Me.SyncDeviceToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem
+        Me.ToolStripSeparator1 = New System.Windows.Forms.ToolStripSeparator
+        Me.tvPlaylistsFilesOnDevice = New WalkmanMTP.MultiSelectTreeview.MultiSelectTreeview
+        Me.lvFileManagementDeviceFilesInFolder = New WalkmanMTP.ListViewDnD.ListViewEx
+        Me.ColumnHeader6 = New System.Windows.Forms.ColumnHeader
         Me.MenuStrip1.SuspendLayout()
         Me.tabMain.SuspendLayout()
         Me.tabpagePlaylists.SuspendLayout()
@@ -100,7 +103,7 @@ Partial Class Main
         '
         'FileToolStripMenuItem
         '
-        Me.FileToolStripMenuItem.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.QuitToolStripMenuItem})
+        Me.FileToolStripMenuItem.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.SyncDeviceToolStripMenuItem, Me.ToolStripSeparator1, Me.QuitToolStripMenuItem})
         Me.FileToolStripMenuItem.Name = "FileToolStripMenuItem"
         Me.FileToolStripMenuItem.Size = New System.Drawing.Size(35, 20)
         Me.FileToolStripMenuItem.Text = "&File"
@@ -109,7 +112,7 @@ Partial Class Main
         '
         Me.QuitToolStripMenuItem.Name = "QuitToolStripMenuItem"
         Me.QuitToolStripMenuItem.ShortcutKeys = CType((System.Windows.Forms.Keys.Alt Or System.Windows.Forms.Keys.F4), System.Windows.Forms.Keys)
-        Me.QuitToolStripMenuItem.Size = New System.Drawing.Size(145, 22)
+        Me.QuitToolStripMenuItem.Size = New System.Drawing.Size(181, 22)
         Me.QuitToolStripMenuItem.Text = "&Quit"
         '
         'OptionsStripMenuItem
@@ -142,7 +145,7 @@ Partial Class Main
         '
         'HelpToolStripMenuItem
         '
-        Me.HelpToolStripMenuItem.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.AboutToolStripMenuItem})
+        Me.HelpToolStripMenuItem.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.InformationToolStripMenuItem, Me.AboutToolStripMenuItem})
         Me.HelpToolStripMenuItem.Name = "HelpToolStripMenuItem"
         Me.HelpToolStripMenuItem.Size = New System.Drawing.Size(40, 20)
         Me.HelpToolStripMenuItem.Text = "&Help"
@@ -150,7 +153,7 @@ Partial Class Main
         'AboutToolStripMenuItem
         '
         Me.AboutToolStripMenuItem.Name = "AboutToolStripMenuItem"
-        Me.AboutToolStripMenuItem.Size = New System.Drawing.Size(114, 22)
+        Me.AboutToolStripMenuItem.Size = New System.Drawing.Size(141, 22)
         Me.AboutToolStripMenuItem.Text = "&About"
         '
         'cmbDevices
@@ -217,19 +220,8 @@ Partial Class Main
         Me.SplitContainer1.Panel2.Controls.Add(Me.btnAddPlaylist)
         Me.SplitContainer1.Panel2.Controls.Add(Me.tabPlaylists)
         Me.SplitContainer1.Size = New System.Drawing.Size(811, 438)
-        Me.SplitContainer1.SplitterDistance = 351
+        Me.SplitContainer1.SplitterDistance = 408
         Me.SplitContainer1.TabIndex = 0
-        '
-        'tvPlaylistsFilesOnDevice
-        '
-        Me.tvPlaylistsFilesOnDevice.Anchor = CType((((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Bottom) _
-                    Or System.Windows.Forms.AnchorStyles.Left) _
-                    Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
-        Me.tvPlaylistsFilesOnDevice.Location = New System.Drawing.Point(-3, 16)
-        Me.tvPlaylistsFilesOnDevice.Name = "tvPlaylistsFilesOnDevice"
-        Me.tvPlaylistsFilesOnDevice.SelectedNodes = CType(resources.GetObject("tvPlaylistsFilesOnDevice.SelectedNodes"), System.Collections.Generic.List(Of System.Windows.Forms.TreeNode))
-        Me.tvPlaylistsFilesOnDevice.Size = New System.Drawing.Size(353, 418)
-        Me.tvPlaylistsFilesOnDevice.TabIndex = 0
         '
         'Label4
         '
@@ -245,7 +237,7 @@ Partial Class Main
         '
         Me.btnPlaylistsFilesOnDeviceRefresh.Anchor = CType((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         Me.btnPlaylistsFilesOnDeviceRefresh.AutoSize = True
-        Me.btnPlaylistsFilesOnDeviceRefresh.Location = New System.Drawing.Point(299, 0)
+        Me.btnPlaylistsFilesOnDeviceRefresh.Location = New System.Drawing.Point(356, 0)
         Me.btnPlaylistsFilesOnDeviceRefresh.Name = "btnPlaylistsFilesOnDeviceRefresh"
         Me.btnPlaylistsFilesOnDeviceRefresh.Size = New System.Drawing.Size(44, 13)
         Me.btnPlaylistsFilesOnDeviceRefresh.TabIndex = 5
@@ -281,7 +273,7 @@ Partial Class Main
         '
         Me.btnDeleteAllLists.Anchor = CType((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         Me.btnDeleteAllLists.AutoSize = True
-        Me.btnDeleteAllLists.Location = New System.Drawing.Point(361, 0)
+        Me.btnDeleteAllLists.Location = New System.Drawing.Point(304, 0)
         Me.btnDeleteAllLists.Name = "btnDeleteAllLists"
         Me.btnDeleteAllLists.Size = New System.Drawing.Size(92, 13)
         Me.btnDeleteAllLists.TabIndex = 1
@@ -321,7 +313,7 @@ Partial Class Main
         Me.tabPlaylists.Location = New System.Drawing.Point(39, 16)
         Me.tabPlaylists.Name = "tabPlaylists"
         Me.tabPlaylists.SelectedIndex = 0
-        Me.tabPlaylists.Size = New System.Drawing.Size(418, 423)
+        Me.tabPlaylists.Size = New System.Drawing.Size(361, 423)
         Me.tabPlaylists.TabIndex = 0
         '
         'TabPage4
@@ -330,7 +322,7 @@ Partial Class Main
         Me.TabPage4.Location = New System.Drawing.Point(4, 21)
         Me.TabPage4.Name = "TabPage4"
         Me.TabPage4.Padding = New System.Windows.Forms.Padding(3)
-        Me.TabPage4.Size = New System.Drawing.Size(410, 398)
+        Me.TabPage4.Size = New System.Drawing.Size(353, 398)
         Me.TabPage4.TabIndex = 0
         Me.TabPage4.Text = "New Playlist*"
         Me.TabPage4.UseVisualStyleBackColor = True
@@ -343,7 +335,7 @@ Partial Class Main
         Me.ListView1.Location = New System.Drawing.Point(3, 3)
         Me.ListView1.Name = "ListView1"
         Me.ListView1.ShowItemToolTips = True
-        Me.ListView1.Size = New System.Drawing.Size(404, 392)
+        Me.ListView1.Size = New System.Drawing.Size(347, 392)
         Me.ListView1.TabIndex = 0
         Me.ListView1.UseCompatibleStateImageBehavior = False
         Me.ListView1.View = System.Windows.Forms.View.Details
@@ -447,28 +439,6 @@ Partial Class Main
         Me.tvFileManagementDeviceFolders.Size = New System.Drawing.Size(387, 424)
         Me.tvFileManagementDeviceFolders.TabIndex = 0
         '
-        'lvFileManagementDeviceFilesInFolder
-        '
-        Me.lvFileManagementDeviceFilesInFolder.AllowDrop = True
-        Me.lvFileManagementDeviceFilesInFolder.AllowReorder = True
-        Me.lvFileManagementDeviceFilesInFolder.Anchor = CType((((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Bottom) _
-                    Or System.Windows.Forms.AnchorStyles.Left) _
-                    Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
-        Me.lvFileManagementDeviceFilesInFolder.Columns.AddRange(New System.Windows.Forms.ColumnHeader() {Me.ColumnHeader6})
-        Me.lvFileManagementDeviceFilesInFolder.FullRowSelect = True
-        Me.lvFileManagementDeviceFilesInFolder.LineColor = System.Drawing.Color.Red
-        Me.lvFileManagementDeviceFilesInFolder.Location = New System.Drawing.Point(0, 16)
-        Me.lvFileManagementDeviceFilesInFolder.Name = "lvFileManagementDeviceFilesInFolder"
-        Me.lvFileManagementDeviceFilesInFolder.Size = New System.Drawing.Size(418, 424)
-        Me.lvFileManagementDeviceFilesInFolder.TabIndex = 0
-        Me.lvFileManagementDeviceFilesInFolder.UseCompatibleStateImageBehavior = False
-        Me.lvFileManagementDeviceFilesInFolder.View = System.Windows.Forms.View.Details
-        '
-        'ColumnHeader6
-        '
-        Me.ColumnHeader6.Text = "File Name"
-        Me.ColumnHeader6.Width = 393
-        '
         'lblFileManagementSelectedFolder
         '
         Me.lblFileManagementSelectedFolder.AutoSize = True
@@ -568,8 +538,59 @@ Partial Class Main
         Me.btnSync.Size = New System.Drawing.Size(195, 52)
         Me.btnSync.TabIndex = 10
         Me.btnSync.Text = "Sync"
-        Me.ToolTip1.SetToolTip(Me.btnSync, "All non empty playlists and albums will be written to the player")
+        Me.ToolTip1.SetToolTip(Me.btnSync, "Sync [Ctrl+S]")
         Me.btnSync.UseVisualStyleBackColor = True
+        '
+        'InformationToolStripMenuItem
+        '
+        Me.InformationToolStripMenuItem.Name = "InformationToolStripMenuItem"
+        Me.InformationToolStripMenuItem.Size = New System.Drawing.Size(141, 22)
+        Me.InformationToolStripMenuItem.Text = "Information"
+        '
+        'SyncDeviceToolStripMenuItem
+        '
+        Me.SyncDeviceToolStripMenuItem.Name = "SyncDeviceToolStripMenuItem"
+        Me.SyncDeviceToolStripMenuItem.ShortcutKeys = CType((System.Windows.Forms.Keys.Control Or System.Windows.Forms.Keys.S), System.Windows.Forms.Keys)
+        Me.SyncDeviceToolStripMenuItem.Size = New System.Drawing.Size(181, 22)
+        Me.SyncDeviceToolStripMenuItem.Text = "Sync Device"
+        '
+        'ToolStripSeparator1
+        '
+        Me.ToolStripSeparator1.Name = "ToolStripSeparator1"
+        Me.ToolStripSeparator1.Size = New System.Drawing.Size(178, 6)
+        '
+        'tvPlaylistsFilesOnDevice
+        '
+        Me.tvPlaylistsFilesOnDevice.Anchor = CType((((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Bottom) _
+                    Or System.Windows.Forms.AnchorStyles.Left) _
+                    Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
+        Me.tvPlaylistsFilesOnDevice.Location = New System.Drawing.Point(-3, 16)
+        Me.tvPlaylistsFilesOnDevice.Name = "tvPlaylistsFilesOnDevice"
+        Me.tvPlaylistsFilesOnDevice.SelectedNodes = CType(resources.GetObject("tvPlaylistsFilesOnDevice.SelectedNodes"), System.Collections.Generic.List(Of System.Windows.Forms.TreeNode))
+        Me.tvPlaylistsFilesOnDevice.Size = New System.Drawing.Size(409, 419)
+        Me.tvPlaylistsFilesOnDevice.TabIndex = 0
+        '
+        'lvFileManagementDeviceFilesInFolder
+        '
+        Me.lvFileManagementDeviceFilesInFolder.AllowDrop = True
+        Me.lvFileManagementDeviceFilesInFolder.AllowReorder = True
+        Me.lvFileManagementDeviceFilesInFolder.Anchor = CType((((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Bottom) _
+                    Or System.Windows.Forms.AnchorStyles.Left) _
+                    Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
+        Me.lvFileManagementDeviceFilesInFolder.Columns.AddRange(New System.Windows.Forms.ColumnHeader() {Me.ColumnHeader6})
+        Me.lvFileManagementDeviceFilesInFolder.FullRowSelect = True
+        Me.lvFileManagementDeviceFilesInFolder.LineColor = System.Drawing.Color.Red
+        Me.lvFileManagementDeviceFilesInFolder.Location = New System.Drawing.Point(0, 16)
+        Me.lvFileManagementDeviceFilesInFolder.Name = "lvFileManagementDeviceFilesInFolder"
+        Me.lvFileManagementDeviceFilesInFolder.Size = New System.Drawing.Size(418, 424)
+        Me.lvFileManagementDeviceFilesInFolder.TabIndex = 0
+        Me.lvFileManagementDeviceFilesInFolder.UseCompatibleStateImageBehavior = False
+        Me.lvFileManagementDeviceFilesInFolder.View = System.Windows.Forms.View.Details
+        '
+        'ColumnHeader6
+        '
+        Me.ColumnHeader6.Text = "File Name"
+        Me.ColumnHeader6.Width = 393
         '
         'Main
         '
@@ -664,4 +685,7 @@ Partial Class Main
     Friend WithEvents btnFileManagementRefresh As System.Windows.Forms.LinkLabel
     Friend WithEvents Label5 As System.Windows.Forms.Label
     Friend WithEvents lblFileManagementSelectedFolder As System.Windows.Forms.Label
+    Friend WithEvents InformationToolStripMenuItem As System.Windows.Forms.ToolStripMenuItem
+    Friend WithEvents SyncDeviceToolStripMenuItem As System.Windows.Forms.ToolStripMenuItem
+    Friend WithEvents ToolStripSeparator1 As System.Windows.Forms.ToolStripSeparator
 End Class
