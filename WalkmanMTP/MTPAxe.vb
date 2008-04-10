@@ -323,8 +323,8 @@
 
         'first, check to see if the root node matches the node we're loking for
         'get node attributes
-        nodeLevel = (root.Tag.ToString.Split(","c))(0)
-        nodeType = (root.Tag.ToString.Split(","c))(1)
+        nodeLevel = (root.Tag.ToString.Split("/"c))(0)
+        nodeType = (root.Tag.ToString.Split("/"c))(1)
         If root.Text = nName AndAlso nodeLevel = nLevel AndAlso nodeType & nType Then
             'were done
             Return root
@@ -332,8 +332,8 @@
 
         For Each tn As TreeNode In root.Nodes
             'get node attributes
-            nodeLevel = (tn.Tag.ToString.Split(","c))(0)
-            nodeType = (tn.Tag.ToString.Split(","c))(1)
+            nodeLevel = (tn.Tag.ToString.Split("/"c))(0)
+            nodeType = (tn.Tag.ToString.Split("/"c))(1)
 
             'check for matches 
             If tn.Text = nName AndAlso nodeLevel = nLevel AndAlso nodeType & nType Then
@@ -395,7 +395,7 @@
             'keep track of the maximum and minimim directory depth
             'if tihs is the first iteration, set the minimum and the maximum
             'to the value of the first node
-            level = Byte.Parse((properties.Split(","c))(0))
+            level = Byte.Parse((properties.Split("/"c))(0))
             If minLevel = -1 And maxLevel = -1 Then
                 minLevel = level
                 maxLevel = level
@@ -416,7 +416,7 @@
             tn.SelectedImageKey = fileExt
 
             'need to find out if the node is a file or directory
-            If (Integer.Parse((tn.Tag.ToString.Split(","c))(1)) And WMDM_FILE_ATTR_FILE) = WMDM_FILE_ATTR_FILE Then
+            If (Integer.Parse((tn.Tag.ToString.Split("/"c))(1)) And WMDM_FILE_ATTR_FILE) = WMDM_FILE_ATTR_FILE Then
                 'Use this to get the small icon.
                 hImgSmall = SHGetFileInfo("x" & fileExt, _
                                           FILE_ATTRIBUTE_NORMAL, _
@@ -458,9 +458,9 @@
                 For Each tn In treenodes
 
                     'get node info
-                    nodeLevel = (tn.Tag.ToString.Split(","c))(0)
-                    nodeType = (tn.Tag.ToString.Split(","c))(1)
-                    nodeParent = (tn.Tag.ToString.Split(","c))(2)
+                    nodeLevel = (tn.Tag.ToString.Split("/"c))(0)
+                    nodeType = (tn.Tag.ToString.Split("/"c))(1)
+                    nodeParent = (tn.Tag.ToString.Split("/"c))(2)
 
                     'process only nodes with level=index
                     If nodeLevel = index Then

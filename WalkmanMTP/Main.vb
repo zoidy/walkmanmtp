@@ -263,12 +263,12 @@ Public Class Main
                     str = ""
                     For Each lvitem As ListViewItem In lv.Items
                         'get the item attributes
-                        attribs = lvitem.Tag.Split(","c)
+                        attribs = lvitem.Tag.Split("/"c)
                         nodeLevel = attribs(0)
                         nodeType = attribs(1)
                         nodeParent = attribs(2)
                         'add each item to the string
-                        str = str & "<" & nodeLevel & "," & nodeType & "," & nodeParent & ">" & lvitem.Text & ":"
+                        str = str & "<" & nodeLevel & "/"c & nodeType & "/"c & nodeParent & ">" & lvitem.Text & ":"
                     Next
                     'remove the trailing ':'
                     str = str.Remove(str.Length - 1, 1)
@@ -426,7 +426,7 @@ Public Class Main
 
         'check to see if the root is a file, if it is add it to the list view
         'if it's not, then it's a folder and we must recurse it
-        attribs = root.Tag.Split(","c)
+        attribs = root.Tag.Split("/"c)
         nodeLevel = attribs(0)
         nodeType = attribs(1)
         nodeParent = attribs(2)
@@ -664,7 +664,7 @@ Public Class Main
         While i < root.Nodes.Count
             node = root.Nodes(i)
             i += 1
-            attribs = node.Tag.Split(","c)
+            attribs = node.Tag.Split("/"c)
             If (Integer.Parse(attribs(1)) And MTPAxe.WMDM_FILE_ATTR_FOLDER) <> MTPAxe.WMDM_FILE_ATTR_FOLDER Then
                 If node.Text <> "MUSIC" And node.Text <> "VIDEOS" And node.Text <> "PICTURES" Then
                     node.Remove()
@@ -772,7 +772,7 @@ Public Class Main
         'adds files specified by path to the folder  specified by parentNode
 
         'get the attributes of the parent node (will need them to add new storage items to the tree)
-        Dim parentAttribs() As String = parentNode.Tag.split(",")
+        Dim parentAttribs() As String = parentNode.Tag.split("/"c)
 
         If IO.Directory.Exists(path) Then
             'draggedfile was a directory. now add it and all it's children
@@ -802,7 +802,7 @@ Public Class Main
             'add it to the treeview
             Dim newNode As New TreeNode
             newNode.Text = folderName
-            newNode.Tag = parentAttribs(0) + 1 & ",295176," & parentNode.Text
+            newNode.Tag = parentAttribs(0) + 1 & "/"c & "295176" & "/" & parentNode.Text
             newNode.ImageKey = "*"
 
             'invoke the delegate to update the treeview from the main thread
