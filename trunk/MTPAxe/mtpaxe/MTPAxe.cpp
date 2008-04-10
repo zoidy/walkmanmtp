@@ -176,7 +176,7 @@ int _tmain(int argc, _TCHAR* argv[])
 				default: break;
 
 			}
-		}else{returnMsg("MTPAxe by Dr. Zoidberg v0.2.3\n");}
+		}else{returnMsg("MTPAxe by Dr. Zoidberg v0.2.4\n");}
 
 	}while(!msg==MTPAXE_M_QUIT);
 
@@ -586,7 +586,7 @@ void deviceEnumerateStorage_helper(IWMDMEnumStorage *pIEnumStorage,IWMDMStorage3
 			item.type=tempDW;
 			arrStorageItems[numStorageItems]=item;
 
-			sprintf(buf2,"<%d,%d,%s>%s:",currLevel,tempDW,buff,buf);
+			sprintf(buf2,"<%d/%d/%s>%s:",currLevel,tempDW,buff,buf);
 			strcat(buffer,buf2);
 
 			//see if the current storage is a folder, if it is,
@@ -878,11 +878,11 @@ void deviceCreatePlaylist_helper(char *items,unsigned long *pFoundItemsCount,IWM
 		attribs=tokenizer[1].GetFirst(item,">");
 	
 		//get each attribute from the attributes string
-		clevel=tokenizer[2].GetFirst(attribs,",");
+		clevel=tokenizer[2].GetFirst(attribs,"/");
 		level=atoi(clevel);
-		ctype=tokenizer[2].GetNext(",");
+		ctype=tokenizer[2].GetNext("/");
 		type=strtoul(ctype,NULL,10);
-		sprintf(parent,"%s",tokenizer[2].GetNext(","));
+		sprintf(parent,"%s",tokenizer[2].GetNext("/"));
 
 		//get the item name
 		name=tokenizer[1].GetNext(">");
@@ -1023,7 +1023,7 @@ void playlistEnumerateContents(char *playlistName)
 
 		//get the parent of the referenced storage item
 		//level must be 0 here or else some things may not work in WalkmanMTP
-		sprintf(buf2,"<%d,%d,%s>%s:",level,tempDW,buff,buf);
+		sprintf(buf2,"<%d/%d/%s>%s:",level,tempDW,buff,buf);
 
 		strcat(buffer,buf2);
 	}
@@ -1122,11 +1122,11 @@ IWMDMStorage3 * storageCreateFromFile_helper(char *destStorage,int *theLevel)
 	attribs=tokenizer[1].GetFirst(item,">");
 
 	//get each attribute from the attributes string
-	clevel=tokenizer[2].GetFirst(attribs,",");
+	clevel=tokenizer[2].GetFirst(attribs,"/");
 	level=atoi(clevel);
-	ctype=tokenizer[2].GetNext(",");
+	ctype=tokenizer[2].GetNext("/");
 	type=strtoul(ctype,NULL,10);
-	sprintf(parent,"%s",tokenizer[2].GetNext(","));
+	sprintf(parent,"%s",tokenizer[2].GetNext("/"));
 
 	//get the item name
 	name=tokenizer[1].GetNext(">");
