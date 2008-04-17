@@ -33,6 +33,7 @@
 #define MTPAXE_MAXFILENAMESIZE 256	//wide char needs twice this amount
 
 void returnMsg(char*,char* =NULL);
+void MTPAxe_version(void);
 
 int setCurrentDevice(char*);
 void getDeviceManagerRevision(void);
