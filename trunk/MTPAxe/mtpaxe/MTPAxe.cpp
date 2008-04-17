@@ -4,6 +4,10 @@
 #include "stdafx.h"
 #include "MTPAxe.h"
 
+#define MTPAXE_ver "MTPAxe by Dr. Zoidberg v0.2.4a\n"
+
+//file for writing returnMsg output to file
+FILE *f=NULL;
 
 //general purpose HRESULT
 HRESULT hr;
@@ -42,6 +46,8 @@ int _tmain(int argc, _TCHAR* argv[])
 {
 	CoInitialize(NULL);
 
+	setlocale(LC_ALL,"German");
+
 	//general purpose temp buffer
 	char buffer[MTPAXE_MAXFILENAMESIZE];
 
@@ -73,17 +79,24 @@ int _tmain(int argc, _TCHAR* argv[])
 					break;
 				case -100:{
 					//this is for troubleshooting purposes
-					gl_output_to_file=true;
+					gl_output_to_file=true;	//enable output to file
+					MTPAxe_version();
 					wmdmAuthenticate();
 					printf("Available devices:\n");
 					enumerateDevices();
 					char name[30];
 					printf("enter the device to enumerate (case sensitive): ");
-					scanf("%s",name);
-					setCurrentDevice(name);
+					scanf("%\n",name);
+					scanf("%[^\n]",name);
+					if (setCurrentDevice(name)==-1)
+					{
+						gl_output_to_file=false;
+						printf("Device '%s' not found. enter 0 to quit",name);
+						break;
+					}
 					printf("enumerating storage...");
 					deviceEnumerateStorage();
-					gl_output_to_file=false;
+					gl_output_to_file=false;  //disable output to flie
 					printf("\nenter 0 to exit:");
 					break;
 						 }
@@ -173,14 +186,15 @@ int _tmain(int argc, _TCHAR* argv[])
 					storageCreateFromFile(item,buffer,atoi(type));
 					break;}
 
-				default: break;
+				default: {MTPAxe_version();break;}
 
 			}
-		}else{returnMsg("MTPAxe by Dr. Zoidberg v0.2.4\n");}
+		}else{MTPAxe_version();}
 
 	}while(!msg==MTPAXE_M_QUIT);
 
 	if(!m_pIdvMgr==NULL) m_pIdvMgr->Release();
+	if (f!=NULL) fclose(f);
 
 	CoUninitialize();
 }
@@ -200,23 +214,29 @@ void returnMsg(char *value,char *errorMsg)
 
 	if(gl_output_to_file)
 	{
-		FILE *f;
-		f=fopen("MTPAxe_dump.txt", "w, ccs=UNICODE");
+		if(f==NULL)
+			f=fopen("MTPAxe_dump.txt", "w, ccs=UNICODE");
 		if(f==NULL)
 			printf("couldn't create dump file");
 		else{
 			_towchar theStringW(value);
-			fwprintf(f,L"%s\n",(LPWSTR)theStringW);
+			fwprintf(f,L"%s",(LPWSTR)theStringW);
 			if(errorMsg!=NULL)
 			{
 				_towchar theErrorW(errorMsg);
-				fwprintf(f,L"error: %s\n",(LPWSTR)theErrorW);
+				fwprintf(f,L"error: %s",(LPWSTR)theErrorW);
 			}
-			fclose(f);
+			_flushall();
 		}
-	}
+	}else//don't close the file until gl_output_to_file is set to false
+		if (f!=NULL){fclose(f);f=NULL;}
+	
 }
 
+void MTPAxe_version(void)
+{	//prints out the version of the program
+	returnMsg(MTPAXE_ver);
+}
 int setCurrentDevice(char *deviceName)
 {	//sets the current device to deviceName. if called internally, this function returns 0 on success
 	//and -1 on error. 
@@ -469,7 +489,7 @@ int deviceEnumerateStorage(void)
 		file2
 
 	would be returned as
-	<0,Folder,NULL>ROOT:<1,Folder,ROOT>FOLDER1:<2,File,FOLDER1>file1:<1,File,ROOT>file2
+	<0/Folder/NULL>ROOT:<1/Folder/ROOT>FOLDER1:<2/File/FOLDER1>file1:<1/File/ROOT>file2
 
 	the <#> specifies the level in the heirarchy, the type of node and the parent, each object is separated
 	by a :
