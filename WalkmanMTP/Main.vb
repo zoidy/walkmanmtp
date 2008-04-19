@@ -75,24 +75,20 @@ Public Class Main
     End Sub
     Private Sub btnSync_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnSync.Click
         If MsgBox("All non empty playlists created, modified or deleted will be sync'ed." & vbCrLf & _
-                  "All albums created, modified or deleted will be updated", MsgBoxStyle.Exclamation Or MsgBoxStyle.OkCancel, "Sync device?") = MsgBoxResult.Cancel Then
+                  "All albums created, modified or deleted will be updated", MsgBoxStyle.Exclamation Or MsgBoxStyle.YesNo, "Sync device?") = MsgBoxResult.No Then
             Exit Sub
         End If
-        Splash.setText("Syncing")
-        Splash.setTitle("Syncing...")
+        
         Dim t As New Threading.Thread(New Threading.ThreadStart(AddressOf Splash.ShowDialog))
         t.SetApartmentState(Threading.ApartmentState.MTA)
-        t.Start()
+        If Not Splash.Visible Then t.Start()
+        Splash.setText("Syncing")
+        Splash.setTitle("Syncing...")
 
         Trace.WriteLine("Start sync operation...")
         syncPlaylists()
+        refreshPlaylistsList()
         Trace.WriteLine("Start sync operation...Completed")
-
-        'check what tab is open when this button is clicked
-        'that way, we can only refresh the necessary things instead of the whole app
-        If Me.tabMain.SelectedTab.Text = "Playlists" Then
-            Me.refreshPlaylistsList()
-        End If
 
         t.Abort()
     End Sub
@@ -157,7 +153,12 @@ Public Class Main
             Exit Sub
         End If
 
+        'let the user know we're busy
         Cursor.Current = Cursors.WaitCursor
+        Dim t As New Threading.Thread(New Threading.ThreadStart(AddressOf Splash.ShowDialog))
+        t.SetApartmentState(Threading.ApartmentState.MTA)
+        If Not Splash.Visible Then t.Start()
+        Splash.setTitle("Intitializing " & devName)
 
         Try
             'IMPORTANT: set the active device
@@ -184,9 +185,8 @@ Public Class Main
             Dim freeSpace, capacity As Long
             capacity = Long.Parse(ret(0)) / 1024 / 1024 'to MB
             freeSpace = Long.Parse(ret(1)) / 1024 / 1024
-            'free space doesnt seem to work...
-            'Me.lblCapacity.Text = freeSpace & "MB of " & capacity & " MB"
-            Me.lblCapacity.Text = capacity & " MB"
+
+            Me.lblCapacity.Text = freeSpace & " of " & capacity & " MB"
 
             'get the icon
             Trace.WriteLine("initSelectedDevice: getting device icon")
@@ -205,6 +205,7 @@ Public Class Main
         End Try
 
         Cursor.Current = Cursors.Default
+        t.Abort()
 
     End Sub
 
@@ -450,11 +451,20 @@ Public Class Main
     Private Sub refreshPlaylistDeviceFiles()
         Dim tv As TreeView
 
+        Trace.WriteLine("Getting music files...")
+
+        'let the user know were busy
+        Dim t As New Threading.Thread(New Threading.ThreadStart(AddressOf Splash.ShowDialog))
+        t.SetApartmentState(Threading.ApartmentState.MTA)
+        If Not Splash.Visible Then
+            t.Start()
+            Splash.setTitle(Me.cmbDevices.Text)
+        End If
+        Splash.setText("Getting music files")
+
         Me.tvPlaylistsFilesOnDevice.Nodes.Clear()
 
-        Trace.WriteLine("Getting music files...")
         tv = axe.getTreeViewByName("MUSIC")
-        Trace.WriteLine("Getting music files...Complete")
 
         Me.tvPlaylistsFilesOnDevice.ImageList = tv.ImageList
 
@@ -463,11 +473,24 @@ Public Class Main
             Me.tvPlaylistsFilesOnDevice.Nodes.Add(node.Clone)
         Next
         Me.tvPlaylistsFilesOnDevice.ExpandAll()
+
+        t.Abort()
+        Trace.WriteLine("Getting music files...Complete")
     End Sub
     Private Sub refreshPlaylistsList()
         Dim tv, tv2 As TreeView
 
         Trace.WriteLine("Refreshing playlists...")
+
+        'let the user know were busy
+        Dim t As New Threading.Thread(New Threading.ThreadStart(AddressOf Splash.ShowDialog))
+        t.SetApartmentState(Threading.ApartmentState.MTA)
+        If Not Splash.Visible Then
+            t.Start()
+            Splash.setTitle(Me.cmbDevices.Text)
+        End If
+
+        Splash.setText("Getting playlists")
 
         originalPlaylists = New Collection
 
@@ -478,7 +501,7 @@ Public Class Main
 
         tv = axe.getTreeViewByName("Playlists")
         If tv.Nodes.Count = 0 Then
-            Trace.WriteLine("Error refreshing playlists - empty playlist")
+            Trace.WriteLine("Error refreshing playlists - no playlists found")
             Exit Sub
         End If
         Me.tvPlaylistsFilesOnDevice.ImageList = tv.ImageList
@@ -516,6 +539,8 @@ Public Class Main
             originalTabPage.Tag = tpage.Tag
             originalPlaylists.Add(originalTabPage)
         Next
+
+        t.Abort()
         Trace.WriteLine("Refreshing playlists...complete")
     End Sub
 
@@ -624,9 +649,22 @@ Public Class Main
 #End Region
 
 #Region "FileManagement"
-    Private fullFileListing As TreeView
+    Private fullFileListing As TreeView 'used for keeping track of the file listing
+    'required delegates for updating the treeview from the uploading worker thread (used for drag n drop from explorer)
+    Private Delegate Sub updateTreeviewDelegate(ByVal parentnode As TreeNode, ByVal childnode As TreeNode)
     Private Sub refreshFileTransfersDeviceFiles()
+
         Trace.WriteLine("Refreshing file list...")
+
+        'let the user know were busy
+        Dim t As New Threading.Thread(New Threading.ThreadStart(AddressOf Splash.ShowDialog))
+        t.SetApartmentState(Threading.ApartmentState.MTA)
+        If Not Splash.Visible Then
+            t.Start()
+            Splash.setTitle(Me.cmbDevices.Text)
+        End If
+
+        Splash.setText("Getting all media files")
 
         'get the stuff on the device (keep it in a global variable
         'so we don't have to read the device whenever a folder is opened
@@ -651,6 +689,7 @@ Public Class Main
         Me.tvFileManagementDeviceFolders.ExpandAll()
         Me.tvFileManagementDeviceFolders.SelectedNode = Me.tvFileManagementDeviceFolders.Nodes(0)
 
+        t.Abort()
         Trace.WriteLine("Refreshing file list...Complete")
     End Sub
     Private Sub refreshFileTransfersDeviceFiles_helper(ByRef root As TreeNode)
@@ -677,18 +716,7 @@ Public Class Main
 
 
     End Sub
-    Private Sub btnFileManagementRefresh_LinkClicked(ByVal sender As System.Object, ByVal e As System.Windows.Forms.LinkLabelLinkClickedEventArgs) Handles btnFileManagementRefresh.LinkClicked
-        Splash.setText("refreshing files...")
-        Splash.setTitle("File Management")
-        Dim t As New Threading.Thread(New Threading.ThreadStart(AddressOf Splash.ShowDialog))
-        t.SetApartmentState(Threading.ApartmentState.MTA)
-        t.Start()
-        Application.DoEvents()
-        Me.refreshFileTransfersDeviceFiles()
-        t.Abort()
-    End Sub
-
-
+    
     Private Sub tvFileManagementDeviceFolders_AfterSelect(ByVal sender As Object, ByVal e As System.Windows.Forms.TreeViewEventArgs) Handles tvFileManagementDeviceFolders.AfterSelect
         Dim theNode As TreeNode = findTreeNode(fullFileListing.Nodes(0), e.Node)
 
@@ -704,11 +732,21 @@ Public Class Main
 
 
             Dim lvItem As ListViewItem
+            Dim itemSize As Long
             For Each node As TreeNode In theNode.Nodes
                 lvItem = New ListViewItem
                 lvItem.Tag = node.Tag
                 lvItem.Text = node.Text
                 lvItem.ImageKey = node.ImageKey
+
+                itemSize = Long.Parse(lvItem.Tag.ToString.Split("/"c)(3))
+                'If itemSize < 20971520 Then
+                '    lvItem.SubItems.Add((itemSize / 1024).ToString("N0") & " KB")
+                'Else
+                '    lvItem.SubItems.Add((itemSize / 1024 / 1024).ToString("N0") & " MB")
+                'End If
+                lvItem.SubItems.Add((itemSize / 1024).ToString("N0") & " KB")
+
                 lvFileManagementDeviceFilesInFolder.Items.Add(lvItem)
             Next
 
@@ -722,10 +760,7 @@ Public Class Main
             Trace.WriteLine("Error finding " & e.Node.Text)
         End If
     End Sub
-
     
-    'required delegates for updating the treeview from the uploading worker thread
-    Private Delegate Sub updateTreeviewDelegate(ByVal parentnode As TreeNode, ByVal childnode As TreeNode)
     Private Sub updateTreeview(ByVal parentnode As TreeNode, ByVal childnode As TreeNode)
         parentnode.Nodes.Add(childnode)
     End Sub
@@ -745,11 +780,12 @@ Public Class Main
     Private Sub lvFileManagementDeviceFilesInFolder_DragDrop_helper_starter(ByVal draggedfiles As Object)
         'this is the worker thread for uploading files
 
-        Splash.setText("...")
-        Splash.setTitle("Uploading...")
+ 
         Dim t As New Threading.Thread(New Threading.ThreadStart(AddressOf Splash.ShowDialog))
         t.SetApartmentState(Threading.ApartmentState.MTA)
-        t.Start()
+        If Not Splash.Visible Then t.Start()
+        Splash.setText("...")
+        Splash.setTitle("Uploading...")
 
         'get the total number of files to transfer
         Dim totalNumFiles As Integer = 0
@@ -796,13 +832,14 @@ Public Class Main
                 End If
             End If
             If Me.lvFileManagementDeviceFilesInFolder.Tag Is parentNode Then
-                lvFileManagementDeviceFilesInFolder.Items.Add(folderName, "*")
+                lvFileManagementDeviceFilesInFolder.Items.Add(folderName, "*").SubItems.Add("0 KB")
             End If
 
             'add it to the treeview
             Dim newNode As New TreeNode
             newNode.Text = folderName
-            newNode.Tag = parentAttribs(0) + 1 & "/"c & "295176" & "/" & parentNode.Text
+            newNode.Tag = parentAttribs(0) + 1 & "/"c & "295176" & "/"c & parentNode.Text & "/"c & "0"
+
             newNode.ImageKey = "*"
 
             'invoke the delegate to update the treeview from the main thread
@@ -820,6 +857,7 @@ Public Class Main
             'if were here, file was really just a file
             Dim ext As String = IO.Path.GetExtension(path)
             Dim fname As String = IO.Path.GetFileName(path)
+            Dim itemSize As Long = FileLen(path)
 
             Splash.setText("Uploading '" & fname & "'")
 
@@ -838,7 +876,7 @@ Public Class Main
                 'add it to the listview only if the file is actually contained in the selected folder 
                 'without this, all files are added to the listview, even ones in subfolders
                 If Me.lvFileManagementDeviceFilesInFolder.Tag Is parentNode Then
-                    lvFileManagementDeviceFilesInFolder.Items.Add(fname, ext)
+                    lvFileManagementDeviceFilesInFolder.Items.Add(fname, ext).SubItems.Add((itemSize / 1024).ToString("N0") & " KB")
                 End If
 
                 'add this item to the fulltree so it will appear in the listview if the parent node
@@ -850,7 +888,7 @@ Public Class Main
                 'type seems to be 295176 for normal folders and 295200 for normal files
                 Dim newNode As New TreeNode
                 newNode.Text = fname
-                newNode.Tag = parentAttribs(0) + 1 & ",295200," & parentNode.Text
+                newNode.Tag = parentAttribs(0) + 1 & "/"c & "295200" & "/"c & parentNode.Text & "/"c & itemSize
                 newNode.ImageKey = ext
                 parentNode.Nodes.Add(newNode)
 
@@ -870,6 +908,11 @@ Public Class Main
         If e.KeyValue = Keys.Delete Then
             MsgBox("Deleting items is not yet supported. use explorer to delete files")
         End If
+    End Sub
+
+    Private Sub btnFileManagementRefresh_LinkClicked(ByVal sender As System.Object, ByVal e As System.Windows.Forms.LinkLabelLinkClickedEventArgs) Handles btnFileManagementRefresh.LinkClicked
+        Application.DoEvents()
+        Me.refreshFileTransfersDeviceFiles()
     End Sub
 #End Region
 

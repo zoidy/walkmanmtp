@@ -576,7 +576,7 @@
         'returns the full directory structure of the device
         'returns an empty treeview if theplaylist is empty
 
-        Trace.WriteLine("MTPAxe: bulding playlist contents")
+        Trace.WriteLine("MTPAxe: building playlist contents - " & name)
         If axe Is Nothing Then Throw New Exception("MTPAxe is not started")
 
         Dim theTreeView As New TreeView
