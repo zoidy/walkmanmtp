@@ -64,7 +64,7 @@
 				LinkIncremental="2"
 				GenerateDebugInformation="true"
 				SubSystem="1"
-				StackReserveSize="4194304"
+				StackReserveSize="15728640"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -141,7 +141,7 @@
 				EnableUAC="false"
 				GenerateDebugInformation="false"
 				SubSystem="1"
-				StackReserveSize="4194304"
+				StackReserveSize="15728640"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
 				LinkTimeCodeGeneration="1"

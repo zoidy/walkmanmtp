@@ -26,12 +26,15 @@ Partial Class Main
         Dim resources As System.ComponentModel.ComponentResourceManager = New System.ComponentModel.ComponentResourceManager(GetType(Main))
         Me.MenuStrip1 = New System.Windows.Forms.MenuStrip
         Me.FileToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem
+        Me.SyncDeviceToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem
+        Me.ToolStripSeparator1 = New System.Windows.Forms.ToolStripSeparator
         Me.QuitToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem
         Me.OptionsStripMenuItem = New System.Windows.Forms.ToolStripMenuItem
         Me.ShowDeviceIconToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem
         Me.ToolStripSeparator2 = New System.Windows.Forms.ToolStripSeparator
         Me.ShowDebugWindowToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem
         Me.HelpToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem
+        Me.InformationToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem
         Me.AboutToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem
         Me.cmbDevices = New System.Windows.Forms.ComboBox
         Me.Label1 = New System.Windows.Forms.Label
@@ -70,12 +73,10 @@ Partial Class Main
         Me.btnRefreshDevices = New System.Windows.Forms.Button
         Me.ToolTip1 = New System.Windows.Forms.ToolTip(Me.components)
         Me.btnSync = New System.Windows.Forms.Button
-        Me.InformationToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem
-        Me.SyncDeviceToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem
-        Me.ToolStripSeparator1 = New System.Windows.Forms.ToolStripSeparator
         Me.tvPlaylistsFilesOnDevice = New WalkmanMTP.MultiSelectTreeview.MultiSelectTreeview
         Me.lvFileManagementDeviceFilesInFolder = New WalkmanMTP.ListViewDnD.ListViewEx
         Me.ColumnHeader6 = New System.Windows.Forms.ColumnHeader
+        Me.Size = New System.Windows.Forms.ColumnHeader
         Me.MenuStrip1.SuspendLayout()
         Me.tabMain.SuspendLayout()
         Me.tabpagePlaylists.SuspendLayout()
@@ -107,6 +108,18 @@ Partial Class Main
         Me.FileToolStripMenuItem.Name = "FileToolStripMenuItem"
         Me.FileToolStripMenuItem.Size = New System.Drawing.Size(35, 20)
         Me.FileToolStripMenuItem.Text = "&File"
+        '
+        'SyncDeviceToolStripMenuItem
+        '
+        Me.SyncDeviceToolStripMenuItem.Name = "SyncDeviceToolStripMenuItem"
+        Me.SyncDeviceToolStripMenuItem.ShortcutKeys = CType((System.Windows.Forms.Keys.Control Or System.Windows.Forms.Keys.S), System.Windows.Forms.Keys)
+        Me.SyncDeviceToolStripMenuItem.Size = New System.Drawing.Size(181, 22)
+        Me.SyncDeviceToolStripMenuItem.Text = "Sync Device"
+        '
+        'ToolStripSeparator1
+        '
+        Me.ToolStripSeparator1.Name = "ToolStripSeparator1"
+        Me.ToolStripSeparator1.Size = New System.Drawing.Size(178, 6)
         '
         'QuitToolStripMenuItem
         '
@@ -149,6 +162,12 @@ Partial Class Main
         Me.HelpToolStripMenuItem.Name = "HelpToolStripMenuItem"
         Me.HelpToolStripMenuItem.Size = New System.Drawing.Size(40, 20)
         Me.HelpToolStripMenuItem.Text = "&Help"
+        '
+        'InformationToolStripMenuItem
+        '
+        Me.InformationToolStripMenuItem.Name = "InformationToolStripMenuItem"
+        Me.InformationToolStripMenuItem.Size = New System.Drawing.Size(141, 22)
+        Me.InformationToolStripMenuItem.Text = "Information"
         '
         'AboutToolStripMenuItem
         '
@@ -474,9 +493,9 @@ Partial Class Main
         Me.Label3.Font = New System.Drawing.Font("Tahoma", 8.25!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
         Me.Label3.Location = New System.Drawing.Point(297, 68)
         Me.Label3.Name = "Label3"
-        Me.Label3.Size = New System.Drawing.Size(59, 13)
+        Me.Label3.Size = New System.Drawing.Size(72, 13)
         Me.Label3.TabIndex = 6
-        Me.Label3.Text = "Capacity:"
+        Me.Label3.Text = "Free Space:"
         '
         'lblManufacturer
         '
@@ -541,24 +560,6 @@ Partial Class Main
         Me.ToolTip1.SetToolTip(Me.btnSync, "Sync [Ctrl+S]")
         Me.btnSync.UseVisualStyleBackColor = True
         '
-        'InformationToolStripMenuItem
-        '
-        Me.InformationToolStripMenuItem.Name = "InformationToolStripMenuItem"
-        Me.InformationToolStripMenuItem.Size = New System.Drawing.Size(141, 22)
-        Me.InformationToolStripMenuItem.Text = "Information"
-        '
-        'SyncDeviceToolStripMenuItem
-        '
-        Me.SyncDeviceToolStripMenuItem.Name = "SyncDeviceToolStripMenuItem"
-        Me.SyncDeviceToolStripMenuItem.ShortcutKeys = CType((System.Windows.Forms.Keys.Control Or System.Windows.Forms.Keys.S), System.Windows.Forms.Keys)
-        Me.SyncDeviceToolStripMenuItem.Size = New System.Drawing.Size(181, 22)
-        Me.SyncDeviceToolStripMenuItem.Text = "Sync Device"
-        '
-        'ToolStripSeparator1
-        '
-        Me.ToolStripSeparator1.Name = "ToolStripSeparator1"
-        Me.ToolStripSeparator1.Size = New System.Drawing.Size(178, 6)
-        '
         'tvPlaylistsFilesOnDevice
         '
         Me.tvPlaylistsFilesOnDevice.Anchor = CType((((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Bottom) _
@@ -577,7 +578,7 @@ Partial Class Main
         Me.lvFileManagementDeviceFilesInFolder.Anchor = CType((((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Bottom) _
                     Or System.Windows.Forms.AnchorStyles.Left) _
                     Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
-        Me.lvFileManagementDeviceFilesInFolder.Columns.AddRange(New System.Windows.Forms.ColumnHeader() {Me.ColumnHeader6})
+        Me.lvFileManagementDeviceFilesInFolder.Columns.AddRange(New System.Windows.Forms.ColumnHeader() {Me.ColumnHeader6, Me.Size})
         Me.lvFileManagementDeviceFilesInFolder.FullRowSelect = True
         Me.lvFileManagementDeviceFilesInFolder.LineColor = System.Drawing.Color.Red
         Me.lvFileManagementDeviceFilesInFolder.Location = New System.Drawing.Point(0, 16)
@@ -590,7 +591,13 @@ Partial Class Main
         'ColumnHeader6
         '
         Me.ColumnHeader6.Text = "File Name"
-        Me.ColumnHeader6.Width = 393
+        Me.ColumnHeader6.Width = 309
+        '
+        'Size
+        '
+        Me.Size.Text = "Size"
+        Me.Size.TextAlign = System.Windows.Forms.HorizontalAlignment.Right
+        Me.Size.Width = 85
         '
         'Main
         '
@@ -688,4 +695,5 @@ Partial Class Main
     Friend WithEvents InformationToolStripMenuItem As System.Windows.Forms.ToolStripMenuItem
     Friend WithEvents SyncDeviceToolStripMenuItem As System.Windows.Forms.ToolStripMenuItem
     Friend WithEvents ToolStripSeparator1 As System.Windows.Forms.ToolStripSeparator
+    Friend WithEvents Size As System.Windows.Forms.ColumnHeader
 End Class

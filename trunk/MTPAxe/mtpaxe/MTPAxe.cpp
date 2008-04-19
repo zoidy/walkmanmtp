@@ -1,10 +1,10 @@
 // MTPAxe.cpp : Defines the entry point for the console application.
-//Important: need to increas the stack size in the linker system options (4mb is good)
+//Important: need to increase the stack size in the linker system options (8mb is enough)
 
 #include "stdafx.h"
 #include "MTPAxe.h"
 
-#define MTPAXE_ver "MTPAxe by Dr. Zoidberg v0.2.4a\n"
+#define MTPAXE_ver "MTPAxe by Dr. Zoidberg v0.2.5\n"
 
 //file for writing returnMsg output to file
 FILE *f=NULL;
@@ -37,6 +37,7 @@ struct arrStorageItem{
 	IWMDMStorage3 *pStorage3Parent;
 	int level;					//the level in the directory tree (level 0 is the root)
 	int type;					//the type of the item e.g. file or folder (since a file and a folder can have the same name at thesame directory level)
+	unsigned long long size;	//the size of the file in bytes
 };
 arrStorageItem arrStorageItems[MTPAXE_MAXNUMBEROFSTORAGEITEMS];
 
@@ -66,7 +67,8 @@ int _tmain(int argc, _TCHAR* argv[])
 						setCurrentDevice("WALKMAN");
 						deviceEnumerateStorage();
 						
-						char s[100];
+						//char s[100];
+						storageGetSizeInfo();
 						
 						//sprintf(s,"<1,295176,Storage Media>MUSIC");
 						//sprintf(s,"<1,17039624,Storage Media>PICTURES");
@@ -489,10 +491,10 @@ int deviceEnumerateStorage(void)
 		file2
 
 	would be returned as
-	<0/Folder/NULL>ROOT:<1/Folder/ROOT>FOLDER1:<2/File/FOLDER1>file1:<1/File/ROOT>file2
+	<0/Folder/NULL/0>ROOT:<1/Folder/ROOT/0>FOLDER1:<2/File/FOLDER1/123>file1:<1/File/ROOT/456>file2
 
-	the <#> specifies the level in the heirarchy, the type of node and the parent, each object is separated
-	by a :
+	the <#> specifies the level in the heirarchy, the type of node, the parent, the size in bytes.
+	Each object is separated by a :
 	*/
 
 	if(m_pIdvMgr==NULL){returnMsg("-1\n","deviceEnumerateStorage: DeviceManager not initialized\n");return -1;}
@@ -558,16 +560,19 @@ void deviceEnumerateStorage_helper(IWMDMEnumStorage *pIEnumStorage,IWMDMStorage3
 
 	pIEnumStorage->Reset();
 
-	IWMDMStorage3 *pStorage3=NULL;		//the storage 
-	unsigned long ulNumFetched;			//used for the storage enumerator
-	WCHAR storName[MTPAXE_MAXFILENAMESIZE];				//stroage name
-	WCHAR storParentName[MTPAXE_MAXFILENAMESIZE];			//stroage name of the parent
-	char buf[MTPAXE_MAXFILENAMESIZE*2];						//buffers for widechar conversion
+	IWMDMStorage3 *pStorage3=NULL;					//the storage 
+	unsigned long ulNumFetched;						//used for the storage enumerator
+	WCHAR storName[MTPAXE_MAXFILENAMESIZE];			//stroage name
+	WCHAR storParentName[MTPAXE_MAXFILENAMESIZE];	//stroage name of the parent
+	char buf[MTPAXE_MAXFILENAMESIZE*2];				//buffers for widechar conversion
 	char buff[MTPAXE_MAXFILENAMESIZE*2];
 	char buf2[(MTPAXE_MAXFILENAMESIZE*2)*2+20];
 	size_t retr;
 	DWORD tempDW;						//for the getAtturbutes call
 	_WAVEFORMATEX format;				//.
+	DWORD sizeLO;						//for getting the size of teh storage
+	DWORD sizeHI;						//.
+	unsigned long long  size;			//.
 	HRESULT hr2;						//hresult for retrieving storage info.
 	HRESULT hr3;						//mustn't use the global var 'hr' here b/c this function is recursive
 
@@ -581,6 +586,7 @@ void deviceEnumerateStorage_helper(IWMDMEnumStorage *pIEnumStorage,IWMDMStorage3
 		{					
 			ZeroMemory(storName,sizeof(storName));
 			ZeroMemory(storParentName,sizeof(storParentName));
+
 			hr3=pStorage3->GetName(storName,MTPAXE_MAXFILENAMESIZE);
 			if FAILED(hr3){return;}
 			if(pParent!=NULL)
@@ -594,6 +600,15 @@ void deviceEnumerateStorage_helper(IWMDMEnumStorage *pIEnumStorage,IWMDMStorage3
 			//the sony only supports the WMDM/FileName metadata which
 			//is the same as getting the storage name as above
 
+			//get the storage size
+			sizeLO=0;
+			sizeHI=0;
+			size=0;
+			hr3=pStorage3->GetSize(&sizeLO,&sizeHI);
+			if FAILED(hr3){/*dont return if failed, size will simply be 0*/}
+			size=sizeHI;
+			size=(size<<32)+sizeLO;
+
 			wcstombs_s(&retr, buf, MTPAXE_MAXFILENAMESIZE*2, storName,_TRUNCATE);
 			wcstombs_s(&retr, buff, MTPAXE_MAXFILENAMESIZE*2, storParentName,_TRUNCATE);
 
@@ -604,9 +619,10 @@ void deviceEnumerateStorage_helper(IWMDMEnumStorage *pIEnumStorage,IWMDMStorage3
 			item.pStorage3Parent=pParent;
 			item.level=currLevel;
 			item.type=tempDW;
+			item.size=size;
 			arrStorageItems[numStorageItems]=item;
 
-			sprintf(buf2,"<%d/%d/%s>%s:",currLevel,tempDW,buff,buf);
+			sprintf(buf2,"<%d/%d/%s/%llu>%s:",currLevel,tempDW,buff,size,buf);
 			strcat(buffer,buf2);
 
 			//see if the current storage is a folder, if it is,
@@ -706,17 +722,15 @@ void storageGetSizeInfo(void)
 
 	storGlb->Release();
 
-	//note the s615f seems to return 0 bytes for the free space...
-
 	unsigned long long size;
 	unsigned long long free;
 	size=sizeHI;
-	size=(size<<16)+sizeLO;
+	size=(size<<32)+sizeLO;
 	free=freeHI;
-	free=(free<<16)+freeLO;
+	free=(free<<32)+freeLO;
 
 	char buffer[100];
-	sprintf(buffer,"%d:%d\n",size,free);
+	sprintf(buffer,"%llu:%llu\n",size,free);
 	returnMsg(buffer);
 }
 
@@ -876,13 +890,13 @@ void deviceCreatePlaylist_helper(char *items,unsigned long *pFoundItemsCount,IWM
 	char *name;
 	
 	arrStorageItem arrItem;
-	IWMDMStorage3 *pStor=NULL;			//the storage item in arritem
-	IWMDMStorage3 *pParentStor=NULL;	//the storageParent item in arritem
-	WCHAR storName[MTPAXE_MAXFILENAMESIZE];				//name of the storage item in arrItem
-	WCHAR storParentName[MTPAXE_MAXFILENAMESIZE];			//name of the parent storage item in arrItem
-	char buf[MTPAXE_MAXFILENAMESIZE*2];						//buffer for widechar to multibyte char conversion
+	IWMDMStorage3 *pStor=NULL;						//the storage item in arritem
+	IWMDMStorage3 *pParentStor=NULL;				//the storageParent item in arritem
+	WCHAR storName[MTPAXE_MAXFILENAMESIZE];			//name of the storage item in arrItem
+	WCHAR storParentName[MTPAXE_MAXFILENAMESIZE];	//name of the parent storage item in arrItem
+	char buf[MTPAXE_MAXFILENAMESIZE*2];				//buffer for widechar to multibyte char conversion
 	size_t retr;
-	bool found;							//flag to see if we found a matching storage. break out of the loop if ture
+	bool found;										//flag to see if we found a matching storage. break out of the loop if ture
 
 	CStrTok tokenizer[3]; //the tokenizer
 	//get the first item
@@ -968,7 +982,7 @@ void playlistEnumerateContents(char *playlistName)
 
 	if(m_pIdvMgr==NULL){returnMsg("-1\n","playlistEnumerateContents: DeviceManager not initialized\n");return;}
 	if(pCurrDev==NULL){returnMsg("-1\n","playlistEnumerateContentst: no active device is set\n");return;}
-	
+
 	//find the desired playlist
 	IWMDMStorage3 *thePlaylist=NULL;
 	thePlaylist=findStorageFromPath(2,WMDM_FILE_ATTR_FILE,playlistName);
@@ -993,19 +1007,22 @@ void playlistEnumerateContents(char *playlistName)
 	WCHAR storName[MTPAXE_MAXFILENAMESIZE];				//stroage name
 	WCHAR storParentName[MTPAXE_MAXFILENAMESIZE];
 	char buf[MTPAXE_MAXFILENAMESIZE*2];					//for wide char to multi byte conversion
-	char buff[MTPAXE_MAXFILENAMESIZE*2];					//for wide char to multi byte conversion
+	char buff[MTPAXE_MAXFILENAMESIZE*2];				//for wide char to multi byte conversion
 	char buf2[(MTPAXE_MAXFILENAMESIZE*2)*2+20];
 	size_t retr;
 	DWORD tempDW;										//for the getAtturbutes call
 	_WAVEFORMATEX format;								//.
-	IWMDMStorage *pParent=NULL;
+	IWMDMStorage *pParent=NULL;							//the parent object of pStor
+	DWORD sizeLO;										//for getting the size of teh storage
+	DWORD sizeHI;										//.
+	unsigned long long size;							//.
 	int level;
 
 	for(unsigned int i=0;i<numRefs;i++)
 	{
 		ZeroMemory(storName,sizeof(storName));
 		ZeroMemory(storParentName,sizeof(storParentName));
-		
+
 		hr=pReferencesArray[i]->QueryInterface(IID_IWMDMStorage4,(void**)&pStor);
 		if(FAILED(hr)){returnMsg("-1\n","playlistEnumerateContents: coudn't get storage4 interface to playlist item\n");return;}
 		pReferencesArray[i]->Release();
@@ -1019,32 +1036,46 @@ void playlistEnumerateContents(char *playlistName)
 		hr=pStor->GetAttributes(&tempDW,&format);
 		if(FAILED(hr)){returnMsg("-1\n","playlistEnumerateContents: coudn't get playlist item type\n");return;}
 
+		//get the storage size
+		sizeLO=0;
+		sizeHI=0;
+		size=0;
+		hr=pStor->GetSize(&sizeLO,&sizeHI);
+		if FAILED(hr){/*dont return if failed, size will simply be 0*/}
+		size=sizeHI;
+		size=(size<<32)+sizeLO;
+
 		//find the level of the referenced playlist item 
 		level=1;//start at level=1 b/c we already got the parent of the file in question
 		while(SUCCEEDED(hr))
 		{
 			pStor->Release();
+			pStor=NULL;
+
 			hr=pParent->QueryInterface(IID_IWMDMStorage4,(void**)&pStor);
 			if(FAILED(hr)){returnMsg("-1\n","playlistEnumerateContents: coudn't get storage4 interface to playlist item parent\n");return;}
 			pParent->Release();
+			pParent=NULL;
+
+			//pStor now points to the parent of the item that was stored in pStor
 
 			hr=pStor->GetParent(&pParent);
-			//pParent is now the parent of the parent of the original playlist item
 
-			if(SUCCEEDED(hr))
-			{	//if we're here, the parent did indeed have a parent
+			//pParent is now the grandparent of the original playlist item
+
+			if(SUCCEEDED(hr) && hr!=S_FALSE)
+				//if we're here, the parent did indeed have a parent
 				level++;
-			}
+			else
+				//the parent of pStor did not have a parent, it's top level
+				hr=-1;
 		}
 		
 
 		wcstombs_s(&retr, buf, MTPAXE_MAXFILENAMESIZE*2, storName,_TRUNCATE);
 		wcstombs_s(&retr, buff, MTPAXE_MAXFILENAMESIZE*2, storParentName,_TRUNCATE);
 
-		//get the parent of the referenced storage item
-		//level must be 0 here or else some things may not work in WalkmanMTP
-		sprintf(buf2,"<%d/%d/%s>%s:",level,tempDW,buff,buf);
-
+		sprintf(buf2,"<%d/%d/%s/%llu>%s:",level,tempDW,buff,size,buf);
 		strcat(buffer,buf2);
 	}
 	
@@ -1059,7 +1090,6 @@ void playlistEnumerateContents(char *playlistName)
 	}else{
 		returnMsg("-1\n","playlistEnumerateContents: playlist is empty\n");
 	}
-
 
 	CoTaskMemFree(pReferencesArray);
 }
@@ -1107,13 +1137,23 @@ void storageCreateFromFile(char *itemPath,char *destStorage, int type)
 
 	IWMDMStorage3 *insertedStorage3=NULL;
 	hr=insertedStorage->QueryInterface(IID_IWMDMStorage3,(void**)&insertedStorage3);
-	if(FAILED(hr)){returnMsg("-1\n","storageCreateFromFile: couln't get storage3 interface of inserted item\n");return;}
+	if(FAILED(hr)){returnMsg("-1\n","storageCreateFromFile: couldn't get storage3 interface of inserted item\n");return;}
+
+	//get the storage size
+	DWORD sizeLO=0;
+	DWORD sizeHI=0;
+	unsigned long long size=0;
+	hr=insertedStorage->GetSize(&sizeLO,&sizeHI);
+	if FAILED(hr){/*dont return if failed, size will simply be 0*/}
+	size=sizeHI;
+	size=(size<<32)+sizeLO;
 
 	numStorageItems++;
 	arrStorageItem plItem;
 	plItem.level=level+1;
 	plItem.pStorage3=insertedStorage3;
 	plItem.pStorage3Parent=pDestStor;
+	plItem.size=size;
 	if(type==0){plItem.type=WMDM_FILE_ATTR_FILE;}else{plItem.type=WMDM_FILE_ATTR_FOLDER;}
 	arrStorageItems[numStorageItems]=plItem;
 

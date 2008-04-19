@@ -1,5 +1,12 @@
 Change log <release date>:<WalkmanMTP version> - <MTPAxe version>
 
+18-apr-08: 0.3.1 - 0.2.5
+	-mtpaxe: fixed bug where program would crash when enumerating playlists. this crash
+	 only happened when WMP11 was installed. also added a localization command to set the
+	 locale to German to fix a possible localization bug (see if this can be removed though)
+	-added the ability to see the file sizes in File Management mode
+	-program now shows how much space is left on the device
+	-other small UI changes
 09-apr-08: 0.3.0.2 - 0.2.4
 	-changed the storage data delimiter from , to / caused problems with filenames with ,
 04-apr-08: 0.3.0.1 - 0.2.3

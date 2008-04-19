@@ -1,3 +1,8 @@
 Visual Basic 2008:
 This uses a custom Treeview and listview control. may need to set references to the MultiSelectTreeView and ListviewEx namespace.
 Make sure to build the project first before you open the form designer.
+
+When builing MTPAxe, don't forget to
+-add the lib and include directories into the project options
+ c:\wmsdk\wmfsdk95\include, c:\wmsdk\wmfsdk95\wmdm\inc, c:\wmsdk\wmfsdk95\lib, c:\wmsdk\wmfsdk95\wmdm\lib
+-increase the stack size in the linker options to prevent overflows
