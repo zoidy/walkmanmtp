@@ -20,4 +20,6 @@ Module WinAPI
     Public Declare Ansi Function SHGetFileInfo Lib "shell32.dll" (ByVal pszPath As String, _
     ByVal dwFileAttributes As Integer, ByRef psfi As SHFILEINFO, ByVal cbFileInfo As Integer, _
     ByVal uFlags As Integer) As IntPtr
+
+    Public Declare Function DestroyIcon Lib "user32.dll" (ByVal hIcon As Int32) As Int32
 End Module

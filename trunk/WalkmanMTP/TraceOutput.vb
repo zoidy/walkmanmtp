@@ -44,7 +44,7 @@ Public Class TraceOutput
                 Try
                     logFile = New IO.StreamWriter(IO.Path.Combine(IO.Path.GetTempPath, "WMTP.log"))
                     logFile.AutoFlush = True
-                    logFile.WriteLine("Walkman MTP Log start: " & Now)
+                    logFile.WriteLine("Walkman MTP v" & Application.ProductVersion & " Log start: " & Now)
                     logFile.Write(Now & " " & text)
                 Catch ex As Exception
                     'TODO: do nothing?
@@ -82,9 +82,9 @@ Public Class TraceOutput
                     Me.theTextBox.ResetText()
                     numLines = 0
                 End If
-
+                Application.DoEvents()
             End If
-            Application.DoEvents()
+
         End Sub
 
     End Class

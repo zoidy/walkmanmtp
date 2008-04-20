@@ -308,7 +308,7 @@
 
             Catch ex As Exception
                 theTreeView = New TreeView
-                Trace.WriteLine("MTPAxe: building directory tree for " & storageItemName & " - empty tree returned")
+                Trace.WriteLine("MTPAxe: building directory tree for " & storageItemName & " - empty tree returned: " & ex.Message & ", " & ex.Source)
             End Try
 
         End If
@@ -415,32 +415,37 @@
             tn.ImageKey = fileExt   'the key to the image is the file extension
             tn.SelectedImageKey = fileExt
 
-            'need to find out if the node is a file or directory
+            'see whether node is file or directory
             If (Integer.Parse((tn.Tag.ToString.Split("/"c))(1)) And WMDM_FILE_ATTR_FILE) = WMDM_FILE_ATTR_FILE Then
-                'Use this to get the small icon.
-                hImgSmall = SHGetFileInfo("x" & fileExt, _
-                                          FILE_ATTRIBUTE_NORMAL, _
-                                          shinfo, _
-                                          System.Runtime.InteropServices.Marshal.SizeOf(shinfo), _
-                                          SHGFI_ICON Or SHGFI_SMALLICON Or SHGFI_USEFILEATTRIBUTES)
+                'check to see if the file type already has an image in the image list
+                'if it doesn't retreive it from the operating system
+                If Not imglst.Images.ContainsKey(fileExt) Then
+                    hImgSmall = SHGetFileInfo("x" & fileExt, _
+                                                  FILE_ATTRIBUTE_NORMAL, _
+                                                  shinfo, _
+                                                  System.Runtime.InteropServices.Marshal.SizeOf(shinfo), _
+                                                  SHGFI_ICON Or SHGFI_SMALLICON Or SHGFI_USEFILEATTRIBUTES)
+                    myIcon = System.Drawing.Icon.FromHandle(shinfo.hIcon)
+                    imglst.Images.Add(tn.ImageKey, myIcon) 'Add icon to imageList
+                    shinfo = Nothing                    
+                End If
             Else
-                'Use this to get the small icon.
-                hImgSmall = SHGetFileInfo("*", _
-                                          FILE_ATTRIBUTE_DIRECTORY, _
-                                          shinfo, _
-                                          System.Runtime.InteropServices.Marshal.SizeOf(shinfo), _
-                                          SHGFI_ICON Or SHGFI_SMALLICON Or SHGFI_USEFILEATTRIBUTES)
+                'its a directory
+                'check to see if the file type already has an image in the image list
+                'if it doesn't retreive it from the operating system
+                If Not imglst.Images.ContainsKey("*") Then
+                    hImgSmall = SHGetFileInfo("*", _
+                                                  FILE_ATTRIBUTE_DIRECTORY, _
+                                                  shinfo, _
+                                                  System.Runtime.InteropServices.Marshal.SizeOf(shinfo), _
+                                                  SHGFI_ICON Or SHGFI_SMALLICON Or SHGFI_USEFILEATTRIBUTES)
+                    myIcon = System.Drawing.Icon.FromHandle(shinfo.hIcon)
+                    imglst.Images.Add("*", myIcon) 'Add icon to imageList
+                    shinfo = Nothing
+                End If
                 tn.ImageKey = "*"
+                tn.SelectedImageKey = "*"
             End If
-
-
-
-            myIcon = System.Drawing.Icon.FromHandle(shinfo.hIcon)
-            Try
-                imglst.Images.Add(tn.ImageKey, myIcon) 'Add icon to imageList
-            Catch ex As Exception
-                'image already exists
-            End Try
 
             treenodes(index) = tn
             index += 1
