@@ -10,6 +10,7 @@ Public Class Main
     'keeps track of what column was clicked last in order to enable 
     'sorting ascending or descending if the column header is clicked more than once
     Dim playlistListView_lastColumnClicked As Short = -1
+    Dim lvFileManagementDeviceFilesInFolder_lastColumnClicked As Short = -1
 
 #Region "Application Menu"
     Private Sub QuitToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles QuitToolStripMenuItem.Click
@@ -172,6 +173,7 @@ Public Class Main
             refreshFileTransfersDeviceFiles()
             refreshPlaylistsList()
 
+            Splash.setText("Reading device info")
             Me.lblManufacturer.Text = axe.getDeviceManufacturer()
 
             'get capacity
@@ -190,18 +192,19 @@ Public Class Main
 
             'get the icon
             Trace.WriteLine("initSelectedDevice: getting device icon")
+            Splash.setText("Reading device icon")
             Dim iconPath, retstr As String, mtpIcon As Icon
             iconPath = System.IO.Path.Combine(System.IO.Path.GetTempPath, "DevIcon.fil")
             retstr = axe.getDeviceIcon(iconPath.Replace("\"c, "\\"))
             If Not retstr = "-1" Then
-                mtpIcon = New Icon(iconPath, New Size(500, 500))
+                mtpIcon = New Icon(iconPath, New System.Drawing.Size(48, 48))
                 Me.pboxDevIcon.Image = mtpIcon.ToBitmap
             Else
                 Trace.WriteLine("initSelectedDevice: device icon not found")
             End If
         Catch ex As Exception
-            Trace.WriteLine("initSelectedDevice: Error initializing '" & devName & "'" & ":" & ex.Message & ":" & ex.Source)
-            MsgBox("Error initializing '" & devName & "'" & vbCrLf & ex.Message & ex.Source, MsgBoxStyle.Critical Or MsgBoxStyle.ApplicationModal)
+            Trace.WriteLine("initSelectedDevice: Error initializing '" & devName & "'" & ":" & ex.Message & " in " & ex.Source)
+            MsgBox("Error initializing '" & devName & "'" & vbCrLf & ex.Message & " in " & ex.Source, MsgBoxStyle.Critical Or MsgBoxStyle.ApplicationModal)
         End Try
 
         Cursor.Current = Cursors.Default
@@ -293,6 +296,15 @@ Public Class Main
     Private Sub btnPlaylistsFilesOnDeviceRefresh_LinkClicked(ByVal sender As System.Object, ByVal e As System.Windows.Forms.LinkLabelLinkClickedEventArgs) Handles btnPlaylistsFilesOnDeviceRefresh.LinkClicked
         Cursor.Current = Cursors.WaitCursor
         refreshPlaylistDeviceFiles()
+
+        Dim lv As ListView
+        For Each tpage In tabPlaylists.TabPages
+            're-add the image list since the icons may have been previously freed
+            lv = tpage.Controls(tpage.Name.Replace("tpPl", "lvPl"))
+            If Not lv Is Nothing Then
+                lv.SmallImageList = Me.tvPlaylistsFilesOnDevice.ImageList
+            End If
+        Next
         Cursor.Current = Cursors.Default
     End Sub
     Private Sub btnDeleteAllLists_LinkClicked(ByVal sender As System.Object, ByVal e As System.Windows.Forms.LinkLabelLinkClickedEventArgs) Handles btnDeleteAllLists.LinkClicked
@@ -300,8 +312,7 @@ Public Class Main
             Exit Sub
         End If
 
-        Me.tabPlaylists.TabPages.Clear()
-
+        deleteAllPlaylists()
     End Sub
     Private Sub btnDelPlaylist_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnDelPlaylist.Click
         deleteActivePlaylist()
@@ -368,9 +379,6 @@ Public Class Main
         Else
             lv.ListViewItemSorter = New PlaylistListViewItemComparer(e.Column, lv.Sorting)
         End If
-
-
-
     End Sub
     Private Sub playlistListView_KeyDown(ByVal sender As Object, ByVal e As System.Windows.Forms.KeyEventArgs)
         Dim lv As ListView = CType(sender, ListViewEx)
@@ -385,6 +393,70 @@ Public Class Main
         End If
 
     End Sub
+
+    Private Sub playlistListView_MouseClick(ByVal sender As Object, ByVal e As System.Windows.Forms.MouseEventArgs)
+        'show the right click menu on mouse click
+        If e.Button = Windows.Forms.MouseButtons.Right Then
+            Dim lv As ListViewEx = CType(sender, ListViewEx)
+
+            'get the node under the right click
+            Dim selNode As ListViewItem = lv.SelectedItems(0) 'tvTree.GetNodeAt(tvTree.PointToClient(New Point(e.X, e.Y)))
+            If selNode IsNot Nothing Then
+                mnuLvPlaylistContentsRightClick.Show(lv.PointToScreen(e.Location))
+            End If
+        End If
+    End Sub
+    Private Sub DeleteToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles DeleteToolStripMenuItem.Click
+        'get the current playlist
+        Dim tpage As TabPage = Me.tabPlaylists.SelectedTab
+        Dim lv As ListViewEx = tpage.Controls(tpage.Name.Replace("tpPl", "lvPl"))
+        If lv Is Nothing Then Exit Sub
+
+        For Each lvItem As ListViewItem In lv.SelectedItems
+            lv.Items.Remove(lvItem)
+        Next
+
+        markPlaylistChanged(lv)
+    End Sub
+    Private Sub SelctionSortAscendingToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles SelctionSortAscendingToolStripMenuItem.Click
+        'get the current playlist
+        Dim tpage As TabPage = Me.tabPlaylists.SelectedTab
+        Dim lv As ListViewEx = tpage.Controls(tpage.Name.Replace("tpPl", "lvPl"))
+        If lv Is Nothing Then Exit Sub
+
+        'disable the sorting on the listview so we can manually sort stuff without the listview automatically resorting
+        If Not playlistListView_lastColumnClicked = -1 Then
+            'clean up the title of the previously clicked column
+            lv.Columns(playlistListView_lastColumnClicked).Text = lv.Columns(playlistListView_lastColumnClicked).Text.Replace(" ^", "").Replace(" v", "")
+            playlistListView_lastColumnClicked = -1
+        End If
+        lv.ListViewItemSorter = Nothing
+        lv.Sorting = SortOrder.None
+
+        listviewItemSortSelected(lv, SortOrder.Descending)
+
+        markPlaylistChanged(lv)
+    End Sub
+    Private Sub SelectionSortDescendingToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles SelectionSortDescendingToolStripMenuItem.Click
+        'get the current playlist
+        Dim tpage As TabPage = Me.tabPlaylists.SelectedTab
+        Dim lv As ListViewEx = tpage.Controls(tpage.Name.Replace("tpPl", "lvPl"))
+        If lv Is Nothing Then Exit Sub
+
+        'disable the sorting on the listview so we can manually sort stuff without the listview automatically resorting
+        If Not playlistListView_lastColumnClicked = -1 Then
+            'clean up the title of the previously clicked column
+            lv.Columns(playlistListView_lastColumnClicked).Text = lv.Columns(playlistListView_lastColumnClicked).Text.Replace(" ^", "").Replace(" v", "")
+            playlistListView_lastColumnClicked = -1
+        End If
+        lv.ListViewItemSorter = Nothing
+        lv.Sorting = SortOrder.None
+
+        listviewItemSortSelected(lv, SortOrder.Ascending)
+
+        markPlaylistChanged(lv)
+    End Sub
+
     Private Sub playlistListView_dragenter(ByVal sender As Object, ByVal e As DragEventArgs)
         e.Effect = e.AllowedEffect
     End Sub
@@ -462,12 +534,13 @@ Public Class Main
         End If
         Splash.setText("Getting music files")
 
+        'free icon handles
+        freeImageListHandles(Me.tvPlaylistsFilesOnDevice.ImageList)
         Me.tvPlaylistsFilesOnDevice.Nodes.Clear()
 
         tv = axe.getTreeViewByName("MUSIC")
 
         Me.tvPlaylistsFilesOnDevice.ImageList = tv.ImageList
-
 
         For Each node As TreeNode In tv.Nodes
             Me.tvPlaylistsFilesOnDevice.Nodes.Add(node.Clone)
@@ -494,9 +567,8 @@ Public Class Main
 
         originalPlaylists = New Collection
 
-
         'create a blacnk playlist by default
-        Me.tabPlaylists.TabPages.Clear()
+        deleteAllPlaylists()
         createNewPlaylist("New Playlist", False)
 
         tv = axe.getTreeViewByName("Playlists")
@@ -519,6 +591,7 @@ Public Class Main
             tpage = createNewPlaylist(node.Text, True)
             lv = tpage.Controls("lvPl" & node.Text)
             lv.SmallImageList = tv.ImageList
+
             For Each plItem As TreeNode In tv2.Nodes
                 'fill the contents of the treeview with the playlist contents
                 lvItem = New ListViewItem
@@ -546,18 +619,27 @@ Public Class Main
 
 
     Private Sub deleteActivePlaylist()
-        Dim tpage As TabPage, selTabIndex As Integer
+        Dim tpage As TabPage, selTabIndex As Integer, lv As ListView
+
         tpage = Me.tabPlaylists.SelectedTab
         selTabIndex = Me.tabPlaylists.SelectedIndex
+        'get the listview as well
+        lv = tpage.Controls(tpage.Name.Replace("tpPl", "lvPl"))
 
         'select the previous tab, then remove the page
         If selTabIndex > 0 Then
             Me.tabPlaylists.SelectedIndex = selTabIndex - 1
         End If
+        'free the image list icons
+        freeImageListHandles(lv.SmallImageList)
+
         Me.tabPlaylists.TabPages.Remove(tpage)
         If Me.tabPlaylists.TabPages.Count = 0 Then
             createNewPlaylist("New Playlist", False)
         End If
+    End Sub
+    Private Sub deleteAllPlaylists()
+        Me.tabPlaylists.TabPages.Clear()
     End Sub
     Private Function createNewPlaylist(ByVal name As String, ByVal isFromPlayer As Boolean) As TabPage
         If name = "" Then
@@ -594,6 +676,7 @@ Public Class Main
             AddHandler .DragDrop, AddressOf playlistListView_dragdrop
             AddHandler .KeyDown, AddressOf playlistListView_KeyDown
             AddHandler .ColumnClick, AddressOf playlistListView_ColumnClick
+            AddHandler .MouseClick, AddressOf playlistListView_MouseClick
         End With
         'use the tag of teh TabPage to keep track of the playlists (in case they have the same name
         'we need a way to differentiate them)
@@ -665,6 +748,12 @@ Public Class Main
         End If
 
         Splash.setText("Getting all media files")
+
+        'free handles
+        freeImageListHandles(Me.tvFileManagementDeviceFolders.ImageList)
+        If Not fullFileListing Is Nothing Then
+            freeImageListHandles(fullFileListing.ImageList)
+        End If
 
         'get the stuff on the device (keep it in a global variable
         'so we don't have to read the device whenever a folder is opened
@@ -740,12 +829,7 @@ Public Class Main
                 lvItem.ImageKey = node.ImageKey
 
                 itemSize = Long.Parse(lvItem.Tag.ToString.Split("/"c)(3))
-                'If itemSize < 20971520 Then
-                '    lvItem.SubItems.Add((itemSize / 1024).ToString("N0") & " KB")
-                'Else
-                '    lvItem.SubItems.Add((itemSize / 1024 / 1024).ToString("N0") & " MB")
-                'End If
-                lvItem.SubItems.Add((itemSize / 1024).ToString("N0") & " KB")
+                lvItem.SubItems.Add(Math.Ceiling((itemSize / 1024)).ToString("N0") & " KB")
 
                 lvFileManagementDeviceFilesInFolder.Items.Add(lvItem)
             Next
@@ -754,6 +838,9 @@ Public Class Main
                 lvFileManagementDeviceFilesInFolder.Items.Add("No files found")
             End If
 
+            'sort the listview
+            lvFileManagementDeviceFilesInFolder.ListViewItemSorter = New PlaylistListViewItemComparer(0, SortOrder.Ascending)
+            lvFileManagementDeviceFilesInFolder.Sort()
 
         Else
             MsgBox("Error finding " & e.Node.Text)
@@ -764,6 +851,7 @@ Public Class Main
     Private Sub updateTreeview(ByVal parentnode As TreeNode, ByVal childnode As TreeNode)
         parentnode.Nodes.Add(childnode)
     End Sub
+
     Private Sub lvFileManagementDeviceFilesInFolder_DragDrop(ByVal sender As Object, ByVal e As System.Windows.Forms.DragEventArgs) Handles lvFileManagementDeviceFilesInFolder.DragDrop
         'check to see if files and folders are being dragged from explorer
         Dim draggedFiles() As String
@@ -909,6 +997,75 @@ Public Class Main
             MsgBox("Deleting items is not yet supported. use explorer to delete files")
         End If
     End Sub
+    Private Sub lvFileManagementDeviceFilesInFolder_MouseDown(ByVal sender As Object, ByVal e As System.Windows.Forms.MouseEventArgs) Handles lvFileManagementDeviceFilesInFolder.MouseDown
+        'show the right click menu on mouse click
+        If e.Button = Windows.Forms.MouseButtons.Right Then
+            Dim lv As ListViewEx = CType(sender, ListViewEx)
+
+            'get the node under the right click
+            Dim selNode As ListViewItem = lv.SelectedItems(0) 'tvTree.GetNodeAt(tvTree.PointToClient(New Point(e.X, e.Y)))
+            If selNode IsNot Nothing Then
+                mnuLvFileManagementRightClick.Show(lv.PointToScreen(e.Location))
+            End If
+        End If
+    End Sub
+    Private Sub SortAscendingToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles SortAscendingToolStripMenuItem.Click
+        'disable the sorting on the listview so we can manually sort stuff without the listview automatically resorting
+        If Not lvFileManagementDeviceFilesInFolder_lastColumnClicked = -1 Then
+            'clean up the title of the previously clicked column
+            Me.lvFileManagementDeviceFilesInFolder.Columns(lvFileManagementDeviceFilesInFolder_lastColumnClicked).Text = Me.lvFileManagementDeviceFilesInFolder.Columns(lvFileManagementDeviceFilesInFolder_lastColumnClicked).Text.Replace(" ^", "").Replace(" v", "")
+            lvFileManagementDeviceFilesInFolder_lastColumnClicked = -1
+        End If
+        Me.lvFileManagementDeviceFilesInFolder.ListViewItemSorter = Nothing
+        Me.lvFileManagementDeviceFilesInFolder.Sorting = SortOrder.None
+
+        listviewItemSortSelected(Me.lvFileManagementDeviceFilesInFolder, SortOrder.Descending)
+    End Sub
+    Private Sub SortDescendingToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles SortDescendingToolStripMenuItem.Click
+        'disable the sorting on the listview so we can manually sort stuff without the listview automatically resorting
+        If Not lvFileManagementDeviceFilesInFolder_lastColumnClicked = -1 Then
+            'clean up the title of the previously clicked column
+            Me.lvFileManagementDeviceFilesInFolder.Columns(lvFileManagementDeviceFilesInFolder_lastColumnClicked).Text = Me.lvFileManagementDeviceFilesInFolder.Columns(lvFileManagementDeviceFilesInFolder_lastColumnClicked).Text.Replace(" ^", "").Replace(" v", "")
+            lvFileManagementDeviceFilesInFolder_lastColumnClicked = -1
+        End If
+        Me.lvFileManagementDeviceFilesInFolder.ListViewItemSorter = Nothing
+        Me.lvFileManagementDeviceFilesInFolder.Sorting = SortOrder.None
+
+        listviewItemSortSelected(Me.lvFileManagementDeviceFilesInFolder, SortOrder.Ascending)
+    End Sub
+
+
+    Private Sub lvFileManagementDeviceFilesInFolder_ColumnClick(ByVal sender As Object, ByVal e As System.Windows.Forms.ColumnClickEventArgs) Handles lvFileManagementDeviceFilesInFolder.ColumnClick
+        Dim lv As ListViewEx = CType(sender, ListView)
+        If e.Column <> lvFileManagementDeviceFilesInFolder_lastColumnClicked Then
+            lv.Sorting = SortOrder.Ascending
+            lv.Columns(e.Column).Text = lv.Columns(e.Column).Text & " ^"
+            If Not lvFileManagementDeviceFilesInFolder_lastColumnClicked = -1 Then
+                'clean up the title of the previously clicked column
+                lv.Columns(lvFileManagementDeviceFilesInFolder_lastColumnClicked).Text = lv.Columns(lvFileManagementDeviceFilesInFolder_lastColumnClicked).Text.Replace(" ^", "").Replace(" v", "")
+            End If
+            lvFileManagementDeviceFilesInFolder_lastColumnClicked = e.Column
+        Else
+            ' Determine what the last sort order was and change it.
+            If lv.Sorting = SortOrder.None Then
+                lv.Sorting = SortOrder.Ascending
+                lv.Columns(e.Column).Text = lv.Columns(e.Column).Text & " ^"
+            ElseIf lv.Sorting = SortOrder.Ascending Then
+                lv.Sorting = SortOrder.Descending
+                lv.Columns(e.Column).Text = lv.Columns(e.Column).Text.Replace(" ^", " v")
+            Else
+                lv.Sorting = SortOrder.None
+                lv.Columns(e.Column).Text = lv.Columns(e.Column).Text.Replace(" v", "")
+            End If
+
+        End If
+
+        If lv.Sorting = SortOrder.None Then
+            lv.ListViewItemSorter = Nothing
+        Else
+            lv.ListViewItemSorter = New PlaylistListViewItemComparer(e.Column, lv.Sorting)
+        End If
+    End Sub
 
     Private Sub btnFileManagementRefresh_LinkClicked(ByVal sender As System.Object, ByVal e As System.Windows.Forms.LinkLabelLinkClickedEventArgs) Handles btnFileManagementRefresh.LinkClicked
         Application.DoEvents()
@@ -961,6 +1118,52 @@ Public Class Main
 
         Return ret
     End Function
+    Private Sub freeImageListHandles(ByRef imgList As ImageList)
+        'frees all icon handles of the specified image list. use this whenever refreshing
+        'a treeview or listview to avoid GDI+ or System.Drawing out of memory errors
+
+        'free the image list of the previous tree, if it exists.
+        Dim result As Boolean
+        Try
+            If Not imgList Is Nothing Then
+                For Each img As Image In imgList.Images
+                    If TypeOf img Is Bitmap Then
+                        result = DestroyIcon(CType(img, Bitmap).GetHicon)
+                    End If
+                Next
+                imgList.Images.Clear()
+            End If
+        Catch ex As Exception
+            Trace.WriteLine("freeImageListHandles(): error freeing handles" & ex.Message & ", " & ex.Source)
+        End Try
+    End Sub
+    Private Sub listviewItemSortSelected(ByRef lv As ListViewDnD.ListViewEx, ByVal order As SortOrder)
+        'sorts the selected items of the specified listviewex
+
+        If lv.SelectedItems.Count = 0 Then Exit Sub
+
+        'save the index of where the items go
+        Dim listPos As Integer = lv.SelectedItems(0).Index
+
+        'add the items to an array
+        Dim tmpArr(lv.SelectedItems.Count - 1) As ListViewItem
+        lv.SelectedItems.CopyTo(tmpArr, 0)
+
+        'create a new listviewitemcomprar
+        Dim comparer As New PlaylistListViewItemComparer(0, order)
+        Array.Sort(tmpArr, comparer)
+
+        'if the sort was successful (no exception was thrown) delete the old item
+        'and add the new sorted items   
+        Dim i As Integer = 0
+        For Each lvItem As ListViewItem In lv.SelectedItems
+            lv.Items.Remove(lvItem)
+        Next
+        For Each lvItem As ListViewItem In tmpArr
+            lv.Items.Insert(listPos, lvItem)
+        Next
+    End Sub
+
 
     'comparer for playlistitems listview sorting
     Private Class PlaylistListViewItemComparer
@@ -983,6 +1186,16 @@ Public Class Main
             'if x<y return -1
             'if x=y return 0
             'if x>y return 1
+
+            If x Is Nothing And y Is Nothing Then
+                Return 0
+            End If
+            If x Is Nothing Then
+                Return -1
+            End If
+            If y Is Nothing Then
+                Return 1
+            End If
 
             Dim ret As Integer = -1
             Dim subitem_x As ListViewItem.ListViewSubItem
@@ -1011,8 +1224,5 @@ Public Class Main
 
 #End Region
 
-
-
-
-
+ 
 End Class

@@ -1,5 +1,9 @@
 Change log <release date>:<WalkmanMTP version> - <MTPAxe version>
 
+19-apr-08: 0.3.2 - 0.2.5
+	-fixed bug where program could crash due to GDI+ out of memory errors
+	-can now sort listview items by clicking on the column header to sort the entire list
+	 or by selecting specific items and right clicking
 18-apr-08: 0.3.1 - 0.2.5
 	-mtpaxe: fixed bug where program would crash when enumerating playlists. this crash
 	 only happened when WMP11 was installed. also added a localization command to set the
