@@ -41,7 +41,6 @@ Partial Class Main
         Me.tabMain = New System.Windows.Forms.TabControl
         Me.tabpagePlaylists = New System.Windows.Forms.TabPage
         Me.SplitContainer1 = New System.Windows.Forms.SplitContainer
-        Me.tvPlaylistsFilesOnDevice = New WalkmanMTP.MultiSelectTreeview.MultiSelectTreeview
         Me.Label4 = New System.Windows.Forms.Label
         Me.btnPlaylistsFilesOnDeviceRefresh = New System.Windows.Forms.LinkLabel
         Me.btnRenamePlaylist = New System.Windows.Forms.Button
@@ -63,9 +62,6 @@ Partial Class Main
         Me.btnFileManagementRefresh = New System.Windows.Forms.LinkLabel
         Me.Label5 = New System.Windows.Forms.Label
         Me.tvFileManagementDeviceFolders = New System.Windows.Forms.TreeView
-        Me.lvFileManagementDeviceFilesInFolder = New WalkmanMTP.ListViewDnD.ListViewEx
-        Me.ColumnHeader6 = New System.Windows.Forms.ColumnHeader
-        Me.Size = New System.Windows.Forms.ColumnHeader
         Me.lblFileManagementSelectedFolder = New System.Windows.Forms.Label
         Me.LinkLabel1 = New System.Windows.Forms.LinkLabel
         Me.Label2 = New System.Windows.Forms.Label
@@ -90,6 +86,10 @@ Partial Class Main
         Me.mnuTvFileManagementRightClick = New System.Windows.Forms.ContextMenuStrip(Me.components)
         Me.CollapseChildrenToolStripMenuItem1 = New System.Windows.Forms.ToolStripMenuItem
         Me.ExpandChildrenToolStripMenuItem1 = New System.Windows.Forms.ToolStripMenuItem
+        Me.tvPlaylistsFilesOnDevice = New WalkmanMTP.MultiSelectTreeview.MultiSelectTreeview
+        Me.lvFileManagementDeviceFilesInFolder = New WalkmanMTP.ListViewDnD.ListViewEx
+        Me.ColumnHeader6 = New System.Windows.Forms.ColumnHeader
+        Me.Size = New System.Windows.Forms.ColumnHeader
         Me.MenuStrip1.SuspendLayout()
         Me.tabMain.SuspendLayout()
         Me.tabpagePlaylists.SuspendLayout()
@@ -258,17 +258,6 @@ Partial Class Main
         Me.SplitContainer1.Size = New System.Drawing.Size(811, 438)
         Me.SplitContainer1.SplitterDistance = 408
         Me.SplitContainer1.TabIndex = 0
-        '
-        'tvPlaylistsFilesOnDevice
-        '
-        Me.tvPlaylistsFilesOnDevice.Anchor = CType((((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Bottom) _
-                    Or System.Windows.Forms.AnchorStyles.Left) _
-                    Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
-        Me.tvPlaylistsFilesOnDevice.Location = New System.Drawing.Point(-3, 16)
-        Me.tvPlaylistsFilesOnDevice.Name = "tvPlaylistsFilesOnDevice"
-        Me.tvPlaylistsFilesOnDevice.SelectedNodes = CType(resources.GetObject("tvPlaylistsFilesOnDevice.SelectedNodes"), System.Collections.Generic.List(Of System.Windows.Forms.TreeNode))
-        Me.tvPlaylistsFilesOnDevice.Size = New System.Drawing.Size(409, 419)
-        Me.tvPlaylistsFilesOnDevice.TabIndex = 0
         '
         'Label4
         '
@@ -486,34 +475,6 @@ Partial Class Main
         Me.tvFileManagementDeviceFolders.Size = New System.Drawing.Size(387, 424)
         Me.tvFileManagementDeviceFolders.TabIndex = 0
         '
-        'lvFileManagementDeviceFilesInFolder
-        '
-        Me.lvFileManagementDeviceFilesInFolder.AllowDrop = True
-        Me.lvFileManagementDeviceFilesInFolder.AllowReorder = True
-        Me.lvFileManagementDeviceFilesInFolder.Anchor = CType((((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Bottom) _
-                    Or System.Windows.Forms.AnchorStyles.Left) _
-                    Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
-        Me.lvFileManagementDeviceFilesInFolder.Columns.AddRange(New System.Windows.Forms.ColumnHeader() {Me.ColumnHeader6, Me.Size})
-        Me.lvFileManagementDeviceFilesInFolder.FullRowSelect = True
-        Me.lvFileManagementDeviceFilesInFolder.LineColor = System.Drawing.Color.Red
-        Me.lvFileManagementDeviceFilesInFolder.Location = New System.Drawing.Point(0, 16)
-        Me.lvFileManagementDeviceFilesInFolder.Name = "lvFileManagementDeviceFilesInFolder"
-        Me.lvFileManagementDeviceFilesInFolder.Size = New System.Drawing.Size(418, 424)
-        Me.lvFileManagementDeviceFilesInFolder.TabIndex = 0
-        Me.lvFileManagementDeviceFilesInFolder.UseCompatibleStateImageBehavior = False
-        Me.lvFileManagementDeviceFilesInFolder.View = System.Windows.Forms.View.Details
-        '
-        'ColumnHeader6
-        '
-        Me.ColumnHeader6.Text = "File Name"
-        Me.ColumnHeader6.Width = 309
-        '
-        'Size
-        '
-        Me.Size.Text = "Size"
-        Me.Size.TextAlign = System.Windows.Forms.HorizontalAlignment.Right
-        Me.Size.Width = 85
-        '
         'lblFileManagementSelectedFolder
         '
         Me.lblFileManagementSelectedFolder.AutoSize = True
@@ -681,7 +642,7 @@ Partial Class Main
         '
         Me.mnuTvFileManagementRightClick.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.CollapseChildrenToolStripMenuItem1, Me.ExpandChildrenToolStripMenuItem1})
         Me.mnuTvFileManagementRightClick.Name = "mnuTvFileManagementRightClick"
-        Me.mnuTvFileManagementRightClick.Size = New System.Drawing.Size(168, 70)
+        Me.mnuTvFileManagementRightClick.Size = New System.Drawing.Size(168, 48)
         '
         'CollapseChildrenToolStripMenuItem1
         '
@@ -694,6 +655,46 @@ Partial Class Main
         Me.ExpandChildrenToolStripMenuItem1.Name = "ExpandChildrenToolStripMenuItem1"
         Me.ExpandChildrenToolStripMenuItem1.Size = New System.Drawing.Size(167, 22)
         Me.ExpandChildrenToolStripMenuItem1.Text = "Expand Children"
+        '
+        'tvPlaylistsFilesOnDevice
+        '
+        Me.tvPlaylistsFilesOnDevice.Anchor = CType((((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Bottom) _
+                    Or System.Windows.Forms.AnchorStyles.Left) _
+                    Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
+        Me.tvPlaylistsFilesOnDevice.Location = New System.Drawing.Point(-3, 16)
+        Me.tvPlaylistsFilesOnDevice.Name = "tvPlaylistsFilesOnDevice"
+        Me.tvPlaylistsFilesOnDevice.SelectedNodes = CType(resources.GetObject("tvPlaylistsFilesOnDevice.SelectedNodes"), System.Collections.Generic.List(Of System.Windows.Forms.TreeNode))
+        Me.tvPlaylistsFilesOnDevice.Size = New System.Drawing.Size(409, 419)
+        Me.tvPlaylistsFilesOnDevice.TabIndex = 0
+        '
+        'lvFileManagementDeviceFilesInFolder
+        '
+        Me.lvFileManagementDeviceFilesInFolder.AllowDrop = True
+        Me.lvFileManagementDeviceFilesInFolder.AllowReorder = True
+        Me.lvFileManagementDeviceFilesInFolder.Anchor = CType((((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Bottom) _
+                    Or System.Windows.Forms.AnchorStyles.Left) _
+                    Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
+        Me.lvFileManagementDeviceFilesInFolder.Columns.AddRange(New System.Windows.Forms.ColumnHeader() {Me.ColumnHeader6, Me.Size})
+        Me.lvFileManagementDeviceFilesInFolder.FullRowSelect = True
+        Me.lvFileManagementDeviceFilesInFolder.LineColor = System.Drawing.Color.Red
+        Me.lvFileManagementDeviceFilesInFolder.Location = New System.Drawing.Point(0, 16)
+        Me.lvFileManagementDeviceFilesInFolder.Name = "lvFileManagementDeviceFilesInFolder"
+        Me.lvFileManagementDeviceFilesInFolder.ShowItemToolTips = True
+        Me.lvFileManagementDeviceFilesInFolder.Size = New System.Drawing.Size(418, 424)
+        Me.lvFileManagementDeviceFilesInFolder.TabIndex = 0
+        Me.lvFileManagementDeviceFilesInFolder.UseCompatibleStateImageBehavior = False
+        Me.lvFileManagementDeviceFilesInFolder.View = System.Windows.Forms.View.Details
+        '
+        'ColumnHeader6
+        '
+        Me.ColumnHeader6.Text = "File Name"
+        Me.ColumnHeader6.Width = 309
+        '
+        'Size
+        '
+        Me.Size.Text = "Size"
+        Me.Size.TextAlign = System.Windows.Forms.HorizontalAlignment.Right
+        Me.Size.Width = 85
         '
         'Main
         '
