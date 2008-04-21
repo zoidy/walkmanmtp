@@ -69,11 +69,12 @@ Namespace MultiSelectTreeview
             ' If the user clicks on a node that was not
             ' previously selected, select it now.
             Try
+                'If e.Button = Windows.Forms.MouseButtons.Right Then Exit Sub 'comment out by dr. zoidberg
                 MyBase.SelectedNode = Nothing
 
                 Dim node As TreeNode = Me.GetNodeAt(e.Location)
                 If node IsNot Nothing Then
-                    Dim leftBound As Integer = node.Bounds.X
+                    Dim leftBound As Integer = node.Bounds.X - 20
                     ' - 20; // Allow user to click on image
                     Dim rightBound As Integer = node.Bounds.Right + 10
                     ' Give a little extra room
@@ -99,17 +100,22 @@ Namespace MultiSelectTreeview
             ' any other selected nodes. e.g. A B C D are selected
             ' the user clicks on B, now A C & D are no longer selected.
             Try
+                'If e.Button = Windows.Forms.MouseButtons.Right Then Exit Sub 'comment out by dr. zoidberg
                 ' Check to see if a node was clicked on 
                 Dim node As TreeNode = Me.GetNodeAt(e.Location)
                 If node IsNot Nothing Then
                     If ModifierKeys = Keys.None AndAlso m_SelectedNodes.Contains(node) Then
-                        Dim leftBound As Integer = node.Bounds.X
+                        Dim leftBound As Integer = node.Bounds.X - 20
                         ' -20; // Allow user to click on image
                         Dim rightBound As Integer = node.Bounds.Right + 10
                         ' Give a little extra room
                         If e.Location.X > leftBound AndAlso e.Location.X < rightBound Then
-
-                            SelectNode(node)
+                            'modification dr. zoidberg
+                            'if it's a right click, don't deselect currently selected noedes
+                            'if the node that was clicked is selected. this is so right clicking on
+                            'a node that is already selected won't deselect the other selected nodes.
+                            'this is useful for right click menu operations
+                            If Not e.Button = Windows.Forms.MouseButtons.Right Then SelectNode(node)
                         End If
                     End If
                 End If
@@ -310,7 +316,7 @@ Namespace MultiSelectTreeview
                     Dim ndStart As TreeNode = m_SelectedNode
                     Dim ndEnd As TreeNode = node
 
-                    If ndStart.Parent.Equals(ndEnd.Parent) Then
+                    If (ndStart.Parent Is Nothing And ndEnd.Parent Is Nothing) OrElse (ndStart.Parent IsNot Nothing AndAlso ndStart.Parent.Equals(ndEnd.Parent)) Then
                         ' Selected node and clicked node have same parent, easy case.
                         If ndStart.Index < ndEnd.Index Then
                             ' If the selected node is beneath the clicked node walk down
@@ -346,16 +352,16 @@ Namespace MultiSelectTreeview
 
                         ' Bring lower node up to common depth
                         While ndStartP.Level > startDepth
-                            ndStartP = ndStartP.Parent
+                            If Not ndStartP.Parent Is Nothing Then ndStartP = ndStartP.Parent
                         End While
 
                         ' Bring lower node up to common depth
                         While ndEndP.Level > startDepth
-                            ndEndP = ndEndP.Parent
+                            If Not ndEndP.Parent Is Nothing Then ndEndP = ndEndP.Parent
                         End While
 
                         ' Walk up the tree until we find the common parent
-                        While Not ndStartP.Parent.Equals(ndEndP.Parent)
+                        While Not (ndStartP.Parent Is Nothing And ndEndP.Parent Is Nothing) OrElse (ndStartP.Parent IsNot Nothing AndAlso Not ndStartP.Parent.Equals(ndEndP.Parent))
                             ndStartP = ndStartP.Parent
                             ndEndP = ndEndP.Parent
                         End While

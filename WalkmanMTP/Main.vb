@@ -393,6 +393,32 @@ Public Class Main
         End If
 
     End Sub
+    Private Sub tvPlaylistsFilesOnDevice_MouseClick(ByVal sender As Object, ByVal e As System.Windows.Forms.MouseEventArgs) Handles tvPlaylistsFilesOnDevice.MouseClick
+        If e.Button = Windows.Forms.MouseButtons.Right Then
+            'get the node under the right click
+            Dim targetNode As TreeNode = tvFileManagementDeviceFolders.GetNodeAt(tvFileManagementDeviceFolders.PointToClient(New Point(e.X, e.Y)))
+            targetNode = tvFileManagementDeviceFolders.SelectedNode
+            If targetNode Is Nothing Then
+                Exit Sub
+            Else
+                mnuTvPlaylistFilesRightClick.Show(CType(sender, TreeView).PointToScreen(e.Location))
+            End If
+        End If
+    End Sub
+    Private Sub CollapseChildrenToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles CollapseChildrenToolStripMenuItem.Click
+        Me.tvPlaylistsFilesOnDevice.BeginUpdate()
+        For Each node As TreeNode In Me.tvPlaylistsFilesOnDevice.SelectedNodes
+            node.Collapse(False)
+        Next
+        Me.tvPlaylistsFilesOnDevice.EndUpdate()
+    End Sub
+    Private Sub ExpandChildrenToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles ExpandChildrenToolStripMenuItem.Click
+        Me.tvPlaylistsFilesOnDevice.BeginUpdate()
+        For Each node As TreeNode In Me.tvPlaylistsFilesOnDevice.SelectedNodes
+            node.ExpandAll()
+        Next
+        Me.tvPlaylistsFilesOnDevice.EndUpdate()
+    End Sub
 
     Private Sub playlistListView_MouseClick(ByVal sender As Object, ByVal e As System.Windows.Forms.MouseEventArgs)
         'show the right click menu on mouse click
@@ -536,6 +562,9 @@ Public Class Main
 
         'free icon handles
         freeImageListHandles(Me.tvPlaylistsFilesOnDevice.ImageList)
+
+        Me.tvPlaylistsFilesOnDevice.BeginUpdate()
+
         Me.tvPlaylistsFilesOnDevice.Nodes.Clear()
 
         tv = axe.getTreeViewByName("MUSIC")
@@ -545,7 +574,10 @@ Public Class Main
         For Each node As TreeNode In tv.Nodes
             Me.tvPlaylistsFilesOnDevice.Nodes.Add(node.Clone)
         Next
+        Me.tvPlaylistsFilesOnDevice.Sort()
         Me.tvPlaylistsFilesOnDevice.ExpandAll()
+
+        Me.tvPlaylistsFilesOnDevice.EndUpdate()
 
         t.Abort()
         Trace.WriteLine("Getting music files...Complete")
@@ -761,6 +793,7 @@ Public Class Main
         Me.tvFileManagementDeviceFolders.ImageList = fullFileListing.ImageList
         Me.tvFileManagementDeviceFolders.Nodes.Clear()
 
+        Me.tvFileManagementDeviceFolders.BeginUpdate()
 
         'add the folders directly without the root 'storage media' node
         For Each node As TreeNode In fullFileListing.Nodes(0).Nodes
@@ -775,8 +808,11 @@ Public Class Main
             Me.refreshFileTransfersDeviceFiles_helper(node)
         Next
 
+        Me.tvFileManagementDeviceFolders.Sort()
         Me.tvFileManagementDeviceFolders.ExpandAll()
         Me.tvFileManagementDeviceFolders.SelectedNode = Me.tvFileManagementDeviceFolders.Nodes(0)
+
+        Me.tvFileManagementDeviceFolders.EndUpdate()
 
         t.Abort()
         Trace.WriteLine("Refreshing file list...Complete")
@@ -810,6 +846,8 @@ Public Class Main
         Dim theNode As TreeNode = findTreeNode(fullFileListing.Nodes(0), e.Node)
 
         If theNode IsNot Nothing Then
+            Me.lvFileManagementDeviceFilesInFolder.BeginUpdate()
+
             'save the selected node into list view so we can easily get the currently displayed
             'folder
             Me.lvFileManagementDeviceFilesInFolder.Tag = Me.tvFileManagementDeviceFolders.SelectedNode
@@ -839,15 +877,38 @@ Public Class Main
             End If
 
             'sort the listview
-            lvFileManagementDeviceFilesInFolder.ListViewItemSorter = New PlaylistListViewItemComparer(0, SortOrder.Ascending)
-            lvFileManagementDeviceFilesInFolder.Sort()
+            listviewItemSortAll(lvFileManagementDeviceFilesInFolder, SortOrder.Descending)
+
+            Me.lvFileManagementDeviceFilesInFolder.EndUpdate()
 
         Else
             MsgBox("Error finding " & e.Node.Text)
             Trace.WriteLine("Error finding " & e.Node.Text)
         End If
     End Sub
-    
+    Private Sub tvFileManagementDeviceFolders_MouseClick(ByVal sender As Object, ByVal e As System.Windows.Forms.MouseEventArgs) Handles tvFileManagementDeviceFolders.MouseClick
+        If e.Button = Windows.Forms.MouseButtons.Right Then
+            'get the node under the right click
+            Dim targetNode As TreeNode = tvFileManagementDeviceFolders.GetNodeAt(tvFileManagementDeviceFolders.PointToClient(New Point(e.X, e.Y)))
+            targetNode = tvFileManagementDeviceFolders.SelectedNode
+            If targetNode Is Nothing Then
+                Exit Sub
+            Else
+                mnuTvFileManagementRightClick.Show(CType(sender, TreeView).PointToScreen(e.Location))
+            End If
+        End If
+    End Sub
+    Private Sub CollapseChildrenToolStripMenuItem1_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles CollapseChildrenToolStripMenuItem1.Click
+        Me.tvFileManagementDeviceFolders.BeginUpdate()
+        Me.tvFileManagementDeviceFolders.SelectedNode.Collapse(False)
+        Me.tvFileManagementDeviceFolders.EndUpdate()
+    End Sub
+    Private Sub ExpandChildrenToolStripMenuItem1_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles ExpandChildrenToolStripMenuItem1.Click
+        Me.tvFileManagementDeviceFolders.BeginUpdate()
+        Me.tvFileManagementDeviceFolders.SelectedNode.ExpandAll()
+        Me.tvFileManagementDeviceFolders.EndUpdate()
+    End Sub
+
     Private Sub updateTreeview(ByVal parentnode As TreeNode, ByVal childnode As TreeNode)
         parentnode.Nodes.Add(childnode)
     End Sub
@@ -868,7 +929,7 @@ Public Class Main
     Private Sub lvFileManagementDeviceFilesInFolder_DragDrop_helper_starter(ByVal draggedfiles As Object)
         'this is the worker thread for uploading files
 
- 
+
         Dim t As New Threading.Thread(New Threading.ThreadStart(AddressOf Splash.ShowDialog))
         t.SetApartmentState(Threading.ApartmentState.MTA)
         If Not Splash.Visible Then t.Start()
@@ -1016,8 +1077,6 @@ Public Class Main
             Me.lvFileManagementDeviceFilesInFolder.Columns(lvFileManagementDeviceFilesInFolder_lastColumnClicked).Text = Me.lvFileManagementDeviceFilesInFolder.Columns(lvFileManagementDeviceFilesInFolder_lastColumnClicked).Text.Replace(" ^", "").Replace(" v", "")
             lvFileManagementDeviceFilesInFolder_lastColumnClicked = -1
         End If
-        Me.lvFileManagementDeviceFilesInFolder.ListViewItemSorter = Nothing
-        Me.lvFileManagementDeviceFilesInFolder.Sorting = SortOrder.None
 
         listviewItemSortSelected(Me.lvFileManagementDeviceFilesInFolder, SortOrder.Descending)
     End Sub
@@ -1028,8 +1087,6 @@ Public Class Main
             Me.lvFileManagementDeviceFilesInFolder.Columns(lvFileManagementDeviceFilesInFolder_lastColumnClicked).Text = Me.lvFileManagementDeviceFilesInFolder.Columns(lvFileManagementDeviceFilesInFolder_lastColumnClicked).Text.Replace(" ^", "").Replace(" v", "")
             lvFileManagementDeviceFilesInFolder_lastColumnClicked = -1
         End If
-        Me.lvFileManagementDeviceFilesInFolder.ListViewItemSorter = Nothing
-        Me.lvFileManagementDeviceFilesInFolder.Sorting = SortOrder.None
 
         listviewItemSortSelected(Me.lvFileManagementDeviceFilesInFolder, SortOrder.Ascending)
     End Sub
@@ -1142,6 +1199,11 @@ Public Class Main
 
         If lv.SelectedItems.Count = 0 Then Exit Sub
 
+        lv.BeginUpdate()
+
+        lv.ListViewItemSorter = Nothing
+        lv.Sorting = SortOrder.None
+
         'save the index of where the items go
         Dim listPos As Integer = lv.SelectedItems(0).Index
 
@@ -1155,13 +1217,45 @@ Public Class Main
 
         'if the sort was successful (no exception was thrown) delete the old item
         'and add the new sorted items   
-        Dim i As Integer = 0
+
         For Each lvItem As ListViewItem In lv.SelectedItems
             lv.Items.Remove(lvItem)
         Next
         For Each lvItem As ListViewItem In tmpArr
             lv.Items.Insert(listPos, lvItem)
         Next
+
+        lv.EndUpdate()
+    End Sub
+    Private Sub listviewItemSortAll(ByRef lv As ListViewDnD.ListViewEx, ByVal order As SortOrder)
+        'sorts all items of the specified listviewex
+
+        If lv.Items.Count = 0 Then Exit Sub
+
+        lv.BeginUpdate()
+
+        lv.ListViewItemSorter = Nothing
+        lv.Sorting = SortOrder.None
+
+        'add the items to an array
+        Dim tmpArr(lv.Items.Count - 1) As ListViewItem
+        lv.Items.CopyTo(tmpArr, 0)
+
+        'create a new listviewitemcomprar
+        Dim comparer As New PlaylistListViewItemComparer(0, order)
+        Array.Sort(tmpArr, comparer)
+
+        'if the sort was successful (no exception was thrown) delete the old item
+        'and add the new sorted items   
+        'For Each lvItem As ListViewItem In lv.Items
+        '    lv.Items.Remove(lvItem)
+        'Next
+        lv.Items.Clear()
+        For Each lvItem As ListViewItem In tmpArr
+            lv.Items.Insert(0, lvItem)
+        Next
+
+        lv.EndUpdate()
     End Sub
 
 
@@ -1198,6 +1292,8 @@ Public Class Main
             End If
 
             Dim ret As Integer = -1
+            Dim item_x As ListViewItem = CType(x, ListViewItem)
+            Dim item_y As ListViewItem = CType(y, ListViewItem)
             Dim subitem_x As ListViewItem.ListViewSubItem
             Dim subitem_y As ListViewItem.ListViewSubItem
 
@@ -1207,10 +1303,21 @@ Public Class Main
                 Return 0
             End If
 
-            'subitem 0 is the main item
-            subitem_x = CType(x, ListViewItem).SubItems(whichColumn)
-            subitem_y = CType(y, ListViewItem).SubItems(whichColumn)
-            ret = String.Compare(subitem_x.Text, subitem_y.Text, True)
+            'check to see if we're comparing two folders, a file and a folder, or two files
+            If (item_x.ImageKey = "*" And item_y.ImageKey = "*") Or (item_x.ImageKey <> "*" And item_y.ImageKey <> "*") Then
+                'two folders or two files are being compared. 
+                'look at the text to determine which one is greater
+                'subitem 0 is the main item
+                subitem_x = item_x.SubItems(whichColumn)
+                subitem_y = item_y.SubItems(whichColumn)
+                ret = String.Compare(subitem_x.Text, subitem_y.Text, True)
+            ElseIf item_x.ImageKey = "*" And item_y.ImageKey <> "*" Then
+                'item_x is a folder. folders have priority over files
+                Return 1
+            Else
+                'item_x is a file and item_y is a folder => item_y is bigger than item_x
+                Return -1
+            End If
 
             If whichSortOrder = SortOrder.Descending Then
                 ' Invert the value returned by String.Compare.
@@ -1224,5 +1331,5 @@ Public Class Main
 
 #End Region
 
- 
+
 End Class
