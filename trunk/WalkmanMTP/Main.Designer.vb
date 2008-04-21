@@ -84,6 +84,12 @@ Partial Class Main
         Me.mnuLvFileManagementRightClick = New System.Windows.Forms.ContextMenuStrip(Me.components)
         Me.SortAscendingToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem
         Me.SortDescendingToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem
+        Me.mnuTvPlaylistFilesRightClick = New System.Windows.Forms.ContextMenuStrip(Me.components)
+        Me.CollapseChildrenToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem
+        Me.ExpandChildrenToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem
+        Me.mnuTvFileManagementRightClick = New System.Windows.Forms.ContextMenuStrip(Me.components)
+        Me.CollapseChildrenToolStripMenuItem1 = New System.Windows.Forms.ToolStripMenuItem
+        Me.ExpandChildrenToolStripMenuItem1 = New System.Windows.Forms.ToolStripMenuItem
         Me.MenuStrip1.SuspendLayout()
         Me.tabMain.SuspendLayout()
         Me.tabpagePlaylists.SuspendLayout()
@@ -100,6 +106,8 @@ Partial Class Main
         CType(Me.pboxDevIcon, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.mnuLvPlaylistContentsRightClick.SuspendLayout()
         Me.mnuLvFileManagementRightClick.SuspendLayout()
+        Me.mnuTvPlaylistFilesRightClick.SuspendLayout()
+        Me.mnuTvFileManagementRightClick.SuspendLayout()
         Me.SuspendLayout()
         '
         'MenuStrip1
@@ -612,7 +620,7 @@ Partial Class Main
         '
         Me.mnuLvPlaylistContentsRightClick.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.SelctionSortAscendingToolStripMenuItem, Me.SelectionSortDescendingToolStripMenuItem, Me.DeleteToolStripMenuItem})
         Me.mnuLvPlaylistContentsRightClick.Name = "mnuLvPlaylistContents"
-        Me.mnuLvPlaylistContentsRightClick.Size = New System.Drawing.Size(212, 92)
+        Me.mnuLvPlaylistContentsRightClick.Size = New System.Drawing.Size(212, 70)
         '
         'SelctionSortAscendingToolStripMenuItem
         '
@@ -650,6 +658,42 @@ Partial Class Main
         Me.SortDescendingToolStripMenuItem.Name = "SortDescendingToolStripMenuItem"
         Me.SortDescendingToolStripMenuItem.Size = New System.Drawing.Size(211, 22)
         Me.SortDescendingToolStripMenuItem.Text = "Sort Selected: Descending"
+        '
+        'mnuTvPlaylistFilesRightClick
+        '
+        Me.mnuTvPlaylistFilesRightClick.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.CollapseChildrenToolStripMenuItem, Me.ExpandChildrenToolStripMenuItem})
+        Me.mnuTvPlaylistFilesRightClick.Name = "mnuTvPlaylistFilesRightClick"
+        Me.mnuTvPlaylistFilesRightClick.Size = New System.Drawing.Size(168, 48)
+        '
+        'CollapseChildrenToolStripMenuItem
+        '
+        Me.CollapseChildrenToolStripMenuItem.Name = "CollapseChildrenToolStripMenuItem"
+        Me.CollapseChildrenToolStripMenuItem.Size = New System.Drawing.Size(167, 22)
+        Me.CollapseChildrenToolStripMenuItem.Text = "Collapse Children"
+        '
+        'ExpandChildrenToolStripMenuItem
+        '
+        Me.ExpandChildrenToolStripMenuItem.Name = "ExpandChildrenToolStripMenuItem"
+        Me.ExpandChildrenToolStripMenuItem.Size = New System.Drawing.Size(167, 22)
+        Me.ExpandChildrenToolStripMenuItem.Text = "Expand Children"
+        '
+        'mnuTvFileManagementRightClick
+        '
+        Me.mnuTvFileManagementRightClick.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.CollapseChildrenToolStripMenuItem1, Me.ExpandChildrenToolStripMenuItem1})
+        Me.mnuTvFileManagementRightClick.Name = "mnuTvFileManagementRightClick"
+        Me.mnuTvFileManagementRightClick.Size = New System.Drawing.Size(168, 70)
+        '
+        'CollapseChildrenToolStripMenuItem1
+        '
+        Me.CollapseChildrenToolStripMenuItem1.Name = "CollapseChildrenToolStripMenuItem1"
+        Me.CollapseChildrenToolStripMenuItem1.Size = New System.Drawing.Size(167, 22)
+        Me.CollapseChildrenToolStripMenuItem1.Text = "Collapse Children"
+        '
+        'ExpandChildrenToolStripMenuItem1
+        '
+        Me.ExpandChildrenToolStripMenuItem1.Name = "ExpandChildrenToolStripMenuItem1"
+        Me.ExpandChildrenToolStripMenuItem1.Size = New System.Drawing.Size(167, 22)
+        Me.ExpandChildrenToolStripMenuItem1.Text = "Expand Children"
         '
         'Main
         '
@@ -693,6 +737,8 @@ Partial Class Main
         CType(Me.pboxDevIcon, System.ComponentModel.ISupportInitialize).EndInit()
         Me.mnuLvPlaylistContentsRightClick.ResumeLayout(False)
         Me.mnuLvFileManagementRightClick.ResumeLayout(False)
+        Me.mnuTvPlaylistFilesRightClick.ResumeLayout(False)
+        Me.mnuTvFileManagementRightClick.ResumeLayout(False)
         Me.ResumeLayout(False)
         Me.PerformLayout()
 
@@ -757,4 +803,10 @@ Partial Class Main
     Friend WithEvents mnuLvFileManagementRightClick As System.Windows.Forms.ContextMenuStrip
     Friend WithEvents SortAscendingToolStripMenuItem As System.Windows.Forms.ToolStripMenuItem
     Friend WithEvents SortDescendingToolStripMenuItem As System.Windows.Forms.ToolStripMenuItem
+    Friend WithEvents mnuTvPlaylistFilesRightClick As System.Windows.Forms.ContextMenuStrip
+    Friend WithEvents CollapseChildrenToolStripMenuItem As System.Windows.Forms.ToolStripMenuItem
+    Friend WithEvents ExpandChildrenToolStripMenuItem As System.Windows.Forms.ToolStripMenuItem
+    Friend WithEvents mnuTvFileManagementRightClick As System.Windows.Forms.ContextMenuStrip
+    Friend WithEvents CollapseChildrenToolStripMenuItem1 As System.Windows.Forms.ToolStripMenuItem
+    Friend WithEvents ExpandChildrenToolStripMenuItem1 As System.Windows.Forms.ToolStripMenuItem
 End Class
