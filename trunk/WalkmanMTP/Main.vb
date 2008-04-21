@@ -98,12 +98,13 @@ Public Class Main
     End Sub
 
     Private Sub initAndRefreshApp()
-        Splash.setText("Initializing and Reading Devices")
-        Splash.setTitle("Initializing...")
 
+        Splash.Close()
         Dim t As New Threading.Thread(New Threading.ThreadStart(AddressOf Splash.ShowDialog))
         t.SetApartmentState(Threading.ApartmentState.MTA)
         t.Start()
+        Splash.setText("Initializing and Reading Devices")
+        Splash.setTitle("Initializing...")
 
         Me.cmbDevices.Items.Clear()
 
@@ -426,7 +427,7 @@ Public Class Main
             Dim lv As ListViewEx = CType(sender, ListViewEx)
 
             'get the node under the right click
-            Dim selNode As ListViewItem = lv.SelectedItems(0) 'tvTree.GetNodeAt(tvTree.PointToClient(New Point(e.X, e.Y)))
+            Dim selNode As ListViewItem = lv.SelectedItems(0)
             If selNode IsNot Nothing Then
                 mnuLvPlaylistContentsRightClick.Show(lv.PointToScreen(e.Location))
             End If
@@ -1058,7 +1059,7 @@ Public Class Main
             MsgBox("Deleting items is not yet supported. use explorer to delete files")
         End If
     End Sub
-    Private Sub lvFileManagementDeviceFilesInFolder_MouseDown(ByVal sender As Object, ByVal e As System.Windows.Forms.MouseEventArgs) Handles lvFileManagementDeviceFilesInFolder.MouseDown
+    Private Sub lvFileManagementDeviceFilesInFolder_MouseClick(ByVal sender As Object, ByVal e As System.Windows.Forms.MouseEventArgs) Handles lvFileManagementDeviceFilesInFolder.MouseClick
         'show the right click menu on mouse click
         If e.Button = Windows.Forms.MouseButtons.Right Then
             Dim lv As ListViewEx = CType(sender, ListViewEx)
