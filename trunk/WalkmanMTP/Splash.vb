@@ -18,4 +18,8 @@
     Public Sub incProgBar()
         Me.ProgressBar1.Value += 1
     End Sub
+
+    Private Sub Splash_VisibleChanged(ByVal sender As Object, ByVal e As System.EventArgs) Handles Me.VisibleChanged
+        Application.DoEvents()
+    End Sub
 End Class

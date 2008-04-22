@@ -531,12 +531,15 @@ Public Class Main
         nodeType = attribs(1)
         nodeParent = attribs(2)
         If (nodeType And MTPAxe.WMDM_FILE_ATTR_FILE) = MTPAxe.WMDM_FILE_ATTR_FILE Then
-            'the root node is a file
-            lvItem = New ListViewItem
-            lvItem.Text = root.Text
-            lvItem.ImageKey = root.ImageKey
-            lvItem.Tag = root.Tag
-            lv.Items.Add(lvItem)
+            'the root node is a file. add only .mp3,wma,mp4,m4a,3gp,wav audio files
+            'tip: can add video files to playlists too as long as the extension is mp4, but the player will only play the audio.
+            If root.ImageKey = ".mp3" Or root.ImageKey = ".wma" Or root.ImageKey = ".mp4" Or root.ImageKey = ".m4a" Or root.ImageKey = ".3gp" Or root.ImageKey = ".wav" Then
+                lvItem = New ListViewItem
+                lvItem.Text = root.Text
+                lvItem.ImageKey = root.ImageKey
+                lvItem.Tag = root.Tag
+                lv.Items.Add(lvItem)
+            End If
         Else
             'the root is a folder and we must traverse it and any subfolders
             For Each node As TreeNode In root.Nodes
