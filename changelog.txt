@@ -1,7 +1,14 @@
 Change log <release date>:<WalkmanMTP version> - <MTPAxe version>
 
+28-apr-08: 0.3.9 - 0.3.9
+	-significant speed improvements
+	-when uploading files, the file metadata is transferred as well. before, mp3 (and all other
+   	 audio types except AAC) wouldn't appear on the player when uploaded because no metadata was
+	 present
+	-File metadata is shown in the listviews (when available)
+	-many small bugfixes
 19-apr-08: 0.3.2 - 0.2.5
-	-fixed bug where program could crash due to GDI+ out of memory errors
+	-fixed bug where program could crash due to GDI+ out of memory errors (reported by poggos)
 	-can now sort listview items by clicking on the column header to sort the entire list
 	 or by selecting specific items and right clicking
 18-apr-08: 0.3.1 - 0.2.5

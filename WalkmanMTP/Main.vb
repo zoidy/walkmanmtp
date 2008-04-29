@@ -2,6 +2,9 @@
 Public Class Main
     Private axe As MTPAxe
 
+    'used for keeping track of the complete file listing on the device
+    Private fullFileListing As TreeView
+
     'keeps track of what the original playlists were as of the last time
     ' the playlists list was refreshed. this is to be able to
     'distinguish which lists have to be deleted and added
@@ -71,6 +74,9 @@ Public Class Main
             Trace.WriteLine("Application Starting...Completed")
         End If
     End Sub
+    Private Sub btnDeviceDetails_LinkClicked(ByVal sender As System.Object, ByVal e As System.Windows.Forms.LinkLabelLinkClickedEventArgs) Handles btnDeviceDetails.LinkClicked
+        MsgBox("To Do")
+    End Sub
     Private Sub btnRefreshDevices_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnRefreshDevices.Click
         initAndRefreshApp()
     End Sub
@@ -88,8 +94,12 @@ Public Class Main
 
         Trace.WriteLine("Start sync operation...")
         syncPlaylists()
-        refreshPlaylistsList()
         Trace.WriteLine("Start sync operation...Completed")
+
+        refreshFullDirectoryTree()
+        refreshPlaylistsList()
+        refreshFileTransfersDeviceFiles()
+        refreshPlaylistDeviceFiles()
 
         t.Abort()
     End Sub
@@ -124,6 +134,13 @@ Public Class Main
             Exit Sub
         End If
 
+        If Not Me.originalPlaylists Is Nothing Then
+            Me.originalPlaylists.Clear()
+            Me.originalPlaylists = Nothing
+        End If
+        deleteAllPlaylists()
+        Me.tvFileManagementDeviceFolders.Nodes.Clear()
+        Me.tvPlaylistsFilesOnDevice.Nodes.Clear()
 
 
         'enumerate devices 
@@ -170,6 +187,10 @@ Public Class Main
                 Exit Sub
             End If
 
+            'first refresh the file listing. the list needs to be up to date
+            'so the other refresh functions can use it
+            refreshFullDirectoryTree()
+            'refresh the various lists and trees
             refreshPlaylistDeviceFiles()
             refreshFileTransfersDeviceFiles()
             refreshPlaylistsList()
@@ -213,6 +234,11 @@ Public Class Main
 
     End Sub
 
+    
+
+
+
+#Region "Playlists"
     Private Sub syncPlaylists()
         'the way playlist syncing works is the following (in order of execution):
         '0.any playlist ending with * is a new or modified playlist
@@ -254,10 +280,7 @@ Public Class Main
 
         'any playlist ending in '*' that is not empty needs to be added to the player
         Dim lv As ListView
-        Dim attribs() As String
-        Dim nodeLevel As Short
-        Dim nodeType As Integer
-        Dim nodeParent As String
+        Dim item As StorageItem
         Dim str As String
         For Each tpage In Me.tabPlaylists.TabPages
             If tpage.Text.EndsWith("*") Then
@@ -268,12 +291,9 @@ Public Class Main
                     str = ""
                     For Each lvitem As ListViewItem In lv.Items
                         'get the item attributes
-                        attribs = lvitem.Tag.Split("/"c)
-                        nodeLevel = attribs(0)
-                        nodeType = attribs(1)
-                        nodeParent = attribs(2)
+                        item = CType(lvitem.Tag, StorageItem)
                         'add each item to the string
-                        str = str & "<" & nodeLevel & "/"c & nodeType & "/"c & nodeParent & ">" & lvitem.Text & ":"
+                        str = str & item.ID & ":"c
                     Next
                     'remove the trailing ':'
                     str = str.Remove(str.Length - 1, 1)
@@ -291,11 +311,9 @@ Public Class Main
         Trace.WriteLine("Syncing playlists...Done")
     End Sub
 
-
-
-#Region "Playlists"
     Private Sub btnPlaylistsFilesOnDeviceRefresh_LinkClicked(ByVal sender As System.Object, ByVal e As System.Windows.Forms.LinkLabelLinkClickedEventArgs) Handles btnPlaylistsFilesOnDeviceRefresh.LinkClicked
         Cursor.Current = Cursors.WaitCursor
+        refreshFullDirectoryTree()
         refreshPlaylistDeviceFiles()
 
         Dim lv As ListView
@@ -496,8 +514,6 @@ Public Class Main
 
         'check to see if the dragged data comes from our treeview
         If Not draggedNodes Is Nothing Then
-            lv.SmallImageList = Me.tvPlaylistsFilesOnDevice.ImageList
-
             For Each draggedNode In draggedNodes
                 playlistListView_dragdrop_helper(lv, draggedNode)
             Next
@@ -507,10 +523,13 @@ Public Class Main
             Dim draggedListviewItem As Object
             draggedListviewItem = e.Data.GetData(GetType(ListViewEx.DragItemData))
             If Not draggedListviewItem Is Nothing Then
+                'clean up the columheaders from sorting indicator and disable sorting
+                lv.Sorting = SortOrder.None
+                lv.ListViewItemSorter = Nothing
+                If playlistListView_lastColumnClicked <> -1 Then
+                    lv.Columns(playlistListView_lastColumnClicked).Text = lv.Columns(playlistListView_lastColumnClicked).Text.Replace(" ^", "").Replace(" v", "")
+                End If
                 markPlaylistChanged(lv)
-            Else
-                'if it's not from our treeview or the listvew, don't allow this drag operation
-                e.Effect = DragDropEffects.None
             End If
         End If
 
@@ -518,24 +537,24 @@ Public Class Main
     Private Sub playlistListView_dragdrop_helper(ByRef lv As ListViewEx, ByVal root As TreeNode)
         'lv is the listview to add the nodes to. root is the node to add (if its a file) or to
         'traverse (if its a folder)
-        Dim attribs() As String
-        Dim nodeLevel As Short
-        Dim nodeType As Integer
-        Dim nodeParent As String
+        Dim item As StorageItem
         Dim lvItem As ListViewItem
 
         'check to see if the root is a file, if it is add it to the list view
         'if it's not, then it's a folder and we must recurse it
-        attribs = root.Tag.Split("/"c)
-        nodeLevel = attribs(0)
-        nodeType = attribs(1)
-        nodeParent = attribs(2)
-        If (nodeType And MTPAxe.WMDM_FILE_ATTR_FILE) = MTPAxe.WMDM_FILE_ATTR_FILE Then
+        item = CType(root.Tag, StorageItem)
+        If (item.StorageType And MTPAxe.WMDM_FILE_ATTR_FILE) = MTPAxe.WMDM_FILE_ATTR_FILE Then
             'the root node is a file. add only .mp3,wma,mp4,m4a,3gp,wav audio files
             'tip: can add video files to playlists too as long as the extension is mp4, but the player will only play the audio.
             If root.ImageKey = ".mp3" Or root.ImageKey = ".wma" Or root.ImageKey = ".mp4" Or root.ImageKey = ".m4a" Or root.ImageKey = ".3gp" Or root.ImageKey = ".wav" Then
                 lvItem = New ListViewItem
                 lvItem.Text = root.Text
+                lvItem.SubItems.Add(item.Title)
+                lvItem.SubItems.Add(item.AlbumArtist)
+                lvItem.SubItems.Add(item.AlbumTitle)
+                lvItem.SubItems.Add(item.Year)
+                lvItem.SubItems.Add(item.TrackNum)
+                lvItem.SubItems.Add(item.Genre)
                 lvItem.ImageKey = root.ImageKey
                 lvItem.Tag = root.Tag
                 lv.Items.Add(lvItem)
@@ -551,7 +570,7 @@ Public Class Main
     End Sub
 
     Private Sub refreshPlaylistDeviceFiles()
-        Dim tv As TreeView
+        Dim musicFldr As TreeNode
 
         Trace.WriteLine("Getting music files...")
 
@@ -564,20 +583,14 @@ Public Class Main
         End If
         Splash.setText("Getting music files")
 
-        'free icon handles
-        freeImageListHandles(Me.tvPlaylistsFilesOnDevice.ImageList)
-
         Me.tvPlaylistsFilesOnDevice.BeginUpdate()
 
         Me.tvPlaylistsFilesOnDevice.Nodes.Clear()
 
-        tv = axe.getTreeViewByName("MUSIC")
+        musicFldr = findTreeNodeByName(fullFileListing.Nodes(0), "MUSIC")
 
-        Me.tvPlaylistsFilesOnDevice.ImageList = tv.ImageList
+        Me.tvPlaylistsFilesOnDevice.Nodes.Add(musicFldr.Clone)
 
-        For Each node As TreeNode In tv.Nodes
-            Me.tvPlaylistsFilesOnDevice.Nodes.Add(node.Clone)
-        Next
         Me.tvPlaylistsFilesOnDevice.Sort()
         Me.tvPlaylistsFilesOnDevice.ExpandAll()
 
@@ -587,7 +600,10 @@ Public Class Main
         Trace.WriteLine("Getting music files...Complete")
     End Sub
     Private Sub refreshPlaylistsList()
-        Dim tv, tv2 As TreeView
+        'note: this function only uses the fullFileListing tree for finding the playlists
+        'not for finding the playlist contents.  This is because the fullFileListing tree
+        'does not contain the reference information contained inside of the playlists.
+        'As a result it is still necessary to call some enumeration functions on the device
 
         Trace.WriteLine("Refreshing playlists...")
 
@@ -607,12 +623,16 @@ Public Class Main
         deleteAllPlaylists()
         createNewPlaylist("New Playlist", False)
 
-        tv = axe.getTreeViewByName("Playlists")
-        If tv.Nodes.Count = 0 Then
+        Dim plFldr As TreeNode
+        plFldr = findTreeNodeByName(fullFileListing.Nodes(0), "Playlists")
+        If plFldr Is Nothing Then
+            Trace.WriteLine("Error refreshing playlists - plyalists folder not found")
+            Exit Sub
+        End If
+        If plFldr.Nodes.Count = 0 Then
             Trace.WriteLine("Error refreshing playlists - no playlists found")
             Exit Sub
         End If
-        Me.tvPlaylistsFilesOnDevice.ImageList = tv.ImageList
 
         'enumerate storage on the device (necessary for all other device related functions to work)
         'can use this enumeration to fill the directory tree
@@ -620,33 +640,56 @@ Public Class Main
         Dim lv As ListViewEx
         Dim tpage, originalTabPage As TabPage
         Dim lvItem As ListViewItem
-        For Each node As TreeNode In tv.Nodes(0).Nodes
-            tv2 = axe.getPlaylistContentsAsTreeview(node.Text)
+        Dim plItem As TreeNode
+        Dim item As StorageItem
+        Dim strIDs() As String
+        For Each node As TreeNode In plFldr.Nodes
+            strIDs = axe.getPlaylistContentsIDs(node.Text)
+            If strIDs IsNot Nothing Then
+                'create a new playlist tab and listview based on the playlist name
+                tpage = createNewPlaylist(node.Text, True)
+                lv = tpage.Controls("lvPl" & node.Text)
 
-            'create a new playlist tab and listview based on the plalist name
-            tpage = createNewPlaylist(node.Text, True)
-            lv = tpage.Controls("lvPl" & node.Text)
-            lv.SmallImageList = tv.ImageList
+                For Each id As String In strIDs
+                    If fullFileListing IsNot Nothing AndAlso fullFileListing.Nodes.Count > 0 Then
+                        'search for the id in the fulltree
+                        plItem = findTreeNodeByID(fullFileListing.Nodes(0), id)
+                        If plItem IsNot Nothing Then
+                            item = CType(plItem.Tag, StorageItem)
 
-            For Each plItem As TreeNode In tv2.Nodes
-                'fill the contents of the treeview with the playlist contents
-                lvItem = New ListViewItem
+                            'fill the contents of the treeview with the playlist contents
+                            lvItem = New ListViewItem
 
-                lvItem.Text = (plItem.Text)
-                lvItem.ImageKey = IO.Path.GetExtension(lvItem.Text)
-                lvItem.Tag = plItem.Tag
+                            lvItem.Text = item.FileName
+                            lvItem.SubItems.Add(item.Title)
+                            lvItem.SubItems.Add(item.AlbumArtist)
+                            lvItem.SubItems.Add(item.AlbumTitle)
+                            lvItem.SubItems.Add(item.Year)
+                            lvItem.SubItems.Add(item.TrackNum)
+                            lvItem.SubItems.Add(item.Genre)
+                            'lvItem.ImageKey = IO.Path.GetExtension(lvItem.Text)
+                            lvItem.ImageKey = plItem.ImageKey
+                            lvItem.Tag = plItem.Tag
 
-                lv.Items.Add(lvItem)
-            Next
+                            lv.Items.Add(lvItem)
+                        Else
+                            'there was an item in the playlist that was not found in the tree
+                            Trace.WriteLine("Refresh Playlists: an item that was returned was not found in the tree. ItemID=" & id)
+                            MsgBox("Refresh Playlists: an item that was returned was not found in the tree. ItemID=" & id)
+                        End If
+                    End If
+                Next
 
-            'partially clone the tabpage to add to the originalplaylists list
-            'this is because the values in this list will change if the tabpage
-            'is modified (we don' want that)
-            originalTabPage = New TabPage
-            originalTabPage.Name = tpage.Name
-            originalTabPage.Text = tpage.Text
-            originalTabPage.Tag = tpage.Tag
-            originalPlaylists.Add(originalTabPage)
+                'partially clone the tabpage to add to the originalplaylists list
+                'this is because the values in this list will change if the tabpage
+                'is modified (we don' want that)
+                originalTabPage = New TabPage
+                originalTabPage.Name = tpage.Name
+                originalTabPage.Text = tpage.Text
+                originalTabPage.Tag = tpage.Tag
+                originalPlaylists.Add(originalTabPage)
+            End If
+            strIDs = Nothing
         Next
 
         t.Abort()
@@ -655,6 +698,8 @@ Public Class Main
 
 
     Private Sub deleteActivePlaylist()
+        'deletes the active playlist tab and frees resources.
+        'don't free the icons since the icons in the listview point to the ones from the tree
         Dim tpage As TabPage, selTabIndex As Integer, lv As ListView
 
         tpage = Me.tabPlaylists.SelectedTab
@@ -666,8 +711,6 @@ Public Class Main
         If selTabIndex > 0 Then
             Me.tabPlaylists.SelectedIndex = selTabIndex - 1
         End If
-        'free the image list icons
-        freeImageListHandles(lv.SmallImageList)
 
         Me.tabPlaylists.TabPages.Remove(tpage)
         If Me.tabPlaylists.TabPages.Count = 0 Then
@@ -686,8 +729,8 @@ Public Class Main
             name = name & "*"
         End If
 
-        'don't allow ':' in the name since that's what we use as a separator
-        name = name.Replace(":", "_")
+        'don't allow :,<,>,/ in the name since that's what we use as a separator
+        name = name.Replace(":"c, "_").Replace("<"c, "").Replace(">"c, "").Replace("/"c, "")
 
         Dim tpage As TabPage
         Dim lv As ListViewEx
@@ -703,11 +746,14 @@ Public Class Main
             .AllowDrop = True
             .FullRowSelect = True
             .Columns.Add("File Name", 260, HorizontalAlignment.Left)
-            '.Columns.Add("Title", 80, HorizontalAlignment.Left)
-            '.Columns.Add("Artist", 80, HorizontalAlignment.Left)
-            '.Columns.Add("Album", 80, HorizontalAlignment.Left)
-            '.Columns.Add("Year", 80, HorizontalAlignment.Left)
+            .Columns.Add("Title", 120, HorizontalAlignment.Left)
+            .Columns.Add("Artist", 100, HorizontalAlignment.Left)
+            .Columns.Add("Album", 100, HorizontalAlignment.Left)
+            .Columns.Add("Year", 50, HorizontalAlignment.Center)
+            .Columns.Add("Track#", 30, HorizontalAlignment.Center)
+            .Columns.Add("Genre", 80, HorizontalAlignment.Left)
             .Name = "lvPl" & name
+            .SmallImageList = fullFileListing.ImageList
             AddHandler .DragEnter, AddressOf playlistListView_dragenter
             AddHandler .DragDrop, AddressOf playlistListView_dragdrop
             AddHandler .KeyDown, AddressOf playlistListView_KeyDown
@@ -768,7 +814,7 @@ Public Class Main
 #End Region
 
 #Region "FileManagement"
-    Private fullFileListing As TreeView 'used for keeping track of the file listing
+
     'required delegates for updating the treeview from the uploading worker thread (used for drag n drop from explorer)
     Private Delegate Sub updateTreeviewDelegate(ByVal parentnode As TreeNode, ByVal childnode As TreeNode)
     Private Sub refreshFileTransfersDeviceFiles()
@@ -785,18 +831,7 @@ Public Class Main
 
         Splash.setText("Getting all media files")
 
-        'free handles
-        freeImageListHandles(Me.tvFileManagementDeviceFolders.ImageList)
-        If Not fullFileListing Is Nothing Then
-            freeImageListHandles(fullFileListing.ImageList)
-        End If
-
-        'get the stuff on the device (keep it in a global variable
-        'so we don't have to read the device whenever a folder is opened
-        fullFileListing = axe.getFullTreeView
-        Me.tvFileManagementDeviceFolders.ImageList = fullFileListing.ImageList
         Me.tvFileManagementDeviceFolders.Nodes.Clear()
-
         Me.tvFileManagementDeviceFolders.BeginUpdate()
 
         'add the folders directly without the root 'storage media' node
@@ -822,18 +857,17 @@ Public Class Main
         Trace.WriteLine("Refreshing file list...Complete")
     End Sub
     Private Sub refreshFileTransfersDeviceFiles_helper(ByRef root As TreeNode)
-        Dim attribs() As String
-
         Dim i As Integer = 0
         Dim node As TreeNode
+        Dim item As StorageItem
 
         'show only folders. cant use for..each here because calling node.remove
         'modifies the collection count and that screws up the enumerator
         While i < root.Nodes.Count
             node = root.Nodes(i)
             i += 1
-            attribs = node.Tag.Split("/"c)
-            If (Integer.Parse(attribs(1)) And MTPAxe.WMDM_FILE_ATTR_FOLDER) <> MTPAxe.WMDM_FILE_ATTR_FOLDER Then
+            item = CType(node.Tag, StorageItem)
+            If (item.StorageType And MTPAxe.WMDM_FILE_ATTR_FOLDER) <> MTPAxe.WMDM_FILE_ATTR_FOLDER Then
                 If node.Text <> "MUSIC" And node.Text <> "VIDEOS" And node.Text <> "PICTURES" Then
                     node.Remove()
                     i = 0 'if we remove a node, reset the counter so we will look at the updated nodes list
@@ -847,7 +881,11 @@ Public Class Main
     End Sub
     
     Private Sub tvFileManagementDeviceFolders_AfterSelect(ByVal sender As Object, ByVal e As System.Windows.Forms.TreeViewEventArgs) Handles tvFileManagementDeviceFolders.AfterSelect
-        Dim theNode As TreeNode = findTreeNode(fullFileListing.Nodes(0), e.Node)
+        Dim theNode As TreeNode = Nothing
+        If fullFileListing IsNot Nothing AndAlso fullFileListing.Nodes.Count > 0 Then
+            theNode = findTreeNodeByID(fullFileListing.Nodes(0), CType(e.Node.Tag, StorageItem).ID)
+        End If
+
 
         If theNode IsNot Nothing Then
             Me.lvFileManagementDeviceFilesInFolder.BeginUpdate()
@@ -859,19 +897,24 @@ Public Class Main
 
             'get all files in this folder (except other subfolders)
             Me.lvFileManagementDeviceFilesInFolder.Items.Clear()
-            Me.lvFileManagementDeviceFilesInFolder.SmallImageList = fullFileListing.ImageList
-
 
             Dim lvItem As ListViewItem
-            Dim itemSize As Long
+            Dim item As StorageItem
             For Each node As TreeNode In theNode.Nodes
                 lvItem = New ListViewItem
                 lvItem.Tag = node.Tag
                 lvItem.Text = node.Text
                 lvItem.ImageKey = node.ImageKey
 
-                itemSize = Long.Parse(lvItem.Tag.ToString.Split("/"c)(3))
-                lvItem.SubItems.Add(Math.Ceiling((itemSize / 1024)).ToString("N0") & " KB")
+                item = CType(lvItem.Tag, StorageItem)
+
+                lvItem.SubItems.Add(Math.Ceiling((item.Size / 1024)).ToString("N0") & " KB")
+                lvItem.SubItems.Add(item.Title)
+                lvItem.SubItems.Add(item.AlbumArtist)
+                lvItem.SubItems.Add(item.AlbumTitle)
+                lvItem.SubItems.Add(item.Year)
+                lvItem.SubItems.Add(item.TrackNum)
+                lvItem.SubItems.Add(item.Genre)
 
                 lvFileManagementDeviceFilesInFolder.Items.Add(lvItem)
             Next
@@ -914,7 +957,24 @@ Public Class Main
     End Sub
 
     Private Sub updateTreeview(ByVal parentnode As TreeNode, ByVal childnode As TreeNode)
+        'add the child node to the parent
         parentnode.Nodes.Add(childnode)
+
+        'add it to the playlists file list too. first find the right node to add it to
+        Dim plFileListNode As TreeNode = Nothing
+        If Me.tvPlaylistsFilesOnDevice.Nodes.Count > 0 Then
+            For Each node As TreeNode In Me.tvPlaylistsFilesOnDevice.Nodes
+                plFileListNode = findTreeNodeByID(node, CType(parentnode.Tag, StorageItem).ID)
+                If plFileListNode IsNot Nothing Then
+                    'parent node found
+                    Exit For
+                End If
+            Next
+        End If
+        If plFileListNode IsNot Nothing Then
+            plFileListNode.Nodes.Add(childnode.Clone)
+        End If
+
     End Sub
 
     Private Sub lvFileManagementDeviceFilesInFolder_DragDrop(ByVal sender As Object, ByVal e As System.Windows.Forms.DragEventArgs) Handles lvFileManagementDeviceFilesInFolder.DragDrop
@@ -922,13 +982,23 @@ Public Class Main
         Dim draggedFiles() As String
         draggedFiles = e.Data.GetData(DataFormats.FileDrop)
         If draggedFiles IsNot Nothing Then
-
             'worker threat to do the actual uploading. this prevents blocking of explorer
             'due to the dragdrop operation
             Dim tWork As New Threading.Thread(AddressOf lvFileManagementDeviceFilesInFolder_DragDrop_helper_starter)
             tWork.Start(draggedFiles)
+        Else
+            'if it's not from the treeview, check to see if it's from the ListViewEx itself
+            Dim draggedListviewItem As Object
+            draggedListviewItem = e.Data.GetData(GetType(ListViewEx.DragItemData))
+            If Not draggedListviewItem Is Nothing Then
+                'clean up the columheaders from sorting indicator and disable sorting
+                lvFileManagementDeviceFilesInFolder.Sorting = SortOrder.None
+                lvFileManagementDeviceFilesInFolder.ListViewItemSorter = Nothing
+                If lvFileManagementDeviceFilesInFolder_lastColumnClicked <> -1 Then
+                    lvFileManagementDeviceFilesInFolder.Columns(lvFileManagementDeviceFilesInFolder_lastColumnClicked).Text = lvFileManagementDeviceFilesInFolder.Columns(lvFileManagementDeviceFilesInFolder_lastColumnClicked).Text.Replace(" ^", "").Replace(" v", "")
+                End If
+            End If
         End If
-        'Me.Activate()
     End Sub
     Private Sub lvFileManagementDeviceFilesInFolder_DragDrop_helper_starter(ByVal draggedfiles As Object)
         'this is the worker thread for uploading files
@@ -961,7 +1031,8 @@ Public Class Main
         'adds files specified by path to the folder  specified by parentNode
 
         'get the attributes of the parent node (will need them to add new storage items to the tree)
-        Dim parentAttribs() As String = parentNode.Tag.split("/"c)
+        Dim item As StorageItem
+        item = CType(parentNode.Tag, StorageItem)
 
         If IO.Directory.Exists(path) Then
             'draggedfile was a directory. now add it and all it's children
@@ -970,8 +1041,8 @@ Public Class Main
             Dim folderName = path.Split("\")(path.Split("\").Length - 1)
 
             Splash.setText("Creating directory '" & folderName & "'")
-
-            If axe.uploadFile(folderName, "<" & parentNode.Tag & ">" & parentNode.Text, 1) = "-1" Then
+            Dim createdItemID As String = axe.uploadFile(folderName, item.ID, 1)
+            If createdItemID = "-1" Then
                 Trace.WriteLine("fileManagement: error creating folder '" & folderName & "'")
                 MsgBox("fileManagement: error creating folder '" & folderName & "'. Maybe device is full?", MsgBoxStyle.Critical, "error")
                 Exit Sub
@@ -990,19 +1061,27 @@ Public Class Main
 
             'add it to the treeview
             Dim newNode As New TreeNode
-            newNode.Text = folderName
-            newNode.Tag = parentAttribs(0) + 1 & "/"c & "295176" & "/"c & parentNode.Text & "/"c & "0"
+            Dim newItem As New StorageItem
+            newItem.DirectoryDepth = item.DirectoryDepth + 1
+            newItem.FileName = folderName
+            newItem.ParentFileName = item.FileName
+            newItem.FileName = folderName
+            newItem.StorageType = 295176
+            newItem.ID = createdItemID
 
+            newNode.Tag = newItem
+            newNode.Text = folderName
             newNode.ImageKey = "*"
 
             'invoke the delegate to update the treeview from the main thread
             Me.Invoke(New updateTreeviewDelegate(AddressOf updateTreeview), New TreeNode() {parentNode, newNode})
 
-
             'now that the folder has been successfully created, add it to the fullFileListing tree
-            parentNode = findTreeNode(fullFileListing.Nodes(0), parentNode)
+            'parentNode = findTreeNode(fullFileListing.Nodes(0), parentNode)
+            parentNode = findTreeNodeByID(fullFileListing.Nodes(0), CType(parentNode.Tag, StorageItem).ID)
             parentNode.Nodes.Add(newNode.Clone)
 
+            'now that the directory has been created, recursively add all it's children
             For Each filesystementry As String In IO.Directory.GetFileSystemEntries(path)
                 lvFileManagementDeviceFilesInFolder_DragDrop_helper(filesystementry, newNode)
             Next
@@ -1014,42 +1093,86 @@ Public Class Main
 
             Splash.setText("Uploading '" & fname & "'")
 
-            If axe.uploadFile(path, "<" & parentNode.Tag & ">" & parentNode.Text, 0) = "-1" Then
+            'get the file metadata
+            Dim newItem As New StorageItem
+            newItem.DirectoryDepth = item.DirectoryDepth + 1
+            newItem.StorageType = 295200
+            newItem.FileName = fname
+            newItem.ParentFileName = item.FileName
+            newItem.Size = itemSize
+            'read metadata tags with taglib-sharp. if there is an exception
+            'the default values (i.e. "" ) will be used
+            Try
+                'note the file extension must be correct or taglib won't properly recognize the file
+                Dim tagReader As TagLib.File = TagLib.File.Create(path)
+                newItem.Title = tagReader.Tag.Title
+                newItem.AlbumTitle = tagReader.Tag.Album
+                newItem.AlbumArtist = tagReader.Tag.FirstAlbumArtist
+                newItem.Genre = tagReader.Tag.FirstGenre
+                newItem.TrackNum = tagReader.Tag.Track
+                newItem.Year = tagReader.Tag.Year
+                tagReader = Nothing
+            Catch ex As Exception
+                Trace.WriteLine("taglib-sharp error (wrong file extension maybe?): " & ex.Message & " for file=" & path)
+            End Try
+
+            Dim createdItemID As String = axe.uploadFile(path, item.ID, 0, newItem)
+            If createdItemID = "-1" Then
                 Trace.WriteLine("fileManagement: error uploading file '" & path & "'")
                 MsgBox("fileManagement: error uploading file '" & path & "'. Maybe device is full?", MsgBoxStyle.Critical, "error")
                 Exit Sub
-            Else
-                If lvFileManagementDeviceFilesInFolder.Items(0) IsNot Nothing Then
-                    If lvFileManagementDeviceFilesInFolder.Items(0).Text = "No files found" Then
-                        lvFileManagementDeviceFilesInFolder.Items.Clear()
-                    End If
-                End If
-
-
-                'add it to the listview only if the file is actually contained in the selected folder 
-                'without this, all files are added to the listview, even ones in subfolders
-                If Me.lvFileManagementDeviceFilesInFolder.Tag Is parentNode Then
-                    lvFileManagementDeviceFilesInFolder.Items.Add(fname, ext).SubItems.Add((itemSize / 1024).ToString("N0") & " KB")
-                End If
-
-                'add this item to the fulltree so it will appear in the listview if the parent node
-                'is selected again. could also enumerate the storage again, but this would be too slow
-                parentNode = findTreeNode(fullFileListing.Nodes(0), parentNode)
-
-                'get the parentNode attribs, so we can add the new node in the correct spot
-                'we also need to define the type attribute so as to have a complete picture of the node
-                'type seems to be 295176 for normal folders and 295200 for normal files
-                Dim newNode As New TreeNode
-                newNode.Text = fname
-                newNode.Tag = parentAttribs(0) + 1 & "/"c & "295200" & "/"c & parentNode.Text & "/"c & itemSize
-                newNode.ImageKey = ext
-                parentNode.Nodes.Add(newNode)
-
-                Splash.incProgBar()
             End If
-        End If
+            newItem.ID = createdItemID
 
+            If lvFileManagementDeviceFilesInFolder.Items.Count > 0 AndAlso lvFileManagementDeviceFilesInFolder.Items(0) IsNot Nothing Then
+                If lvFileManagementDeviceFilesInFolder.Items(0).Text = "No files found" Then
+                    lvFileManagementDeviceFilesInFolder.Items.Clear()
+                End If
+            End If
 
+            'get the parentNode attribs, so we can add the new node in the correct spot
+            'we also need to define the type attribute so as to have a complete picture of the node
+            'type seems to be 295176 for normal folders and 295200 for normal files
+            Dim newNode As New TreeNode
+
+            newNode.Text = fname
+            newNode.Tag = newItem
+            newNode.ImageKey = ext
+
+            'add this item to the fulltree so it will appear in the listview if the parent node
+            'is selected again. could also enumerate the storage again, but this would be too slow
+            parentNode = findTreeNodeByID(fullFileListing.Nodes(0), CType(parentNode.Tag, StorageItem).ID)
+            If parentNode Is Nothing Then
+                Trace.WriteLine("fileManagement: couldnt find parent folder '" & item.FileName & "'")
+                MsgBox("fileManagement: File upload succeeded but coulnd't add it to the tree node '" & item.FileName & "'")
+                Exit Sub
+            End If
+
+            'invoke the delegate to update the treeview on the playlists tab from the main thread. note this alos
+            'adds newnode to parentNode, which in this case, a delegate is not required (since parentNode does not reside on a control)
+            'but it's handy to reuse this function
+            Me.Invoke(New updateTreeviewDelegate(AddressOf updateTreeview), New TreeNode() {parentNode, newNode})
+
+            'add it to the listview only if the file is actually contained in the selected folder 
+            'without this, all files are added to the listview, even ones in subfolders
+            If CType(Me.lvFileManagementDeviceFilesInFolder.Tag, TreeNode).Tag.Equals(parentNode.Tag) Then
+                Dim lvItem As New ListViewItem
+                lvItem.Tag = newNode.Tag
+                lvItem.Text = newNode.Text
+                lvItem.ImageKey = newNode.ImageKey
+
+                lvItem.SubItems.Add(Math.Ceiling((newItem.Size / 1024)).ToString("N0") & " KB")
+                lvItem.SubItems.Add(newItem.Title)
+                lvItem.SubItems.Add(newItem.AlbumArtist)
+                lvItem.SubItems.Add(newItem.AlbumTitle)
+                lvItem.SubItems.Add(newItem.Year)
+                lvItem.SubItems.Add(newItem.TrackNum)
+                lvItem.SubItems.Add(newItem.Genre)
+                Me.lvFileManagementDeviceFilesInFolder.Items.Add(lvItem)
+            End If
+
+            Splash.incProgBar()
+            End If
     End Sub
 
 
@@ -1095,7 +1218,6 @@ Public Class Main
         listviewItemSortSelected(Me.lvFileManagementDeviceFilesInFolder, SortOrder.Ascending)
     End Sub
 
-
     Private Sub lvFileManagementDeviceFilesInFolder_ColumnClick(ByVal sender As Object, ByVal e As System.Windows.Forms.ColumnClickEventArgs) Handles lvFileManagementDeviceFilesInFolder.ColumnClick
         Dim lv As ListViewEx = CType(sender, ListView)
         If e.Column <> lvFileManagementDeviceFilesInFolder_lastColumnClicked Then
@@ -1130,7 +1252,8 @@ Public Class Main
 
     Private Sub btnFileManagementRefresh_LinkClicked(ByVal sender As System.Object, ByVal e As System.Windows.Forms.LinkLabelLinkClickedEventArgs) Handles btnFileManagementRefresh.LinkClicked
         Application.DoEvents()
-        Me.refreshFileTransfersDeviceFiles()
+        refreshFullDirectoryTree()
+        refreshFileTransfersDeviceFiles()
     End Sub
 #End Region
 
@@ -1153,22 +1276,73 @@ Public Class Main
 
         Return count
     End Function
-    Private Function findTreeNode(ByRef root As TreeNode, ByRef theNode As TreeNode) As TreeNode
-        'search for the specified node in the fullFileListing tree and 
+    Private Function xfindTreeNode(ByRef root As TreeNode, ByRef theNode As TreeNode) As TreeNode
+        'search for the specified node in the child nodes of root and 
         'return it. if not found, nothing is returned
         'root is the node to search, theNode is the node we're looking for
         Dim ret As TreeNode = Nothing
 
-        If root.Tag = theNode.Tag And root.Text = theNode.Text Then
+        If root.Tag.Equals(theNode.Tag) Then
             Return root
         End If
 
         For Each node As TreeNode In root.Nodes
-            If node.Tag = theNode.Tag And node.Text = theNode.Text Then
+            If node.Tag.Equals(theNode.Tag) Then
                 ret = node 'check if the node is the folder we're looking for
             ElseIf node.Nodes.Count > 0 Then
                 'else check the child nodes
-                ret = findTreeNode(node, theNode)
+                ret = xfindTreeNode(node, theNode)
+            End If
+
+            'if we found it, return it
+            If ret IsNot Nothing Then
+                Return ret
+            End If
+        Next
+
+        Return ret
+    End Function
+    Private Function findTreeNodeByName(ByRef root As TreeNode, ByVal name As String) As TreeNode
+        'searches for the first matching treenode with the given name
+        Dim ret As TreeNode = Nothing
+
+        If root.Text = name Then
+            Return root
+        End If
+
+        For Each node As TreeNode In root.Nodes
+            If node.Text = name Then
+                ret = node
+            ElseIf node.Nodes.Count > 0 Then
+                'else check the child nodes
+                ret = findTreeNodeByName(node, name)
+            End If
+
+            'if we found it, return it
+            If ret IsNot Nothing Then
+                Return ret
+            End If
+        Next
+
+        Return ret
+    End Function
+    Private Function findTreeNodeByID(ByRef root As TreeNode, ByVal ID As String) As TreeNode
+        'searches for the first matching treenode with the given PersistentUniqueID
+        Dim ret As TreeNode = Nothing
+        Dim item As StorageItem
+
+        item = CType(root.Tag, StorageItem)
+        If item.ID = ID Then
+            Return root
+        End If
+
+        For Each node As TreeNode In root.Nodes
+            item = CType(node.Tag, StorageItem)
+            If item.ID = ID Then
+                ret = node
+            ElseIf node.Nodes.Count > 0 Then
+                'else check the child nodes
+                ret = findTreeNodeByID(node, ID)
             End If
 
             'if we found it, return it
@@ -1261,6 +1435,50 @@ Public Class Main
 
         lv.EndUpdate()
     End Sub
+    Private Sub refreshFullDirectoryTree()
+        Trace.WriteLine("Refreshing full directory tree...")
+
+        'let the user know were busy
+        Dim t As New Threading.Thread(New Threading.ThreadStart(AddressOf Splash.ShowDialog))
+        t.SetApartmentState(Threading.ApartmentState.MTA)
+        If Not Splash.Visible Then
+            t.Start()
+            Splash.setTitle(Me.cmbDevices.Text)
+        End If
+
+        Splash.setText("Refreshing device file list")
+
+        'refreshes the global variable that stores the full listing of all the files on the
+        'device
+        If Not fullFileListing Is Nothing Then
+            freeImageListHandles(fullFileListing.ImageList)
+        End If
+
+        'get the stuff on the device (keep it in a global variable
+        'so we don't have to read the device whenever a folder is opened
+        fullFileListing = axe.getFullTreeView
+        If fullFileListing.Nodes.Count = 0 Then
+            fullFileListing.Nodes.Add("Empty Tree").Tag = New StorageItem
+        End If
+
+        'rebuild icons
+        Me.tvPlaylistsFilesOnDevice.ImageList = fullFileListing.ImageList
+        Me.tvFileManagementDeviceFolders.ImageList = fullFileListing.ImageList
+        Me.lvFileManagementDeviceFilesInFolder.SmallImageList = fullFileListing.ImageList
+        Dim lv As ListViewEx
+        For Each tpage As TabPage In Me.tabPlaylists.TabPages
+            For Each c As Control In tpage.Controls
+                lv = CType(c, ListViewEx)
+                If lv IsNot Nothing Then
+                    lv.SmallImageList = fullFileListing.ImageList
+                End If
+            Next
+        Next
+
+
+        Trace.WriteLine("Refreshing full directory tree...done")
+        t.Abort()
+    End Sub
 
 
     'comparer for playlistitems listview sorting
@@ -1335,5 +1553,5 @@ Public Class Main
 
 #End Region
 
-
+ 
 End Class

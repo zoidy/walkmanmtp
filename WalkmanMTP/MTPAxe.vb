@@ -267,7 +267,7 @@
         strTree = enumerateStorage()        
         If Not strTree = "-1" Then
             Try
-                theTreeView = buildTreeViewFromDirectoryTree(strTree, False)
+                theTreeView = buildTreeViewFromDirectoryTreePtr(Integer.Parse(strTree.Split(":")(0), Globalization.NumberStyles.HexNumber), Integer.Parse(strTree.Split(":")(1)), False)
             Catch ex As Exception
                 theTreeView = New TreeView
                 Trace.WriteLine("MTPAxe: building full directory tree - empty tree returned")
@@ -276,55 +276,56 @@
 
         Return theTreeView
     End Function
-    Public Function getTreeViewByName(ByVal storageItemName As String) As TreeView
-        'returns the tree of the specified directory only
-        'returns an empty treeview on error
+    'Public Function getTreeViewByName(ByVal storageItemName As String) As TreeView
+    '    'returns the tree of the specified directory only
+    '    'returns an empty treeview on error
 
-        Trace.WriteLine("MTPAxe: building directory tree for " & storageItemName)
+    '    Trace.WriteLine("MTPAxe: building directory tree for " & storageItemName)
 
-        If axe Is Nothing Then Throw New Exception("MTPAxe is not started")
+    '    If axe Is Nothing Then Throw New Exception("MTPAxe is not started")
 
-        Dim theTreeView As New TreeView
+    '    Dim theTreeView As New TreeView
 
-        'get the directory tree from the device
-        Dim strTree As String
-        strTree = enumerateStorage()
-        If Not strTree = "-1" Then
-            Try
-                'get the full tree first
-                Dim tmpTree As TreeView
-                tmpTree = buildTreeViewFromDirectoryTree(strTree, False)
+    '    'get the directory tree from the device
+    '    Dim strTree As String
+    '    strTree = enumerateStorage()
+    '    If Not strTree = "-1" Then
+    '        Try
+    '            'get the full tree first
+    '            Dim tmpTree As TreeView
+    '            tmpTree = buildTreeViewFromDirectoryTreePtr(Integer.Parse(strTree.Split(":")(0), Globalization.NumberStyles.HexNumber), Integer.Parse(strTree.Split(":")(1)), False)
 
-                Dim foundStorage As TreeNode = Nothing
-                For Each node As TreeNode In tmpTree.Nodes
-                    foundStorage = findTreeNode(node, storageItemName, WMDM_FILE_ATTR_FOLDER, 1)
-                    If Not foundStorage Is Nothing Then
-                        Exit For
-                    End If
-                Next
+    '            Dim foundStorage As TreeNode = Nothing
+    '            For Each node As TreeNode In tmpTree.Nodes
+    '                foundStorage = findTreeNode(node, storageItemName, WMDM_FILE_ATTR_FOLDER, 1)
+    '                If Not foundStorage Is Nothing Then
+    '                    Exit For
+    '                End If
+    '            Next
 
-                theTreeView.Nodes.Add(foundStorage.Clone)
-                theTreeView.ImageList = tmpTree.ImageList
+    '            theTreeView.Nodes.Add(foundStorage.Clone)
+    '            theTreeView.ImageList = tmpTree.ImageList
 
-            Catch ex As Exception
-                theTreeView = New TreeView
-                Trace.WriteLine("MTPAxe: building directory tree for " & storageItemName & " - empty tree returned: " & ex.Message & ", " & ex.Source)
-            End Try
+    '        Catch ex As Exception
+    '            theTreeView = New TreeView
+    '            Trace.WriteLine("MTPAxe: building directory tree for " & storageItemName & " - empty tree returned: " & ex.Message & ", " & ex.Source)
+    '        End Try
 
-        End If
+    '    End If
 
-        Return theTreeView
-    End Function
+    '    Return theTreeView
+    'End Function
     Private Function findTreeNode(ByRef root As TreeNode, ByVal nName As String, ByVal nType As Integer, ByVal nLevel As Integer) As TreeNode
         'searches for a node given a starting root node.  the search includes the root node (not just the children)
         'if the node is not found, Nothing is returned
 
-        Dim nodeLevel As Integer, nodeType As Integer
+        Dim nodeLevel As Integer, nodeType As Integer, item As StorageItem
 
         'first, check to see if the root node matches the node we're loking for
         'get node attributes
-        nodeLevel = (root.Tag.ToString.Split("/"c))(0)
-        nodeType = (root.Tag.ToString.Split("/"c))(1)
+        item = CType(root.Tag, StorageItem)
+        nodeLevel = item.DirectoryDepth
+        nodeType = item.StorageType
         If root.Text = nName AndAlso nodeLevel = nLevel AndAlso nodeType & nType Then
             'were done
             Return root
@@ -332,8 +333,9 @@
 
         For Each tn As TreeNode In root.Nodes
             'get node attributes
-            nodeLevel = (tn.Tag.ToString.Split("/"c))(0)
-            nodeType = (tn.Tag.ToString.Split("/"c))(1)
+            item = CType(tn.Tag, StorageItem)
+            nodeLevel = item.DirectoryDepth
+            nodeType = item.StorageType
 
             'check for matches 
             If tn.Text = nName AndAlso nodeLevel = nLevel AndAlso nodeType & nType Then
@@ -359,16 +361,12 @@
         Return Nothing
 
     End Function
-    Private Function buildTreeViewFromDirectoryTree(ByVal directoryTree As String, ByVal usePlaylistMode As Boolean) As TreeView
+    Private Function buildTreeViewFromDirectoryTreePtr(ByVal arrStorageItemsPtr As Integer, ByVal numItems As Integer, ByVal usePlaylistMode As Boolean) As TreeView
         'builds a treeview based on the given directory tree, in the format returned
         'by getDirectoryTree, if the directoryTree is not in the right format, unpredicable behaviour will occur
-        Dim nodes() As String
-        Dim properties As String
         Dim treenodes() As TreeNode
         Dim tn As TreeNode
-        Dim tagIndex As Integer
         Dim index As Integer = 0
-        Dim index2 As Integer = 0
         Dim treeview1 As New TreeView
 
         Dim shinfo As New SHFILEINFO()
@@ -380,43 +378,116 @@
         treeview1.ImageList = imglst
         shinfo.szDisplayName = New String(Chr(0), 260)
         shinfo.szTypeName = New String(Chr(0), 80)
+        Dim item As StorageItem
+
+        Dim memreader As New MemoryReader.ProcessMemoryReader
+        Dim buffer() As Byte
+        Dim bytesRead As Integer
+        memreader.ReadProcess = axe
+        memreader.OpenProcess()
 
         'keeps track of the minimum and maximum directory level
-        Dim minLevel As Short = -1, maxLevel As Short = -1, level As Byte
+        Dim minLevel As Short = -1, maxLevel As Short = -1
 
-        nodes = directoryTree.Split(":"c)
-        ReDim treenodes(nodes.Length - 1)
+        ReDim treenodes(numItems - 1)
 
-        For Each node As String In nodes
-            'extract the properties associated with each node
-            tagIndex = node.LastIndexOf(">"c)
-            properties = node.Substring(1, tagIndex - 1)
+        Dim sizeofStruct As Integer = 64
+        For i As Integer = 0 To numItems - 1
+            '***read the arrStorageItems array from MTPAxe's memory space. Each item in the array 
+            'is a struct with the folllowing format:
+            'IWMDMStorage4 *pStorage;	//the storage item
+            'IWMDMStorage4 *pStorageParent;
+            'int level;					//the level in the directory tree (level 0 is the root)
+            'int type;					//the type of the item e.g. file or folder (since a file and a folder can have the same name at thesame directory level)
+            'unsigned long long size;	//the size of the file in bytes
+            'wchar_t *parentFileName;
+            'wchar_t *fileName;            
+            'wchar_t *title;
+            'wchar_t *albumArtist;
+            'wchar_t *albumTitle;
+            'wchar_t *genre;
+            'wchar_t *year;
+            'unsigned long trackNum;
+            'wchar_t *persistentUniqueID;
+            'wchar_t *parentUniqueID;
+
+            item = New StorageItem
+
+            'start reading at offset 8 so as to skip the first 2 pointers which we dont need
+            'level
+            buffer = memreader.ReadProcessMemory(arrStorageItemsPtr + (i * sizeofStruct) + 8, 4, bytesRead)
+            item.DirectoryDepth = BitConverter.ToInt32(buffer, 0)
+
+            'type
+            buffer = memreader.ReadProcessMemory(arrStorageItemsPtr + (i * sizeofStruct) + 12, 4, bytesRead)
+            item.StorageType = BitConverter.ToInt32(buffer, 0)
+
+            'size
+            buffer = memreader.ReadProcessMemory(arrStorageItemsPtr + (i * sizeofStruct) + 16, 8, bytesRead)
+            item.Size = BitConverter.ToInt64(buffer, 0)
+
+            'pointer to parentfileName
+            buffer = memreader.ReadProcessMemory(arrStorageItemsPtr + (i * sizeofStruct) + 24, 4, bytesRead)
+            item.ParentFileName = readWideCharFromPointer(memreader, BitConverter.ToInt32(buffer, 0))
+
+            'pointer to fileName
+            buffer = memreader.ReadProcessMemory(arrStorageItemsPtr + (i * sizeofStruct) + 28, 4, bytesRead)
+            item.FileName = readWideCharFromPointer(memreader, BitConverter.ToInt32(buffer, 0))
+
+            'pointer to title
+            buffer = memreader.ReadProcessMemory(arrStorageItemsPtr + (i * sizeofStruct) + 32, 4, bytesRead)
+            item.Title = readWideCharFromPointer(memreader, BitConverter.ToInt32(buffer, 0))
+
+            'pointer to albumArtist
+            buffer = memreader.ReadProcessMemory(arrStorageItemsPtr + (i * sizeofStruct) + 36, 4, bytesRead)
+            item.AlbumArtist = readWideCharFromPointer(memreader, BitConverter.ToInt32(buffer, 0))
+
+            'pointer to albumTitle
+            buffer = memreader.ReadProcessMemory(arrStorageItemsPtr + (i * sizeofStruct) + 40, 4, bytesRead)
+            item.AlbumTitle = readWideCharFromPointer(memreader, BitConverter.ToInt32(buffer, 0))
+
+            'pointer to genre
+            buffer = memreader.ReadProcessMemory(arrStorageItemsPtr + (i * sizeofStruct) + 44, 4, bytesRead)
+            item.Genre = readWideCharFromPointer(memreader, BitConverter.ToInt32(buffer, 0))
+
+            'pointer to year
+            buffer = memreader.ReadProcessMemory(arrStorageItemsPtr + (i * sizeofStruct) + 48, 4, bytesRead)
+            item.Year = readWideCharFromPointer(memreader, BitConverter.ToInt32(buffer, 0))
+
+            'tracknum
+            buffer = memreader.ReadProcessMemory(arrStorageItemsPtr + (i * sizeofStruct) + 52, 4, bytesRead)
+            item.TrackNum = BitConverter.ToInt32(buffer, 0)
+
+            'pointer to persistentUniqueID
+            buffer = memreader.ReadProcessMemory(arrStorageItemsPtr + (i * sizeofStruct) + 56, 4, bytesRead)
+            item.ID = readWideCharFromPointer(memreader, BitConverter.ToInt32(buffer, 0))
+            '***
 
             'keep track of the maximum and minimim directory depth
             'if tihs is the first iteration, set the minimum and the maximum
             'to the value of the first node
-            level = Byte.Parse((properties.Split("/"c))(0))
             If minLevel = -1 And maxLevel = -1 Then
-                minLevel = level
-                maxLevel = level
+                minLevel = item.DirectoryDepth
+                maxLevel = item.DirectoryDepth
             End If
-            If level < minLevel Then
-                minLevel = level
+            If item.DirectoryDepth < minLevel Then
+                minLevel = item.DirectoryDepth
             End If
-            If level > maxLevel Then
-                maxLevel = level
+            If item.DirectoryDepth > maxLevel Then
+                maxLevel = item.DirectoryDepth
             End If
 
+
             tn = New TreeNode
-            tn.Tag = node.Substring(1, tagIndex - 1) 'store level,type,parent in the tag
-            tn.Text = node.Substring(tagIndex + 1, node.Length - tagIndex - 1)
+            tn.Tag = item 'store item attributes in the node tag
+            tn.Text = item.FileName
 
             fileExt = IO.Path.GetExtension(tn.Text)
             tn.ImageKey = fileExt   'the key to the image is the file extension
             tn.SelectedImageKey = fileExt
 
             'see whether node is file or directory
-            If (Integer.Parse((tn.Tag.ToString.Split("/"c))(1)) And WMDM_FILE_ATTR_FILE) = WMDM_FILE_ATTR_FILE Then
+            If (item.StorageType And WMDM_FILE_ATTR_FILE) = WMDM_FILE_ATTR_FILE Then
                 'check to see if the file type already has an image in the image list
                 'if it doesn't retreive it from the operating system
                 If Not imglst.Images.ContainsKey(fileExt) Then
@@ -427,7 +498,7 @@
                                                   SHGFI_ICON Or SHGFI_SMALLICON Or SHGFI_USEFILEATTRIBUTES)
                     myIcon = System.Drawing.Icon.FromHandle(shinfo.hIcon)
                     imglst.Images.Add(tn.ImageKey, myIcon) 'Add icon to imageList
-                    shinfo = Nothing                    
+                    shinfo = Nothing
                 End If
             Else
                 'its a directory
@@ -450,6 +521,7 @@
             treenodes(index) = tn
             index += 1
         Next
+        memreader.CloseHandle()
 
         'now go though the treenodes array and pick out what goes where based on the level 
         'this loop only executes a maximum of 10 times since the sony supports a maximum depth of 10
@@ -463,9 +535,10 @@
                 For Each tn In treenodes
 
                     'get node info
-                    nodeLevel = (tn.Tag.ToString.Split("/"c))(0)
-                    nodeType = (tn.Tag.ToString.Split("/"c))(1)
-                    nodeParent = (tn.Tag.ToString.Split("/"c))(2)
+                    item = CType(tn.Tag, StorageItem)
+                    nodeLevel = item.DirectoryDepth
+                    nodeType = item.StorageType
+                    nodeParent = item.ParentFileName
 
                     'process only nodes with level=index
                     If nodeLevel = index Then
@@ -501,7 +574,30 @@
 
         Return treeview1
     End Function
-    
+    Private Function readWideCharFromPointer(ByVal memreader As MemoryReader.ProcessMemoryReader, ByVal ptrToWcharStr As IntPtr) As String
+        'reads a wchar from memory and returns it in a .net string
+
+        Dim buffer() As Byte
+        Dim bytesRead As Integer
+        Dim retstr As String = ""
+
+        'read 2 bytes at a time until the string terminator is found
+        Do
+            buffer = memreader.ReadProcessMemory(ptrToWcharStr, 2, bytesRead)
+            If bytesRead <> 2 Then
+                buffer(0) = 0
+                buffer(1) = 0
+            Else
+                If Not (buffer(0) = 0 And buffer(1) = 0) Then
+                    retstr = retstr & BitConverter.ToChar(buffer, 0)
+                    'move to the next 2 bytes
+                    ptrToWcharStr = New IntPtr(ptrToWcharStr.ToInt32 + 2)
+                End If
+            End If
+        Loop Until (buffer(0) = 0 And buffer(1) = 0)
+
+        Return retstr
+    End Function
 
     Public Function createPlaylist(ByVal playlistName As String, ByVal items As String) As String
         'creates a playlist. items are in the same format as returned by enumerateStorage
@@ -577,6 +673,20 @@
 
         Return s
     End Function
+    Public Function getPlaylistContentsIDs(ByVal playlistName As String) As String()
+        'returns the PersistenUniqueID's of the contents of the playlist.  The caller
+        'must then build the actual playlists contents.
+        Dim str As String
+        Dim strarr() As String = Nothing
+
+        str = enumeratePlaylist(playlistName)
+        If Not str = "-1" Then
+            'parse the string
+            strarr = str.Split(":"c)
+        End If
+
+        Return strarr
+    End Function
     Public Function getPlaylistContentsAsTreeview(ByVal name As String) As TreeView
         'returns the full directory structure of the device
         'returns an empty treeview if theplaylist is empty
@@ -591,7 +701,7 @@
         strTree = enumeratePlaylist(name)
         If Not strTree = "-1" Then
             Try
-                theTreeView = buildTreeViewFromDirectoryTree(strTree, True)
+                theTreeView = getPlaylistContentsAsTreeview_helper(strTree)
             Catch ex As Exception
                 theTreeView = New TreeView
                 Trace.WriteLine("MTPAxe: bulding playlist contents - empty playlist")
@@ -600,13 +710,89 @@
 
         Return theTreeView
     End Function
+    Private Function getPlaylistContentsAsTreeview_helper(ByVal directoryTree As String) As TreeView
+        'builds a treeview based on the given directory tree, in the format returned
+        'by getDirectoryTree, if the directoryTree is not in the right format, unpredicable behaviour will occur
+        Dim nodes() As String
+        Dim properties As String
+        Dim treenodes() As TreeNode
+        Dim tn As TreeNode
+        Dim tagIndex As Integer
+        Dim index As Integer = 0
+        Dim index2 As Integer = 0
+        Dim treeview1 As New TreeView
 
-    Public Function uploadFile(ByVal path As String, ByVal destination As String, ByVal type As Integer) As String
+        Dim shinfo As New SHFILEINFO()
+        Dim fileExt As String
+        Dim imglst As New ImageList
+        imglst.ColorDepth = ColorDepth.Depth32Bit
+        treeview1.ImageList = imglst
+        shinfo.szDisplayName = New String(Chr(0), 260)
+        shinfo.szTypeName = New String(Chr(0), 80)
+
+        'keeps track of the minimum and maximum directory level
+        Dim minLevel As Short = -1, maxLevel As Short = -1, level As Byte
+
+        nodes = directoryTree.Split(":"c)
+        ReDim treenodes(nodes.Length - 1)
+
+        For Each node As String In nodes
+            'extract the properties associated with each node
+            tagIndex = node.LastIndexOf(">"c)
+            properties = node.Substring(1, tagIndex - 1)
+
+            'keep track of the maximum and minimim directory depth
+            'if tihs is the first iteration, set the minimum and the maximum
+            'to the value of the first node
+            level = Byte.Parse((properties.Split("/"c))(0))
+            If minLevel = -1 And maxLevel = -1 Then
+                minLevel = level
+                maxLevel = level
+            End If
+            If level < minLevel Then
+                minLevel = level
+            End If
+            If level > maxLevel Then
+                maxLevel = level
+            End If
+
+            tn = New TreeNode
+            tn.Tag = node.Substring(1, tagIndex - 1) 'store level,type,parent in the tag
+            tn.Text = node.Substring(tagIndex + 1, node.Length - tagIndex - 1)
+
+            fileExt = IO.Path.GetExtension(tn.Text)
+            tn.ImageKey = fileExt   'the key to the image is the file extension
+            tn.SelectedImageKey = fileExt
+
+            'see whether node is file or directory
+            If (Integer.Parse((tn.Tag.ToString.Split("/"c))(1)) And WMDM_FILE_ATTR_FILE) = WMDM_FILE_ATTR_FILE Then
+            Else
+                'its a directory
+                tn.ImageKey = "*"
+                tn.SelectedImageKey = "*"
+            End If
+
+            treenodes(index) = tn
+            index += 1
+        Next
+
+        'just make a list
+        For Each tn In treenodes
+            treeview1.Nodes.Add(tn)
+        Next
+
+
+        Return treeview1
+    End Function
+
+    Public Function uploadFile(ByVal path As String, ByVal destinationID As String, ByVal type As Integer, Optional ByVal metadata As StorageItem = Nothing) As String
         'copies the file specified by path to the folder specified by destination
-        'destination is in the same format returned by enumerateStorage
+        'destination is the persistentuniqueid of the destination folder
         'type specifies is path is a file or a folder. 0=file 1=folder
         'for folders, path specifies the name of the folder. the contents are not uploaded automatically
-        'returns 0 on ok, -1 on error
+        'the optional metadata argument specifies what metadata will be written along with the item. note
+        'this argument is only valid for files, not folders. if metadatra is specified for a folder, it will be ignored
+        'returns the persistientuniqueid of the created item on OK, -1 on error
 
         Trace.WriteLine("MTPAxe: uploading file " & path)
 
@@ -614,16 +800,24 @@
 
         If axe Is Nothing Then Throw New Exception("MTPAxe is not started")
 
+        If metadata Is Nothing Then metadata = New StorageItem
+
         sOut.WriteLine(MTPAXE_M_STORAGE_CREATEFROMFILE)
         sOut.WriteLine(path.Replace("\"c, "\\"))
-        sOut.WriteLine(destination)
+        sOut.WriteLine(destinationID)
         sOut.WriteLine(type)
+        sOut.WriteLine(IIf(metadata.Title = "", "`", metadata.Title))
+        sOut.WriteLine(IIf(metadata.AlbumArtist = "", "`", metadata.AlbumArtist))
+        sOut.WriteLine(IIf(metadata.AlbumTitle = "", "`", metadata.AlbumTitle))
+        sOut.WriteLine(IIf(metadata.Genre = "", "`", metadata.Genre))
+        sOut.WriteLine(IIf(metadata.Year = "", "`", metadata.Year))
+        sOut.WriteLine(IIf(metadata.TrackNum = "", "`", metadata.TrackNum))
 
         'now wait for the return value to be sent to the buffer
         s = sIn.ReadLine
 
         If s = "-1" Then
-            Trace.WriteLine("MTPAxe: creating playlist" & sErr.ReadLine)
+            Trace.WriteLine("MTPAxe: upload file - " & sErr.ReadLine)
             Return "-1"
         End If
 

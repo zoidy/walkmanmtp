@@ -71,6 +71,11 @@ Namespace ListViewDnD
             ' retrieve the drag item data
             Dim data As DragItemData = DirectCast(drgevent.Data.GetData(GetType(DragItemData).ToString()), DragItemData)
 
+            'dr. zoidberg
+            'disable list sorting on dragdrop. else nothing will get sorted
+            MyBase.ListViewItemSorter = Nothing
+            MyBase.Sorting = SortOrder.None
+
             If hoverItem Is Nothing Then
                 For i As Integer = 0 To data.DragItems.Count - 1
                     ' the user does not wish to re-order the items, just append to the end
