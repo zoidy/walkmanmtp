@@ -48,7 +48,7 @@ Runtime 2008.
 
 If the program runs but crashes, run MTPAxe on its own. In the console window type -100
 and hit enter.  Then follow the prompts.  If this command completes, it will save a file
-MTPAxe_dump.txt in the same directory as MTPAxe.  Please send me this file so I can fix the bug.
+MTPAxe_dump.txt and MTPAXE_dump_items.txt in the same directory as MTPAxe.  Please send me this file so I can fix the bug.
 
 Running this program from a network share may cause unpredictable results. Copy it to the local
 drive instead
@@ -56,5 +56,4 @@ drive instead
 To Do
 =====
 -add the ability to add albums and album art
--add the ability to upload videos and AAC files to the player via MTP without having to install
- WMP11 or switch the device into Mass Storage mode.
+-better international filename support

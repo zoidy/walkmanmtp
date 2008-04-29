@@ -35,7 +35,7 @@
 void returnMsg(char*,char* =NULL);
 void MTPAxe_version(void);
 
-int setCurrentDevice(char*);
+int setCurrentDevice(wchar_t*);
 void getDeviceManagerRevision(void);
 void getDeviceCount(void);
 void getDeviceManufacturer(void);
@@ -43,19 +43,20 @@ void getDeviceType(void);
 void enumerateDevices(void);
 void wmdmAuthenticate(void);
 int deviceEnumerateStorage(void);
-void deviceGetIcon(char*);
+void deviceGetIcon(wchar_t*);
 void deviceGetSupportedFormats(void);
-void deviceCreatePlaylist(char *,char *);
-void deviceDeletePlaylist(char*);
+void deviceCreatePlaylist(wchar_t *,wchar_t *);
+void deviceDeletePlaylist(wchar_t*);
 void storageGetSizeInfo(void);
-void storageCreateFromFile(char*,char*,int);
-void playlistEnumerateContents(char*);
+void storageCreateFromFile(wchar_t*,wchar_t*,int,wchar_t*,wchar_t*,wchar_t*,wchar_t*,wchar_t*,wchar_t*);
+void playlistEnumerateContents(wchar_t*);
 
 
 //these functions are internal only
-IWMDMStorage3 * findStorageFromPath(int,int, char *);
-IWMDMDevice3 * findDevice(char*);
-void deviceCreatePlaylist_helper(char*,unsigned long*,IWMDMStorage**);
-void deviceEnumerateStorage_helper(IWMDMEnumStorage*,IWMDMStorage3*,char*,int);
-void deviceGetSupportedFormats_helper(WMDM_FORMATCODE *,char *);
-IWMDMStorage3 * storageCreateFromFile_helper(char *,int*);
+IWMDMStorage4 * findStorageFromPath(int,int, wchar_t*);
+IWMDMStorage4 * findStorageFromID(wchar_t*);
+IWMDMDevice3 * findDevice(wchar_t*);
+void deviceCreatePlaylist_helper(wchar_t*,unsigned long*,IWMDMStorage**);
+void deviceEnumerateStorage_helper(IWMDMEnumStorage*,IWMDMStorage4*,int);
+void dumpStorageItemsArray(void);
+void deviceGetSupportedFormats_helper(WMDM_FORMATCODE *,wchar_t *);
