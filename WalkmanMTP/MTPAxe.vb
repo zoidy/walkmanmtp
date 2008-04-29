@@ -276,45 +276,7 @@
 
         Return theTreeView
     End Function
-    'Public Function getTreeViewByName(ByVal storageItemName As String) As TreeView
-    '    'returns the tree of the specified directory only
-    '    'returns an empty treeview on error
 
-    '    Trace.WriteLine("MTPAxe: building directory tree for " & storageItemName)
-
-    '    If axe Is Nothing Then Throw New Exception("MTPAxe is not started")
-
-    '    Dim theTreeView As New TreeView
-
-    '    'get the directory tree from the device
-    '    Dim strTree As String
-    '    strTree = enumerateStorage()
-    '    If Not strTree = "-1" Then
-    '        Try
-    '            'get the full tree first
-    '            Dim tmpTree As TreeView
-    '            tmpTree = buildTreeViewFromDirectoryTreePtr(Integer.Parse(strTree.Split(":")(0), Globalization.NumberStyles.HexNumber), Integer.Parse(strTree.Split(":")(1)), False)
-
-    '            Dim foundStorage As TreeNode = Nothing
-    '            For Each node As TreeNode In tmpTree.Nodes
-    '                foundStorage = findTreeNode(node, storageItemName, WMDM_FILE_ATTR_FOLDER, 1)
-    '                If Not foundStorage Is Nothing Then
-    '                    Exit For
-    '                End If
-    '            Next
-
-    '            theTreeView.Nodes.Add(foundStorage.Clone)
-    '            theTreeView.ImageList = tmpTree.ImageList
-
-    '        Catch ex As Exception
-    '            theTreeView = New TreeView
-    '            Trace.WriteLine("MTPAxe: building directory tree for " & storageItemName & " - empty tree returned: " & ex.Message & ", " & ex.Source)
-    '        End Try
-
-    '    End If
-
-    '    Return theTreeView
-    'End Function
     Private Function findTreeNode(ByRef root As TreeNode, ByVal nName As String, ByVal nType As Integer, ByVal nLevel As Integer) As TreeNode
         'searches for a node given a starting root node.  the search includes the root node (not just the children)
         'if the node is not found, Nothing is returned
@@ -360,6 +322,33 @@
         'if we reach here, no matching nodes were found in subtree
         Return Nothing
 
+    End Function
+    Private Function findTreeNodeByID(ByRef root As TreeNode, ByVal ID As String) As TreeNode
+        'searches for the first matching treenode with the given PersistentUniqueID
+        Dim ret As TreeNode = Nothing
+        Dim item As StorageItem
+
+        item = CType(root.Tag, StorageItem)
+        If item.ID = ID Then
+            Return root
+        End If
+
+        For Each node As TreeNode In root.Nodes
+            item = CType(node.Tag, StorageItem)
+            If item.ID = ID Then
+                ret = node
+            ElseIf node.Nodes.Count > 0 Then
+                'else check the child nodes
+                ret = findTreeNodeByID(node, ID)
+            End If
+
+            'if we found it, return it
+            If ret IsNot Nothing Then
+                Return ret
+            End If
+        Next
+
+        Return ret
     End Function
     Private Function buildTreeViewFromDirectoryTreePtr(ByVal arrStorageItemsPtr As Integer, ByVal numItems As Integer, ByVal usePlaylistMode As Boolean) As TreeView
         'builds a treeview based on the given directory tree, in the format returned
@@ -477,7 +466,10 @@
                 maxLevel = item.DirectoryDepth
             End If
 
-
+            'hack for wmp11
+            If item.DirectoryDepth = 0 Then
+                item.FileName = "Storage Media"
+            End If
             tn = New TreeNode
             tn.Tag = item 'store item attributes in the node tag
             tn.Text = item.FileName
@@ -541,7 +533,7 @@
                     nodeParent = item.ParentFileName
 
                     'process only nodes with level=index
-                    If nodeLevel = index Then
+                    If item.DirectoryDepth = index Then
                         If index = minLevel Then
                             'for level 0 items, add them straight to the tree
                             treeview1.Nodes.Add(tn)
@@ -549,6 +541,9 @@
                             'for all other levels, search the tree for the parent
                             Dim parent As TreeNode = Nothing
                             For Each tnode As TreeNode In treeview1.Nodes
+                                If nodeLevel - 1 = 0 Then 'hack for wmp11
+                                    nodeParent = "Storage Media"
+                                End If
                                 parent = findTreeNode(tnode, nodeParent, MTPAxe.WMDM_FILE_ATTR_FOLDER, nodeLevel - 1)
                                 If parent Is Nothing Then
                                     'the parent was not found
