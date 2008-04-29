@@ -28,7 +28,9 @@ Public Class Main
         End If
     End Sub
     Private Sub AboutToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles AboutToolStripMenuItem.Click
-        MsgBox("WalkmanMTP by Dr. Zoidberg" & vbCr & "v" & Application.ProductVersion, MsgBoxStyle.Information, "About")
+        MsgBox("WalkmanMTP by Dr. Zoidberg v" & Application.ProductVersion & vbCrLf & _
+               "Taglib# v" & System.Reflection.Assembly.GetAssembly(GetType(TagLib.File)).GetName.Version.ToString, MsgBoxStyle.Information, "About")
+
     End Sub
     Private Sub InformationToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles InformationToolStripMenuItem.Click
         Dim readme As String = IO.Path.Combine(Application.StartupPath, "readme.txt")
@@ -177,7 +179,7 @@ Public Class Main
         Dim t As New Threading.Thread(New Threading.ThreadStart(AddressOf Splash.ShowDialog))
         t.SetApartmentState(Threading.ApartmentState.MTA)
         If Not Splash.Visible Then t.Start()
-        Splash.setTitle("Intitializing " & devName)
+        Splash.setTitle("Initializing " & devName)
 
         Try
             'IMPORTANT: set the active device
@@ -1077,7 +1079,6 @@ Public Class Main
             Me.Invoke(New updateTreeviewDelegate(AddressOf updateTreeview), New TreeNode() {parentNode, newNode})
 
             'now that the folder has been successfully created, add it to the fullFileListing tree
-            'parentNode = findTreeNode(fullFileListing.Nodes(0), parentNode)
             parentNode = findTreeNodeByID(fullFileListing.Nodes(0), CType(parentNode.Tag, StorageItem).ID)
             parentNode.Nodes.Add(newNode.Clone)
 
@@ -1107,7 +1108,16 @@ Public Class Main
                 Dim tagReader As TagLib.File = TagLib.File.Create(path)
                 newItem.Title = tagReader.Tag.Title
                 newItem.AlbumTitle = tagReader.Tag.Album
-                newItem.AlbumArtist = tagReader.Tag.FirstAlbumArtist
+                newItem.AlbumArtist = tagReader.Tag.FirstArtist
+                If newItem.AlbumArtist = "" Then
+                    newItem.AlbumArtist = tagReader.Tag.FirstAlbumArtist
+                    If newItem.AlbumArtist = "" Then
+                        newItem.AlbumArtist = tagReader.Tag.FirstPerformer
+                        If newItem.AlbumArtist = "" Then
+                            newItem.AlbumArtist = tagReader.Tag.FirstComposer
+                        End If
+                    End If
+                End If
                 newItem.Genre = tagReader.Tag.FirstGenre
                 newItem.TrackNum = tagReader.Tag.Track
                 newItem.Year = tagReader.Tag.Year
