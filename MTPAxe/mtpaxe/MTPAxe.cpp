@@ -4,7 +4,7 @@
 #include "stdafx.h"
 #include "MTPAxe.h"
 
-#define MTPAXE_ver "MTPAxe by Dr. Zoidberg v0.3.9.0\n"
+#define MTPAXE_ver "MTPAxe by Dr. Zoidberg v0.3.9.1\n"
 
 //file for writing returnMsg output to file
 FILE *f=NULL;
@@ -72,8 +72,8 @@ int _tmain(int argc, _TCHAR* argv[])
 						enumerateDevices();
 						setCurrentDevice(L"WALKMAN");
 						deviceEnumerateStorage();
-						
-						storageCreateFromFile(L"C:\\wmtp.mp3",L"{00000004-0000-0000-0000-000000000000}",0,L"aa bb",L"bsd s",L"1\u010Ec fsd",L"d1d sd",L"1888",L"2");
+						deviceEnumerateStorage();
+						//storageCreateFromFile(L"C:\\wmtp.mp3",L"{00000004-0000-0000-0000-000000000000}",0,L"aa bb",L"bsd s",L"1\u010Ec fsd",L"d1d sd",L"1888",L"2");
 						
 						//sprintf(s,"<1,295176,Storage Media>MUSIC");
 						//sprintf(s,"<1,17039624,Storage Media>PICTURES");
@@ -123,7 +123,8 @@ int _tmain(int argc, _TCHAR* argv[])
 					printf("enumerating storage...");
 					deviceEnumerateStorage();
 					printf("\nEnter name of playlist to delete: ");
-					wscanf(L"%s",name);
+					wscanf(L"%\n",name);
+					wscanf(L"%[^\n]",name);
 					deviceDeletePlaylist(name);
 					printf("enter 0 to exit:");
 					break;
@@ -568,12 +569,13 @@ int deviceEnumerateStorage(void)
 				arrStorageItems[i].pStorage->Release();
 			CoTaskMemFree(arrStorageItems[i].albumArtist);
 			CoTaskMemFree(arrStorageItems[i].albumTitle);
+			CoTaskMemFree(arrStorageItems[i].parentUniqueID);
 			CoTaskMemFree(arrStorageItems[i].fileName);
 			CoTaskMemFree(arrStorageItems[i].genre);
 			CoTaskMemFree(arrStorageItems[i].persistentUniqueID);
 			CoTaskMemFree(arrStorageItems[i].title);
 			CoTaskMemFree(arrStorageItems[i].year);
-			CoTaskMemFree(arrStorageItems[i].parentFileName);			
+			CoTaskMemFree(arrStorageItems[i].parentFileName);
 		}
 			
 	
@@ -600,22 +602,23 @@ void deviceEnumerateStorage_helper(IWMDMEnumStorage *pIEnumStorage,IWMDMStorage4
 	IWMDMStorage  *tmp=NULL;						//.
 	IWMDMMetaData *pMData;							//the metadata associated with the storage
 	LPCWSTR MDataAttribs[9];						//the metadata to retreive
-	MDataAttribs[0]=g_wszWMDMTitle;					//.
-	MDataAttribs[1]=g_wszWMDMAuthor;				//.
-	MDataAttribs[2]=g_wszWMDMAlbumTitle;			//.
-	MDataAttribs[3]=g_wszWMDMGenre;					//.
-	MDataAttribs[4]=g_wszWMDMYear;					//.
-	MDataAttribs[5]=g_wszWMDMTrack;					//.
-	MDataAttribs[6]=g_wszWMDMFileSize;				//.
-	MDataAttribs[7]=g_wszWMDMFileName;				//.
-	MDataAttribs[8]=g_wszWMDMPersistentUniqueID;	//.
+	MDataAttribs[0]=g_wszWMDMPersistentUniqueID;	//.
+	MDataAttribs[1]=g_wszWMDMTitle;					//.
+	MDataAttribs[2]=g_wszWMDMAuthor;				//.
+	MDataAttribs[3]=g_wszWMDMAlbumTitle;			//.
+	MDataAttribs[4]=g_wszWMDMGenre;					//.
+	MDataAttribs[5]=g_wszWMDMYear;					//.
+	MDataAttribs[6]=g_wszWMDMTrack;					//.
+	MDataAttribs[7]=g_wszWMDMFileSize;				//.
+	MDataAttribs[8]=g_wszWMDMFileName;				//.
 	WMDM_TAG_DATATYPE type;							//these vars are used for the metadata QueryByName call
 	BYTE *value;									//.
 	unsigned int len;								//.
 
 	unsigned long ulNumFetched;						//used for the storage enumerator
-	WCHAR storName[MTPAXE_MAXFILENAMESIZE];			//stroage name
-	WCHAR storParentName[MTPAXE_MAXFILENAMESIZE];	//stroage name of the parent
+	wchar_t storName[MTPAXE_MAXFILENAMESIZE];		//stroage name
+	wchar_t storParentName[MTPAXE_MAXFILENAMESIZE];	//stroage name of the parent
+	wchar_t storParentID[MTPAXE_MAXFILENAMESIZE];	//persistentId of the parent
 	DWORD tempDW;									//for the getAtturbutes call
 	_WAVEFORMATEX format;							//.
 	unsigned long long  size=0;						//.
@@ -628,9 +631,22 @@ void deviceEnumerateStorage_helper(IWMDMEnumStorage *pIEnumStorage,IWMDMStorage4
 	{
 		hr3=pParent->GetName(storParentName,MTPAXE_MAXFILENAMESIZE);
 		if FAILED(hr3){return;}
+		hr3=pParent->GetSpecifiedMetadata(9,MDataAttribs,&pMData);
+		if FAILED(hr3){return;}
+		hr3=pMData->QueryByName(g_wszWMDMPersistentUniqueID,&type,&value,&len);
+		if(hr3==S_OK) 
+		{
+			swprintf(storParentID,MTPAXE_MAXFILENAMESIZE,L"%s",(wchar_t*)value);
+			CoTaskMemFree(value);
+		}else
+		{
+			swprintf(storParentID,1,L"");
+		}
+		pMData->Release();
 	}else
-	{
+	{	//initialize these properites to "" if failed to get them
 		swprintf(storParentName,1,L"");
+		swprintf(storParentID,1,L"");
 	}
 	//loop through each storage item until there is an error or there are no more items
 	do
@@ -642,9 +658,6 @@ void deviceEnumerateStorage_helper(IWMDMEnumStorage *pIEnumStorage,IWMDMStorage4
 			hr3=tmp->QueryInterface(IID_IWMDMStorage4,(void**)&pStorage);
 			if FAILED(hr3){return;}
 			tmp->Release();
-
-			ZeroMemory(storName,sizeof(storName));
-			//ZeroMemory(storParentName,sizeof(storParentName));
 
 			hr3=pStorage->GetName(storName,MTPAXE_MAXFILENAMESIZE);
 			if FAILED(hr3){return;}
@@ -675,6 +688,8 @@ void deviceEnumerateStorage_helper(IWMDMEnumStorage *pIEnumStorage,IWMDMStorage4
 			item.genre=(wchar_t*)value;
 			value=(BYTE*)CoTaskMemAlloc(2);value[0]=0;value[1]=0;
 			item.year=(wchar_t*)value;
+			value=(BYTE*)CoTaskMemAlloc(2);value[0]=0;value[1]=0;
+			item.parentUniqueID=(wchar_t*)value;
 			item.size=0;
 			item.trackNum=0;
 			hr3=pStorage->GetSpecifiedMetadata(9,MDataAttribs,&pMData);
@@ -723,12 +738,13 @@ void deviceEnumerateStorage_helper(IWMDMEnumStorage *pIEnumStorage,IWMDMStorage4
 					item.size=item.size+value[0];
 					CoTaskMemFree(value);
 				}
-
-				hr3=pMData->QueryByName(g_wszWMDMFileName,&type,&value,&len);
-				if(hr3==S_OK) item.fileName=(wchar_t*)value;
 				hr3=pMData->QueryByName(g_wszWMDMPersistentUniqueID,&type,&value,&len);
 				if(hr3==S_OK) item.persistentUniqueID=(wchar_t*)value;
-
+				//don't get thefile name this way due to compatibility reasons with wmp11.
+				//in wmp10, this function returns the proper file name but in wmp11, it returns blank
+				//the function GetName, however, returns the same on both, so use that instead (see above)
+				//hr3=pMData->QueryByName(g_wszWMDMFileName,&type,&value,&len);
+				//if(hr3==S_OK) item.fileName=(wchar_t*)value;
 
 				pMData->Release();
 			}
@@ -736,13 +752,25 @@ void deviceEnumerateStorage_helper(IWMDMEnumStorage *pIEnumStorage,IWMDMStorage4
 			
 			//add the storage to the array for later use
 			item.pStorage=pStorage;
-			item.pStorageParent=pParent;			
+			item.pStorageParent=pParent;	
 			item.level=currLevel;
 			item.type=tempDW;
+			//make a copy of parent name
+			if(wcslen(storName)>0)
+			{
+				item.fileName=(wchar_t*)CoTaskMemAlloc(wcslen(storName)*2+2);
+				swprintf(item.fileName,wcslen(storName)+1,L"%s",storName);
+			}
+			//make a copy of parent ID if not empty. if it's empty, item.parentID is already "" from before
+			if (wcscmp(storParentID,L"")!=0)
+			{
+				item.parentUniqueID=(wchar_t*)CoTaskMemAlloc(MTPAXE_MAXFILENAMESIZE*2+2);
+				swprintf(item.parentUniqueID,wcslen(storParentID)+1,L"%s",storParentID);
+			}
 			//make a copy of storParentname, if not empty. if it's empty, item.parentname is already "" from before
 			if (wcscmp(storParentName,L"")!=0)
 			{
-				item.parentFileName=(wchar_t*)CoTaskMemAlloc(MTPAXE_MAXFILENAMESIZE*2);
+				item.parentFileName=(wchar_t*)CoTaskMemAlloc(MTPAXE_MAXFILENAMESIZE*2+2);
 				swprintf(item.parentFileName,wcslen(storParentName)+1,L"%s",storParentName);
 			}
 
@@ -1486,9 +1514,9 @@ void dumpStorageItemsArray(void)
 	for(int i=0;i<numStorageItems;i++)
 	{
 		item=arrStorageItems[i];
-		fwprintf(dumpFile,L"<%d/%d/%s/%llu/%s/%s/%s/%s/%s/%lu/%s>%s\n",item.level ,item.type ,item.parentFileName ,item.size,
+		fwprintf(dumpFile,L"<%d/%d/%s/%llu/%s/%s/%s/%s/%s/%lu/%s/%s>%s\n",item.level ,item.type ,item.parentFileName ,item.size,
 															item.title,item.albumArtist,item.albumTitle,item.genre,item.year,
-															item.trackNum,item.persistentUniqueID,item.fileName );
+															item.trackNum,item.persistentUniqueID,item.parentUniqueID,item.fileName );
 	}
 
 	fclose(dumpFile);
