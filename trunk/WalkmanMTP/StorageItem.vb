@@ -12,6 +12,7 @@
     Private mTracknum As String
     Private mFileName As String
     Private mID As String
+    Private mParentID As String
 
 
     Public Property DirectoryDepth() As Integer
@@ -126,7 +127,14 @@
             mID = value
         End Set
     End Property
-
+    Public Property ParentID() As String
+        Get
+            ParentID = mParentID
+        End Get
+        Set(ByVal value As String)
+            mParentID = value
+        End Set
+    End Property
 
 
 

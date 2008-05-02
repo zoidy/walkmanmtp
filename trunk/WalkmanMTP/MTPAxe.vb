@@ -450,6 +450,10 @@
             'pointer to persistentUniqueID
             buffer = memreader.ReadProcessMemory(arrStorageItemsPtr + (i * sizeofStruct) + 56, 4, bytesRead)
             item.ID = readWideCharFromPointer(memreader, BitConverter.ToInt32(buffer, 0))
+
+            'pointer to parentUniqueID
+            buffer = memreader.ReadProcessMemory(arrStorageItemsPtr + (i * sizeofStruct) + 60, 4, bytesRead)
+            item.ParentID = readWideCharFromPointer(memreader, BitConverter.ToInt32(buffer, 0))
             '***
 
             'keep track of the maximum and minimim directory depth
@@ -466,10 +470,6 @@
                 maxLevel = item.DirectoryDepth
             End If
 
-            'hack for wmp11
-            If item.DirectoryDepth = 0 Then
-                item.FileName = "Storage Media"
-            End If
             tn = New TreeNode
             tn.Tag = item 'store item attributes in the node tag
             tn.Text = item.FileName
@@ -541,10 +541,8 @@
                             'for all other levels, search the tree for the parent
                             Dim parent As TreeNode = Nothing
                             For Each tnode As TreeNode In treeview1.Nodes
-                                If nodeLevel - 1 = 0 Then 'hack for wmp11
-                                    nodeParent = "Storage Media"
-                                End If
-                                parent = findTreeNode(tnode, nodeParent, MTPAxe.WMDM_FILE_ATTR_FOLDER, nodeLevel - 1)
+                                'parent = findTreeNode(tnode, nodeParent, MTPAxe.WMDM_FILE_ATTR_FOLDER, nodeLevel - 1)
+                                parent = findTreeNodeByID(tnode, item.ParentID)
                                 If parent Is Nothing Then
                                     'the parent was not found
                                     Trace.WriteLine("error building treeview")
@@ -649,7 +647,7 @@
         'this function returns "-1" on error otherwise
         'MTPAxe returns -1 on error, 0 otherwise
 
-        Trace.WriteLine("MTPAxe: enumerating playlist contents")
+        Trace.WriteLine("MTPAxe: enumerating playlist contents - " & name)
 
         Dim s As String
 
