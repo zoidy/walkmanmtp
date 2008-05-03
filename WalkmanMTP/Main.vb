@@ -15,24 +15,28 @@ Public Class Main
     Dim playlistListView_lastColumnClicked As Short = -1
     Dim lvFileManagementDeviceFilesInFolder_lastColumnClicked As Short = -1
 
+    'keeps track if a device is connected and selected
+    'TODO: enable device removal detection and update this value
+    Private DeviceConnected As Boolean = False
+
 #Region "Application Menu"
-    Private Sub QuitToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles QuitToolStripMenuItem.Click
+    Private Sub QuitToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles mnuFileQuitToolStripMenuItem.Click
         Application.Exit()
     End Sub
-    Private Sub ShowDebugWindowToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles ShowDebugWindowToolStripMenuItem.Click
-        If Me.ShowDebugWindowToolStripMenuItem.Checked Then
+    Private Sub ShowDebugWindowToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles mnuOptionsShowDebugWindowToolStripMenuItem.Click
+        If Me.mnuOptionsShowDebugWindowToolStripMenuItem.Checked Then
             TraceOutput.Visible = True
             TraceOutput.WindowState = FormWindowState.Normal
         Else
             TraceOutput.Visible = False
         End If
     End Sub
-    Private Sub AboutToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles AboutToolStripMenuItem.Click
+    Private Sub AboutToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles mnuHelpAboutToolStripMenuItem.Click
         MsgBox("WalkmanMTP by Dr. Zoidberg v" & Application.ProductVersion & vbCrLf & _
                "Taglib# v" & System.Reflection.Assembly.GetAssembly(GetType(TagLib.File)).GetName.Version.ToString, MsgBoxStyle.Information, "About")
 
     End Sub
-    Private Sub InformationToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles InformationToolStripMenuItem.Click
+    Private Sub InformationToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles mnuHelpInformationToolStripMenuItem.Click
         Dim readme As String = IO.Path.Combine(Application.StartupPath, "readme.txt")
         Try
             Process.Start(readme)
@@ -40,7 +44,7 @@ Public Class Main
             MsgBox("Couldn't open " & readme)
         End Try
     End Sub
-    Private Sub SyncDeviceToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles SyncDeviceToolStripMenuItem.Click
+    Private Sub SyncDeviceToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles mnuFileSyncDeviceToolStripMenuItem.Click
         btnSync_Click(Nothing, Nothing)
     End Sub
 #End Region
@@ -54,6 +58,29 @@ Public Class Main
             End If
             axe = Nothing
         End If
+    End Sub
+
+    Private Sub Main_Load(ByVal sender As Object, ByVal e As System.EventArgs) Handles Me.Load
+        Me.btnAddPlaylist.Image = My.Resources.Playlist_add
+        Me.btnDelPlaylist.Image = My.Resources.Playlist_delete
+        Me.btnRenamePlaylist.Image = My.Resources.Playlist_rename
+        Me.btnSync.Image = My.Resources.SyncDevice
+        Me.btnRefreshDevices.Image = My.Resources.DevicesList_refresh
+        Me.pboxDevIcon.Image = My.Resources.DeviceIcon
+        Me.lvFileManagementDeleteToolStripMenuItem.Image = My.Resources.Delete
+        Me.lvFileManagementSortAscendingToolStripMenuItem.Image = My.Resources.SortAscending
+        Me.lvFileManagementSortDescendingToolStripMenuItem.Image = My.Resources.SortDescending
+        Me.lvPlaylistContentsDeleteToolStripMenuItem.Image = My.Resources.Delete
+        Me.lvPlaylistContentsSelctionSortAscendingToolStripMenuItem.Image = My.Resources.SortAscending
+        Me.lvPlaylistContentsSelectionSortDescendingToolStripMenuItem.Image = My.Resources.SortDescending
+        Me.tvPlaylistFilesCollapseChildrenToolStripMenuItem.Image = My.Resources.CollapseChild
+        Me.tvPlaylistFilesExpandChildrenToolStripMenuItem.Image = My.Resources.ExpandChild
+        Me.mnuFileQuitToolStripMenuItem.Image = My.Resources.Quit
+        Me.mnuFileSyncDeviceToolStripMenuItem.Image = My.Resources.SyncDevice
+        Me.mnuHelpAboutToolStripMenuItem.Image = My.Resources.About
+        Me.mnuHelpInformationToolStripMenuItem.Image = My.Resources.Information
+        Me.mnuOptionsShowDebugWindowToolStripMenuItem.Image = My.Resources.Log
+        Me.mnuOptionsShowDeviceIconToolStripMenuItem.Image = My.Resources.DeviceIcon
     End Sub
     Private Sub Main_VisibleChanged(ByVal sender As Object, ByVal e As System.EventArgs) Handles Me.VisibleChanged
         If Me.Visible Then
@@ -77,12 +104,21 @@ Public Class Main
         End If
     End Sub
     Private Sub btnDeviceDetails_LinkClicked(ByVal sender As System.Object, ByVal e As System.Windows.Forms.LinkLabelLinkClickedEventArgs) Handles btnDeviceDetails.LinkClicked
+        If Not DeviceConnected Then
+            MessageBox.Show("No device selected. Please select a device from the list and then retry.", "Walkman MTP", MessageBoxButtons.OK, MessageBoxIcon.Exclamation)
+            Exit Sub
+        End If
         MsgBox("To Do")
     End Sub
     Private Sub btnRefreshDevices_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnRefreshDevices.Click
         initAndRefreshApp()
     End Sub
     Private Sub btnSync_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnSync.Click
+        If Not DeviceConnected Then
+            MessageBox.Show("No device selected. Please select a device from the list and then retry.", "Walkman MTP", MessageBoxButtons.OK, MessageBoxIcon.Exclamation)
+            Exit Sub
+        End If
+
         If MsgBox("All non empty playlists created, modified or deleted will be sync'ed." & vbCrLf & _
                   "All albums created, modified or deleted will be updated", MsgBoxStyle.Exclamation Or MsgBoxStyle.YesNo, "Sync device?") = MsgBoxResult.No Then
             Exit Sub
@@ -233,6 +269,7 @@ Public Class Main
 
         Cursor.Current = Cursors.Default
         t.Abort()
+        DeviceConnected = True
 
     End Sub
 
@@ -314,6 +351,11 @@ Public Class Main
     End Sub
 
     Private Sub btnPlaylistsFilesOnDeviceRefresh_LinkClicked(ByVal sender As System.Object, ByVal e As System.Windows.Forms.LinkLabelLinkClickedEventArgs) Handles btnPlaylistsFilesOnDeviceRefresh.LinkClicked
+        If Not DeviceConnected Then
+            MessageBox.Show("No device selected. Please select a device from the list and then retry.", "Walkman MTP", MessageBoxButtons.OK, MessageBoxIcon.Exclamation)
+            Exit Sub
+        End If
+
         Cursor.Current = Cursors.WaitCursor
         refreshFullDirectoryTree()
         refreshPlaylistDeviceFiles()
@@ -329,6 +371,11 @@ Public Class Main
         Cursor.Current = Cursors.Default
     End Sub
     Private Sub btnDeleteAllLists_LinkClicked(ByVal sender As System.Object, ByVal e As System.Windows.Forms.LinkLabelLinkClickedEventArgs) Handles btnDeleteAllLists.LinkClicked
+        If Not DeviceConnected Then
+            MessageBox.Show("No device selected. Please select a device from the list and then retry.", "Walkman MTP", MessageBoxButtons.OK, MessageBoxIcon.Exclamation)
+            Exit Sub
+        End If
+
         If MsgBox("Are you sure?", MsgBoxStyle.Exclamation Or MsgBoxStyle.YesNo, "Really?") = MsgBoxResult.No Then
             Exit Sub
         End If
@@ -336,14 +383,29 @@ Public Class Main
         deleteAllPlaylists()
     End Sub
     Private Sub btnDelPlaylist_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnDelPlaylist.Click
+        If Not DeviceConnected Then
+            MessageBox.Show("No device selected. Please select a device from the list and then retry.", "Walkman MTP", MessageBoxButtons.OK, MessageBoxIcon.Exclamation)
+            Exit Sub
+        End If
+
         deleteActivePlaylist()
     End Sub
     Private Sub btnRenamePlaylist_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnRenamePlaylist.Click
+        If Not DeviceConnected Then
+            MessageBox.Show("No device selected. Please select a device from the list and then retry.", "Walkman MTP", MessageBoxButtons.OK, MessageBoxIcon.Exclamation)
+            Exit Sub
+        End If
+
         Dim newname As String
         newname = InputBox("Enter new name: ", "Rename Playlist")
         renameActivePlaylist(newname)
     End Sub
     Private Sub btnAddPlaylist_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnAddPlaylist.Click
+        If Not DeviceConnected Then
+            MessageBox.Show("No device selected. Please select a device from the list and then retry.", "Walkman MTP", MessageBoxButtons.OK, MessageBoxIcon.Exclamation)
+            Exit Sub
+        End If
+
         Dim newname As String
         newname = InputBox("Enter playlist name: ", "Create Playlist")
         If newname = "" Then Exit Sub
@@ -369,6 +431,98 @@ Public Class Main
             DoDragDrop(Me.tvPlaylistsFilesOnDevice.SelectedNodes, DragDropEffects.Move)
         End If
 
+    End Sub
+    Private Sub tvPlaylistsFilesOnDevice_MouseClick(ByVal sender As Object, ByVal e As System.Windows.Forms.MouseEventArgs) Handles tvPlaylistsFilesOnDevice.MouseClick
+        If e.Button = Windows.Forms.MouseButtons.Right Then
+            'get the node under the right click
+            Dim targetNode As TreeNode = tvFileManagementDeviceFolders.GetNodeAt(tvFileManagementDeviceFolders.PointToClient(New Point(e.X, e.Y)))
+            targetNode = tvFileManagementDeviceFolders.SelectedNode
+            If targetNode Is Nothing Then
+                Exit Sub
+            Else
+                mnuTvPlaylistFilesRightClick.Show(CType(sender, TreeView).PointToScreen(e.Location))
+            End If
+        End If
+    End Sub
+
+    Private Sub CollapseChildrenToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles tvPlaylistFilesCollapseChildrenToolStripMenuItem.Click
+        Me.tvPlaylistsFilesOnDevice.BeginUpdate()
+        For Each node As TreeNode In Me.tvPlaylistsFilesOnDevice.SelectedNodes
+            node.Collapse(False)
+        Next
+        Me.tvPlaylistsFilesOnDevice.EndUpdate()
+    End Sub
+    Private Sub ExpandChildrenToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles tvPlaylistFilesExpandChildrenToolStripMenuItem.Click
+        Me.tvPlaylistsFilesOnDevice.BeginUpdate()
+        For Each node As TreeNode In Me.tvPlaylistsFilesOnDevice.SelectedNodes
+            node.ExpandAll()
+        Next
+        Me.tvPlaylistsFilesOnDevice.EndUpdate()
+    End Sub
+
+    
+    Private Sub DeleteToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles lvPlaylistContentsDeleteToolStripMenuItem.Click
+        'get the current playlist
+        Dim tpage As TabPage = Me.tabPlaylists.SelectedTab
+        Dim lv As ListViewEx = tpage.Controls(tpage.Name.Replace("tpPl", "lvPl"))
+        If lv Is Nothing Then Exit Sub
+
+        For Each lvItem As ListViewItem In lv.SelectedItems
+            lv.Items.Remove(lvItem)
+        Next
+
+        markPlaylistChanged(lv)
+    End Sub
+    Private Sub SelctionSortAscendingToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles lvPlaylistContentsSelctionSortAscendingToolStripMenuItem.Click
+        'get the current playlist
+        Dim tpage As TabPage = Me.tabPlaylists.SelectedTab
+        Dim lv As ListViewEx = tpage.Controls(tpage.Name.Replace("tpPl", "lvPl"))
+        If lv Is Nothing Then Exit Sub
+
+        'disable the sorting on the listview so we can manually sort stuff without the listview automatically resorting
+        If Not playlistListView_lastColumnClicked = -1 Then
+            'clean up the title of the previously clicked column
+            lv.Columns(playlistListView_lastColumnClicked).Text = lv.Columns(playlistListView_lastColumnClicked).Text.Replace(" ^", "").Replace(" v", "")
+            playlistListView_lastColumnClicked = -1
+        End If
+        lv.ListViewItemSorter = Nothing
+        lv.Sorting = SortOrder.None
+
+        listviewItemSortSelected(lv, SortOrder.Descending)
+
+        markPlaylistChanged(lv)
+    End Sub
+    Private Sub SelectionSortDescendingToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles lvPlaylistContentsSelectionSortDescendingToolStripMenuItem.Click
+        'get the current playlist
+        Dim tpage As TabPage = Me.tabPlaylists.SelectedTab
+        Dim lv As ListViewEx = tpage.Controls(tpage.Name.Replace("tpPl", "lvPl"))
+        If lv Is Nothing Then Exit Sub
+
+        'disable the sorting on the listview so we can manually sort stuff without the listview automatically resorting
+        If Not playlistListView_lastColumnClicked = -1 Then
+            'clean up the title of the previously clicked column
+            lv.Columns(playlistListView_lastColumnClicked).Text = lv.Columns(playlistListView_lastColumnClicked).Text.Replace(" ^", "").Replace(" v", "")
+            playlistListView_lastColumnClicked = -1
+        End If
+        lv.ListViewItemSorter = Nothing
+        lv.Sorting = SortOrder.None
+
+        listviewItemSortSelected(lv, SortOrder.Ascending)
+
+        markPlaylistChanged(lv)
+    End Sub
+
+    Private Sub playlistListView_MouseClick(ByVal sender As Object, ByVal e As System.Windows.Forms.MouseEventArgs)
+        'show the right click menu on mouse click
+        If e.Button = Windows.Forms.MouseButtons.Right Then
+            Dim lv As ListViewEx = CType(sender, ListViewEx)
+
+            'get the node under the right click
+            Dim selNode As ListViewItem = lv.SelectedItems(0)
+            If selNode IsNot Nothing Then
+                mnuLvPlaylistContentsRightClick.Show(lv.PointToScreen(e.Location))
+            End If
+        End If
     End Sub
     Private Sub playlistListView_ColumnClick(ByVal sender As Object, ByVal e As System.Windows.Forms.ColumnClickEventArgs)
         Dim lv As ListViewEx = CType(sender, ListView)
@@ -414,96 +568,6 @@ Public Class Main
         End If
 
     End Sub
-    Private Sub tvPlaylistsFilesOnDevice_MouseClick(ByVal sender As Object, ByVal e As System.Windows.Forms.MouseEventArgs) Handles tvPlaylistsFilesOnDevice.MouseClick
-        If e.Button = Windows.Forms.MouseButtons.Right Then
-            'get the node under the right click
-            Dim targetNode As TreeNode = tvFileManagementDeviceFolders.GetNodeAt(tvFileManagementDeviceFolders.PointToClient(New Point(e.X, e.Y)))
-            targetNode = tvFileManagementDeviceFolders.SelectedNode
-            If targetNode Is Nothing Then
-                Exit Sub
-            Else
-                mnuTvPlaylistFilesRightClick.Show(CType(sender, TreeView).PointToScreen(e.Location))
-            End If
-        End If
-    End Sub
-    Private Sub CollapseChildrenToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles CollapseChildrenToolStripMenuItem.Click
-        Me.tvPlaylistsFilesOnDevice.BeginUpdate()
-        For Each node As TreeNode In Me.tvPlaylistsFilesOnDevice.SelectedNodes
-            node.Collapse(False)
-        Next
-        Me.tvPlaylistsFilesOnDevice.EndUpdate()
-    End Sub
-    Private Sub ExpandChildrenToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles ExpandChildrenToolStripMenuItem.Click
-        Me.tvPlaylistsFilesOnDevice.BeginUpdate()
-        For Each node As TreeNode In Me.tvPlaylistsFilesOnDevice.SelectedNodes
-            node.ExpandAll()
-        Next
-        Me.tvPlaylistsFilesOnDevice.EndUpdate()
-    End Sub
-
-    Private Sub playlistListView_MouseClick(ByVal sender As Object, ByVal e As System.Windows.Forms.MouseEventArgs)
-        'show the right click menu on mouse click
-        If e.Button = Windows.Forms.MouseButtons.Right Then
-            Dim lv As ListViewEx = CType(sender, ListViewEx)
-
-            'get the node under the right click
-            Dim selNode As ListViewItem = lv.SelectedItems(0)
-            If selNode IsNot Nothing Then
-                mnuLvPlaylistContentsRightClick.Show(lv.PointToScreen(e.Location))
-            End If
-        End If
-    End Sub
-    Private Sub DeleteToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles DeleteToolStripMenuItem.Click
-        'get the current playlist
-        Dim tpage As TabPage = Me.tabPlaylists.SelectedTab
-        Dim lv As ListViewEx = tpage.Controls(tpage.Name.Replace("tpPl", "lvPl"))
-        If lv Is Nothing Then Exit Sub
-
-        For Each lvItem As ListViewItem In lv.SelectedItems
-            lv.Items.Remove(lvItem)
-        Next
-
-        markPlaylistChanged(lv)
-    End Sub
-    Private Sub SelctionSortAscendingToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles SelctionSortAscendingToolStripMenuItem.Click
-        'get the current playlist
-        Dim tpage As TabPage = Me.tabPlaylists.SelectedTab
-        Dim lv As ListViewEx = tpage.Controls(tpage.Name.Replace("tpPl", "lvPl"))
-        If lv Is Nothing Then Exit Sub
-
-        'disable the sorting on the listview so we can manually sort stuff without the listview automatically resorting
-        If Not playlistListView_lastColumnClicked = -1 Then
-            'clean up the title of the previously clicked column
-            lv.Columns(playlistListView_lastColumnClicked).Text = lv.Columns(playlistListView_lastColumnClicked).Text.Replace(" ^", "").Replace(" v", "")
-            playlistListView_lastColumnClicked = -1
-        End If
-        lv.ListViewItemSorter = Nothing
-        lv.Sorting = SortOrder.None
-
-        listviewItemSortSelected(lv, SortOrder.Descending)
-
-        markPlaylistChanged(lv)
-    End Sub
-    Private Sub SelectionSortDescendingToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles SelectionSortDescendingToolStripMenuItem.Click
-        'get the current playlist
-        Dim tpage As TabPage = Me.tabPlaylists.SelectedTab
-        Dim lv As ListViewEx = tpage.Controls(tpage.Name.Replace("tpPl", "lvPl"))
-        If lv Is Nothing Then Exit Sub
-
-        'disable the sorting on the listview so we can manually sort stuff without the listview automatically resorting
-        If Not playlistListView_lastColumnClicked = -1 Then
-            'clean up the title of the previously clicked column
-            lv.Columns(playlistListView_lastColumnClicked).Text = lv.Columns(playlistListView_lastColumnClicked).Text.Replace(" ^", "").Replace(" v", "")
-            playlistListView_lastColumnClicked = -1
-        End If
-        lv.ListViewItemSorter = Nothing
-        lv.Sorting = SortOrder.None
-
-        listviewItemSortSelected(lv, SortOrder.Ascending)
-
-        markPlaylistChanged(lv)
-    End Sub
-
     Private Sub playlistListView_dragenter(ByVal sender As Object, ByVal e As DragEventArgs)
         e.Effect = e.AllowedEffect
     End Sub
@@ -669,7 +733,6 @@ Public Class Main
                             lvItem.SubItems.Add(item.Year)
                             lvItem.SubItems.Add(item.TrackNum)
                             lvItem.SubItems.Add(item.Genre)
-                            'lvItem.ImageKey = IO.Path.GetExtension(lvItem.Text)
                             lvItem.ImageKey = plItem.ImageKey
                             lvItem.Tag = plItem.Tag
 
@@ -980,11 +1043,15 @@ Public Class Main
     End Sub
 
     Private Sub lvFileManagementDeviceFilesInFolder_DragDrop(ByVal sender As Object, ByVal e As System.Windows.Forms.DragEventArgs) Handles lvFileManagementDeviceFilesInFolder.DragDrop
+        If Not DeviceConnected Then
+            MessageBox.Show("No device selected. Please select a device from the list and then retry.", "Walkman MTP", MessageBoxButtons.OK, MessageBoxIcon.Exclamation)
+            Exit Sub
+        End If
         'check to see if files and folders are being dragged from explorer
         Dim draggedFiles() As String
         draggedFiles = e.Data.GetData(DataFormats.FileDrop)
         If draggedFiles IsNot Nothing Then
-            'worker threat to do the actual uploading. this prevents blocking of explorer
+            'worker thread to do the actual uploading. this prevents blocking of explorer
             'due to the dragdrop operation
             Dim tWork As New Threading.Thread(AddressOf lvFileManagementDeviceFilesInFolder_DragDrop_helper_starter)
             tWork.Start(draggedFiles)
@@ -1190,11 +1257,6 @@ Public Class Main
         Me.Activate()
         e.Effect = e.AllowedEffect
     End Sub
-    Private Sub lvFileManagementDeviceFilesInFolder_KeyDown(ByVal sender As Object, ByVal e As System.Windows.Forms.KeyEventArgs) Handles lvFileManagementDeviceFilesInFolder.KeyDown
-        If e.KeyValue = Keys.Delete Then
-            MsgBox("Deleting items is not yet supported. use explorer to delete files")
-        End If
-    End Sub
     Private Sub lvFileManagementDeviceFilesInFolder_MouseClick(ByVal sender As Object, ByVal e As System.Windows.Forms.MouseEventArgs) Handles lvFileManagementDeviceFilesInFolder.MouseClick
         'show the right click menu on mouse click
         If e.Button = Windows.Forms.MouseButtons.Right Then
@@ -1207,7 +1269,7 @@ Public Class Main
             End If
         End If
     End Sub
-    Private Sub SortAscendingToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles SortAscendingToolStripMenuItem.Click
+    Private Sub SortAscendingToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles lvFileManagementSortAscendingToolStripMenuItem.Click
         'disable the sorting on the listview so we can manually sort stuff without the listview automatically resorting
         If Not lvFileManagementDeviceFilesInFolder_lastColumnClicked = -1 Then
             'clean up the title of the previously clicked column
@@ -1217,7 +1279,7 @@ Public Class Main
 
         listviewItemSortSelected(Me.lvFileManagementDeviceFilesInFolder, SortOrder.Descending)
     End Sub
-    Private Sub SortDescendingToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles SortDescendingToolStripMenuItem.Click
+    Private Sub SortDescendingToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles lvFileManagementSortDescendingToolStripMenuItem.Click
         'disable the sorting on the listview so we can manually sort stuff without the listview automatically resorting
         If Not lvFileManagementDeviceFilesInFolder_lastColumnClicked = -1 Then
             'clean up the title of the previously clicked column
@@ -1261,6 +1323,10 @@ Public Class Main
     End Sub
 
     Private Sub btnFileManagementRefresh_LinkClicked(ByVal sender As System.Object, ByVal e As System.Windows.Forms.LinkLabelLinkClickedEventArgs) Handles btnFileManagementRefresh.LinkClicked
+        If Not DeviceConnected Then
+            MessageBox.Show("No device selected. Please select a device from the list and then retry.", "Walkman MTP", MessageBoxButtons.OK, MessageBoxIcon.Exclamation)
+            Exit Sub
+        End If
         Application.DoEvents()
         refreshFullDirectoryTree()
         refreshFileTransfersDeviceFiles()
@@ -1564,4 +1630,19 @@ Public Class Main
 #End Region
 
  
+    Private Sub ShowDeviceIconToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles mnuOptionsShowDeviceIconToolStripMenuItem.Click
+        mnuOptionsShowDeviceIconToolStripMenuItem.Checked = Not mnuOptionsShowDeviceIconToolStripMenuItem.Checked
+        pboxDevIcon.Visible = mnuOptionsShowDeviceIconToolStripMenuItem.Checked
+    End Sub
+
+    Private Sub DeleteToolStripMenuItem1_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles lvFileManagementDeleteToolStripMenuItem.Click
+        lvFileManagementDeviceFilesInFolder_KeyDown(Nothing, New KeyEventArgs(Keys.Delete))
+    End Sub
+
+    Private Sub lvFileManagementDeviceFilesInFolder_KeyDown(ByVal sender As Object, ByVal e As System.Windows.Forms.KeyEventArgs) Handles lvFileManagementDeviceFilesInFolder.KeyDown
+        If e.KeyData = Keys.Delete Then
+            MsgBox("Deleting items is not yet supported. Use explorer to delete files")
+        End If
+    End Sub
+
 End Class

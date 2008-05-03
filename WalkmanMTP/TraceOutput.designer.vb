@@ -19,6 +19,7 @@ Partial Class TraceOutput
     'Do not modify it using the code editor.
     <System.Diagnostics.DebuggerStepThrough()> _
     Private Sub InitializeComponent()
+        Dim resources As System.ComponentModel.ComponentResourceManager = New System.ComponentModel.ComponentResourceManager(GetType(TraceOutput))
         Me.TextBox1 = New System.Windows.Forms.TextBox
         Me.Button1 = New System.Windows.Forms.Button
         Me.chkAutoScroll = New System.Windows.Forms.CheckBox
@@ -34,14 +35,14 @@ Partial Class TraceOutput
         Me.TextBox1.Name = "TextBox1"
         Me.TextBox1.ReadOnly = True
         Me.TextBox1.ScrollBars = System.Windows.Forms.ScrollBars.Both
-        Me.TextBox1.Size = New System.Drawing.Size(328, 374)
+        Me.TextBox1.Size = New System.Drawing.Size(318, 369)
         Me.TextBox1.TabIndex = 0
         Me.TextBox1.WordWrap = False
         '
         'Button1
         '
         Me.Button1.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
-        Me.Button1.Location = New System.Drawing.Point(229, 392)
+        Me.Button1.Location = New System.Drawing.Point(219, 387)
         Me.Button1.Name = "Button1"
         Me.Button1.Size = New System.Drawing.Size(111, 28)
         Me.Button1.TabIndex = 1
@@ -52,7 +53,7 @@ Partial Class TraceOutput
         '
         Me.chkAutoScroll.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Left), System.Windows.Forms.AnchorStyles)
         Me.chkAutoScroll.AutoSize = True
-        Me.chkAutoScroll.Location = New System.Drawing.Point(12, 398)
+        Me.chkAutoScroll.Location = New System.Drawing.Point(12, 393)
         Me.chkAutoScroll.Name = "chkAutoScroll"
         Me.chkAutoScroll.Size = New System.Drawing.Size(56, 17)
         Me.chkAutoScroll.TabIndex = 2
@@ -63,13 +64,13 @@ Partial Class TraceOutput
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
-        Me.ClientSize = New System.Drawing.Size(353, 427)
+        Me.ClientSize = New System.Drawing.Size(343, 422)
         Me.ControlBox = False
         Me.Controls.Add(Me.chkAutoScroll)
         Me.Controls.Add(Me.Button1)
         Me.Controls.Add(Me.TextBox1)
+        Me.Icon = CType(resources.GetObject("$this.Icon"), System.Drawing.Icon)
         Me.Name = "TraceOutput"
-        Me.ShowIcon = False
         Me.Text = "Debug Output Logger"
         Me.WindowState = System.Windows.Forms.FormWindowState.Minimized
         Me.ResumeLayout(False)

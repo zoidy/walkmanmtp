@@ -60,7 +60,6 @@
     <Import Include="System.Drawing" />
     <Import Include="System.Diagnostics" />
     <Import Include="System.Windows.Forms" />
-    <Import Include="System.Xml.Linq" />
     <Import Include="WalkmanMTP.MultiSelectTreeview" />
   </ItemGroup>
   <ItemGroup>
@@ -141,6 +140,22 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <None Include="Resources\About.png" />
+    <None Include="Resources\DeviceIcon.png" />
+    <None Include="Resources\Information.png" />
+    <None Include="Resources\Log.png" />
+    <None Include="Resources\Quit.png" />
+    <None Include="Resources\SyncDevice.png" />
+    <None Include="Resources\DevicesList_refresh.png" />
+    <None Include="Resources\Playlist_add.png" />
+    <None Include="Resources\Playlist_delete.png" />
+    <None Include="Resources\Playlist_rename.png" />
+    <None Include="Resources\SortAscending.png" />
+    <None Include="Resources\SortDescending.png" />
+    <None Include="Resources\Delete.png" />
+    <None Include="Resources\CollapseChild.png" />
+    <None Include="Resources\ExpandChild.png" />
+    <None Include="Resources\NoDeviceIcon.png" />
     <Content Include="WMTPbig.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />
