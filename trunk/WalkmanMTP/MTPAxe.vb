@@ -16,6 +16,7 @@
     Private Const MTPAXE_M_PLAYLIST_ENUMERATECONTENTS = 30
     Private Const MTPAXE_M_STORAGE_GETSIZEINFO = 40
     Private Const MTPAXE_M_STORAGE_CREATEFROMFILE = 41
+    Private Const MTPAXE_M_STORAGE_DELETEBYID = 42
 
     Public Const WMDM_FILE_ATTR_FOLDER = &H8
     Public Const WMDM_FILE_ATTR_FILE = &H20
@@ -167,20 +168,8 @@
     '****************************************************************************************
     Private Function enumerateStorage() As String
         'this function returns "-1" on error
-        'MTPAxe returns -1 on error, ':' separated list containing the directory tree otherwise
-        '
-        'the format of the returned string is like the following example:
-
-        '       ROOT
-        '           FOLDER1
-        '               file1
-        '           file2
-
-        'would be returned as
-        '<0,TYPE,NULL>ROOT:<1,TYPE,ROOT>FOLDER1:<2,TYPE,FOLDER1>file1:<1,TYPE,ROOT>file2
-        '
-        'where TYPE is a DWORD containing the type (must be AND'ed with WMDM_FILE_ATTR_FILE or
-        'WMDM_FILE_ATTR_FOLDER to find out if the object is a file or folder)
+        'MTPAxe returns -1 on error, otherwise, returns a pointer to array of arrStorageItem 
+        'structures and total array length.
         Trace.WriteLine("MTPAxe: enumerating storage")
 
         Dim s As String
@@ -277,52 +266,52 @@
         Return theTreeView
     End Function
 
-    Private Function findTreeNode(ByRef root As TreeNode, ByVal nName As String, ByVal nType As Integer, ByVal nLevel As Integer) As TreeNode
-        'searches for a node given a starting root node.  the search includes the root node (not just the children)
-        'if the node is not found, Nothing is returned
+    'Private Function findTreeNode(ByRef root As TreeNode, ByVal nName As String, ByVal nType As Integer, ByVal nLevel As Integer) As TreeNode
+    '    'searches for a node given a starting root node.  the search includes the root node (not just the children)
+    '    'if the node is not found, Nothing is returned
 
-        Dim nodeLevel As Integer, nodeType As Integer, item As StorageItem
+    '    Dim nodeLevel As Integer, nodeType As Integer, item As StorageItem
 
-        'first, check to see if the root node matches the node we're loking for
-        'get node attributes
-        item = CType(root.Tag, StorageItem)
-        nodeLevel = item.DirectoryDepth
-        nodeType = item.StorageType
-        If root.Text = nName AndAlso nodeLevel = nLevel AndAlso nodeType & nType Then
-            'were done
-            Return root
-        End If
+    '    'first, check to see if the root node matches the node we're loking for
+    '    'get node attributes
+    '    item = CType(root.Tag, StorageItem)
+    '    nodeLevel = item.DirectoryDepth
+    '    nodeType = item.StorageType
+    '    If root.Text = nName AndAlso nodeLevel = nLevel AndAlso nodeType & nType Then
+    '        'were done
+    '        Return root
+    '    End If
 
-        For Each tn As TreeNode In root.Nodes
-            'get node attributes
-            item = CType(tn.Tag, StorageItem)
-            nodeLevel = item.DirectoryDepth
-            nodeType = item.StorageType
+    '    For Each tn As TreeNode In root.Nodes
+    '        'get node attributes
+    '        item = CType(tn.Tag, StorageItem)
+    '        nodeLevel = item.DirectoryDepth
+    '        nodeType = item.StorageType
 
-            'check for matches 
-            If tn.Text = nName AndAlso nodeLevel = nLevel AndAlso nodeType & nType Then
-                'were done
-                Return tn
-            Else
-                'no match. check if it's a folder and make recursive cal
-                If nodeType & MTPAxe.WMDM_FILE_ATTR_FOLDER Then
-                    Dim foundNode As TreeNode
-                    foundNode = findTreeNode(tn, nName, nType, nLevel)
-                    'if the node was found in the subtree, then were done
-                    If Not foundNode Is Nothing Then
-                        Return foundNode
-                    End If
+    '        'check for matches 
+    '        If tn.Text = nName AndAlso nodeLevel = nLevel AndAlso nodeType & nType Then
+    '            'were done
+    '            Return tn
+    '        Else
+    '            'no match. check if it's a folder and make recursive cal
+    '            If nodeType & MTPAxe.WMDM_FILE_ATTR_FOLDER Then
+    '                Dim foundNode As TreeNode
+    '                foundNode = findTreeNode(tn, nName, nType, nLevel)
+    '                'if the node was found in the subtree, then were done
+    '                If Not foundNode Is Nothing Then
+    '                    Return foundNode
+    '                End If
 
-                End If
+    '            End If
 
-            End If
+    '        End If
 
-        Next
+    '    Next
 
-        'if we reach here, no matching nodes were found in subtree
-        Return Nothing
+    '    'if we reach here, no matching nodes were found in subtree
+    '    Return Nothing
 
-    End Function
+    'End Function
     Private Function findTreeNodeByID(ByRef root As TreeNode, ByVal ID As String) As TreeNode
         'searches for the first matching treenode with the given PersistentUniqueID
         Dim ret As TreeNode = Nothing
@@ -541,7 +530,6 @@
                             'for all other levels, search the tree for the parent
                             Dim parent As TreeNode = Nothing
                             For Each tnode As TreeNode In treeview1.Nodes
-                                'parent = findTreeNode(tnode, nodeParent, MTPAxe.WMDM_FILE_ATTR_FOLDER, nodeLevel - 1)
                                 parent = findTreeNodeByID(tnode, item.ParentID)
                                 If parent Is Nothing Then
                                     'the parent was not found
@@ -593,7 +581,7 @@
     End Function
 
     Public Function createPlaylist(ByVal playlistName As String, ByVal items As String) As String
-        'creates a playlist. items are in the same format as returned by enumerateStorage
+        'creates a playlist. items are a ":" separated list of PersistentUniqeID's
         'this function returns "-1" on error otherwise
         'MTPAxe returns -1 on error, 0 otherwise
 
@@ -680,103 +668,103 @@
 
         Return strarr
     End Function
-    Public Function getPlaylistContentsAsTreeview(ByVal name As String) As TreeView
-        'returns the full directory structure of the device
-        'returns an empty treeview if theplaylist is empty
+    'Public Function getPlaylistContentsAsTreeview(ByVal name As String) As TreeView
+    '    'returns the full directory structure of the device
+    '    'returns an empty treeview if theplaylist is empty
 
-        Trace.WriteLine("MTPAxe: building playlist contents - " & name)
-        If axe Is Nothing Then Throw New Exception("MTPAxe is not started")
+    '    Trace.WriteLine("MTPAxe: building playlist contents - " & name)
+    '    If axe Is Nothing Then Throw New Exception("MTPAxe is not started")
 
-        Dim theTreeView As New TreeView
+    '    Dim theTreeView As New TreeView
 
-        'get the directory tree from the device
-        Dim strTree As String
-        strTree = enumeratePlaylist(name)
-        If Not strTree = "-1" Then
-            Try
-                theTreeView = getPlaylistContentsAsTreeview_helper(strTree)
-            Catch ex As Exception
-                theTreeView = New TreeView
-                Trace.WriteLine("MTPAxe: bulding playlist contents - empty playlist")
-            End Try
-        End If
+    '    'get the directory tree from the device
+    '    Dim strTree As String
+    '    strTree = enumeratePlaylist(name)
+    '    If Not strTree = "-1" Then
+    '        Try
+    '            theTreeView = getPlaylistContentsAsTreeview_helper(strTree)
+    '        Catch ex As Exception
+    '            theTreeView = New TreeView
+    '            Trace.WriteLine("MTPAxe: bulding playlist contents - empty playlist")
+    '        End Try
+    '    End If
 
-        Return theTreeView
-    End Function
-    Private Function getPlaylistContentsAsTreeview_helper(ByVal directoryTree As String) As TreeView
-        'builds a treeview based on the given directory tree, in the format returned
-        'by getDirectoryTree, if the directoryTree is not in the right format, unpredicable behaviour will occur
-        Dim nodes() As String
-        Dim properties As String
-        Dim treenodes() As TreeNode
-        Dim tn As TreeNode
-        Dim tagIndex As Integer
-        Dim index As Integer = 0
-        Dim index2 As Integer = 0
-        Dim treeview1 As New TreeView
+    '    Return theTreeView
+    'End Function
+    'Private Function getPlaylistContentsAsTreeview_helper(ByVal directoryTree As String) As TreeView
+    '    'builds a treeview based on the given directory tree, in the format returned
+    '    'by getDirectoryTree, if the directoryTree is not in the right format, unpredicable behaviour will occur
+    '    Dim nodes() As String
+    '    Dim properties As String
+    '    Dim treenodes() As TreeNode
+    '    Dim tn As TreeNode
+    '    Dim tagIndex As Integer
+    '    Dim index As Integer = 0
+    '    Dim index2 As Integer = 0
+    '    Dim treeview1 As New TreeView
 
-        Dim shinfo As New SHFILEINFO()
-        Dim fileExt As String
-        Dim imglst As New ImageList
-        imglst.ColorDepth = ColorDepth.Depth32Bit
-        treeview1.ImageList = imglst
-        shinfo.szDisplayName = New String(Chr(0), 260)
-        shinfo.szTypeName = New String(Chr(0), 80)
+    '    Dim shinfo As New SHFILEINFO()
+    '    Dim fileExt As String
+    '    Dim imglst As New ImageList
+    '    imglst.ColorDepth = ColorDepth.Depth32Bit
+    '    treeview1.ImageList = imglst
+    '    shinfo.szDisplayName = New String(Chr(0), 260)
+    '    shinfo.szTypeName = New String(Chr(0), 80)
 
-        'keeps track of the minimum and maximum directory level
-        Dim minLevel As Short = -1, maxLevel As Short = -1, level As Byte
+    '    'keeps track of the minimum and maximum directory level
+    '    Dim minLevel As Short = -1, maxLevel As Short = -1, level As Byte
 
-        nodes = directoryTree.Split(":"c)
-        ReDim treenodes(nodes.Length - 1)
+    '    nodes = directoryTree.Split(":"c)
+    '    ReDim treenodes(nodes.Length - 1)
 
-        For Each node As String In nodes
-            'extract the properties associated with each node
-            tagIndex = node.LastIndexOf(">"c)
-            properties = node.Substring(1, tagIndex - 1)
+    '    For Each node As String In nodes
+    '        'extract the properties associated with each node
+    '        tagIndex = node.LastIndexOf(">"c)
+    '        properties = node.Substring(1, tagIndex - 1)
 
-            'keep track of the maximum and minimim directory depth
-            'if tihs is the first iteration, set the minimum and the maximum
-            'to the value of the first node
-            level = Byte.Parse((properties.Split("/"c))(0))
-            If minLevel = -1 And maxLevel = -1 Then
-                minLevel = level
-                maxLevel = level
-            End If
-            If level < minLevel Then
-                minLevel = level
-            End If
-            If level > maxLevel Then
-                maxLevel = level
-            End If
+    '        'keep track of the maximum and minimim directory depth
+    '        'if tihs is the first iteration, set the minimum and the maximum
+    '        'to the value of the first node
+    '        level = Byte.Parse((properties.Split("/"c))(0))
+    '        If minLevel = -1 And maxLevel = -1 Then
+    '            minLevel = level
+    '            maxLevel = level
+    '        End If
+    '        If level < minLevel Then
+    '            minLevel = level
+    '        End If
+    '        If level > maxLevel Then
+    '            maxLevel = level
+    '        End If
 
-            tn = New TreeNode
-            tn.Tag = node.Substring(1, tagIndex - 1) 'store level,type,parent in the tag
-            tn.Text = node.Substring(tagIndex + 1, node.Length - tagIndex - 1)
+    '        tn = New TreeNode
+    '        tn.Tag = node.Substring(1, tagIndex - 1) 'store level,type,parent in the tag
+    '        tn.Text = node.Substring(tagIndex + 1, node.Length - tagIndex - 1)
 
-            fileExt = IO.Path.GetExtension(tn.Text)
-            tn.ImageKey = fileExt   'the key to the image is the file extension
-            tn.SelectedImageKey = fileExt
+    '        fileExt = IO.Path.GetExtension(tn.Text)
+    '        tn.ImageKey = fileExt   'the key to the image is the file extension
+    '        tn.SelectedImageKey = fileExt
 
-            'see whether node is file or directory
-            If (Integer.Parse((tn.Tag.ToString.Split("/"c))(1)) And WMDM_FILE_ATTR_FILE) = WMDM_FILE_ATTR_FILE Then
-            Else
-                'its a directory
-                tn.ImageKey = "*"
-                tn.SelectedImageKey = "*"
-            End If
+    '        'see whether node is file or directory
+    '        If (Integer.Parse((tn.Tag.ToString.Split("/"c))(1)) And WMDM_FILE_ATTR_FILE) = WMDM_FILE_ATTR_FILE Then
+    '        Else
+    '            'its a directory
+    '            tn.ImageKey = "*"
+    '            tn.SelectedImageKey = "*"
+    '        End If
 
-            treenodes(index) = tn
-            index += 1
-        Next
+    '        treenodes(index) = tn
+    '        index += 1
+    '    Next
 
-        'just make a list
-        For Each tn In treenodes
-            treeview1.Nodes.Add(tn)
-        Next
+    '    'just make a list
+    '    For Each tn In treenodes
+    '        treeview1.Nodes.Add(tn)
+    '    Next
 
 
-        Return treeview1
-    End Function
+    '    Return treeview1
+    'End Function
 
     Public Function uploadFile(ByVal path As String, ByVal destinationID As String, ByVal type As Integer, Optional ByVal metadata As StorageItem = Nothing) As String
         'copies the file specified by path to the folder specified by destination
@@ -811,6 +799,29 @@
 
         If s = "-1" Then
             Trace.WriteLine("MTPAxe: upload file - " & sErr.ReadLine)
+            Return "-1"
+        End If
+
+        Return s
+    End Function
+    Public Function deleteFile(ByVal storageID As String)
+        'deletes the storage specified by StorageID from the device
+        'returns 0 on ok, -1 on error
+
+        Trace.WriteLine("MTPAxe: deleting - " & storageID)
+
+        Dim s As String
+
+        If axe Is Nothing Then Throw New Exception("MTPAxe is not started")
+
+        sOut.WriteLine(MTPAXE_M_STORAGE_DELETEBYID)
+        sOut.WriteLine(storageID)
+
+        'now wait for the return value to be sent to the buffer
+        s = sIn.ReadLine
+
+        If s = "-1" Then
+            Trace.WriteLine("MTPAxe: error deleting " & storageID & " - " & sErr.ReadLine)
             Return "-1"
         End If
 
