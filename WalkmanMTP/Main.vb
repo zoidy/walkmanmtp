@@ -77,8 +77,8 @@ Public Class Main
         Me.btnRefreshDevices.Image = My.Resources.DevicesList_refresh
         Me.pboxDevIcon.Image = My.Resources.NoDeviceIcon
         Me.lvFileManagementDeleteToolStripMenuItem.Image = My.Resources.Delete
-        Me.lvFileManagementSortAscendingToolStripMenuItem.Image = My.Resources.SortAscending
-        Me.lvFileManagementSortDescendingToolStripMenuItem.Image = My.Resources.SortDescending
+        Me.mnulvFileManagementSortAscendingToolStripMenuItem.Image = My.Resources.SortAscending
+        Me.mnulvFileManagementSortDescendingToolStripMenuItem.Image = My.Resources.SortDescending
         Me.lvPlaylistContentsDeleteToolStripMenuItem.Image = My.Resources.Delete
         Me.lvPlaylistContentsSelctionSortAscendingToolStripMenuItem.Image = My.Resources.SortAscending
         Me.lvPlaylistContentsSelectionSortDescendingToolStripMenuItem.Image = My.Resources.SortDescending
@@ -90,8 +90,8 @@ Public Class Main
         Me.mnuHelpInformationToolStripMenuItem.Image = My.Resources.Information
         Me.mnuOptionsShowDebugWindowToolStripMenuItem.Image = My.Resources.Log
         Me.mnuOptionsShowDeviceIconToolStripMenuItem.Image = My.Resources.DeviceIcon
-        Me.mnutvPlaylistFilesCollapseChildrenToolStripMenuItem.Image = My.Resources.CollapseChild
-        Me.mnutvPlaylistFilesExpandChildrenToolStripMenuItem.Image = My.Resources.ExpandChild
+        Me.mnuTVFileManagementCollapseChildren.Image = My.Resources.CollapseChild
+        Me.mnuTVFileManagementExpandChildren.Image = My.Resources.ExpandChild
     End Sub
     Private Sub Main_VisibleChanged(ByVal sender As Object, ByVal e As System.EventArgs) Handles Me.VisibleChanged
         If Me.Visible Then
@@ -960,7 +960,7 @@ Public Class Main
 
 
     End Sub
-    
+
     Private Sub tvFileManagementDeviceFolders_AfterSelect(ByVal sender As Object, ByVal e As System.Windows.Forms.TreeViewEventArgs) Handles tvFileManagementDeviceFolders.AfterSelect
         Dim theNode As TreeNode = Nothing
         If fullFileListing IsNot Nothing AndAlso fullFileListing.Nodes.Count > 0 Then
@@ -1026,12 +1026,12 @@ Public Class Main
             End If
         End If
     End Sub
-    Private Sub CollapseChildrenToolStripMenuItem1_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles CollapseChildrenToolStripMenuItem1.Click
+    Private Sub CollapseChildrenToolStripMenuItem1_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles mnuTVFileManagementCollapseChildren.Click
         Me.tvFileManagementDeviceFolders.BeginUpdate()
         Me.tvFileManagementDeviceFolders.SelectedNode.Collapse(False)
         Me.tvFileManagementDeviceFolders.EndUpdate()
     End Sub
-    Private Sub ExpandChildrenToolStripMenuItem1_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles ExpandChildrenToolStripMenuItem1.Click
+    Private Sub ExpandChildrenToolStripMenuItem1_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles mnuTVFileManagementExpandChildren.Click
         Me.tvFileManagementDeviceFolders.BeginUpdate()
         Me.tvFileManagementDeviceFolders.SelectedNode.ExpandAll()
         Me.tvFileManagementDeviceFolders.EndUpdate()
@@ -1265,7 +1265,7 @@ Public Class Main
             End If
 
             Splash.incProgBar()
-            End If
+        End If
     End Sub
 
 
@@ -1285,7 +1285,7 @@ Public Class Main
             End If
         End If
     End Sub
-    Private Sub SortAscendingToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles lvFileManagementSortAscendingToolStripMenuItem.Click
+    Private Sub SortAscendingToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles mnulvFileManagementSortAscendingToolStripMenuItem.Click
         'disable the sorting on the listview so we can manually sort stuff without the listview automatically resorting
         If Not lvFileManagementDeviceFilesInFolder_lastColumnClicked = -1 Then
             'clean up the title of the previously clicked column
@@ -1295,7 +1295,7 @@ Public Class Main
 
         listviewItemSortSelected(Me.lvFileManagementDeviceFilesInFolder, SortOrder.Descending)
     End Sub
-    Private Sub SortDescendingToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles lvFileManagementSortDescendingToolStripMenuItem.Click
+    Private Sub SortDescendingToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles mnulvFileManagementSortDescendingToolStripMenuItem.Click
         'disable the sorting on the listview so we can manually sort stuff without the listview automatically resorting
         If Not lvFileManagementDeviceFilesInFolder_lastColumnClicked = -1 Then
             'clean up the title of the previously clicked column

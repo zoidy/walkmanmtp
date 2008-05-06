@@ -4,6 +4,9 @@ Change log <release date>:<WalkmanMTP version> - <MTPAxe version>
 	-properly fixed a previously implemented workaround for wmp11
 	-now supports having playlists/files with the same name in the same directory
 	-can now delete files and folders from within the filemanagement tab
+	-replaced application icons with better ones (thanks poggos)
+	-fixed crash if any operation was attempted with no device selected (thanks poggos)
+	-other small tweaks fixes.
 29-apr-08: 0.3.9.1 - 0.3.9
 	-fixed small bug where the artist tag wouldn't be read sometimes. 
 	-other small changes.
