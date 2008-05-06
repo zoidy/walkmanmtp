@@ -12,11 +12,10 @@
     Private Const MTPAXE_M_DEVICE_ENUMERATESTORAGE = 22
     Private Const MTPAXE_M_DEVICE_GETICON = 25
     Private Const MTPAXE_M_DEVICE_CREATEPLAYLIST = 26
-    Private Const MTPAXE_M_DEVICE_DELETEPLAYLIST = 27
     Private Const MTPAXE_M_PLAYLIST_ENUMERATECONTENTS = 30
     Private Const MTPAXE_M_STORAGE_GETSIZEINFO = 40
     Private Const MTPAXE_M_STORAGE_CREATEFROMFILE = 41
-    Private Const MTPAXE_M_STORAGE_DELETEBYID = 42
+    Private Const MTPAXE_M_STORAGE_DELETE = 42
 
     Public Const WMDM_FILE_ATTR_FOLDER = &H8
     Public Const WMDM_FILE_ATTR_FILE = &H20
@@ -80,6 +79,14 @@
         Else
             Return False
         End If
+    End Function
+    Public Function getMTPAxeVersion() As String
+        If axe Is Nothing Then Return "N/A"
+
+        sOut.WriteLine("version")
+
+        'now wait for the return value to be sent to the buffer
+        Return sIn.ReadLine
     End Function
 
 #Region "Device manager functions"
@@ -605,62 +612,37 @@
 
         Return s
     End Function
-    Public Function deletePlaylist(ByVal playlistName As String) As String
-        'deletes the specified playlist. if there is more than 1 playlist with the same name
-        'the first one is deleted
-        'this function returns "-1" on error otherwise
-        'MTPAxe returns -1 on error, 0 otherwise
-
-        Trace.WriteLine("MTPAxe: deleting playlist " & playlistName)
-
-        Dim s As String
-
-        If axe Is Nothing Then Throw New Exception("MTPAxe is not started")
-
-        sOut.WriteLine(MTPAXE_M_DEVICE_DELETEPLAYLIST)
-        sOut.WriteLine(playlistName)
-
-        'now wait for the return value to be sent to the buffer
-        s = sIn.ReadLine
-
-        If s = "-1" Then
-            Trace.WriteLine("MTPAxe: deleting playlist error - " & sErr.ReadLine)
-            Return "-1"
-        End If
-
-        Return s
-    End Function
-    Private Function enumeratePlaylist(ByVal name As String)
+    Private Function enumeratePlaylist(ByVal ID As String)
         'gets the contents of a playlist in the same format as enumerateStorage
         'this function returns "-1" on error otherwise
         'MTPAxe returns -1 on error, 0 otherwise
 
-        Trace.WriteLine("MTPAxe: enumerating playlist contents - " & name)
+        Trace.WriteLine("MTPAxe: enumerating playlist contents - " & ID)
 
         Dim s As String
 
         If axe Is Nothing Then Throw New Exception("MTPAxe is not started")
 
         sOut.WriteLine(MTPAXE_M_PLAYLIST_ENUMERATECONTENTS)
-        sOut.WriteLine(name)
+        sOut.WriteLine(ID)
 
         'now wait for the return value to be sent to the buffer
         s = sIn.ReadLine
 
         If s = "-1" Then
-            Trace.WriteLine("MTPAxe: enumerating playlist contents error - " & sErr.ReadLine)
+            Trace.WriteLine("MTPAxe: enumerating playlist contents " & ID & " error - " & sErr.ReadLine)
             Return "-1"
         End If
 
         Return s
     End Function
-    Public Function getPlaylistContentsIDs(ByVal playlistName As String) As String()
+    Public Function getPlaylistContentsIDs(ByVal playlistID As String) As String()
         'returns the PersistenUniqueID's of the contents of the playlist.  The caller
         'must then build the actual playlists contents.
         Dim str As String
         Dim strarr() As String = Nothing
 
-        str = enumeratePlaylist(playlistName)
+        str = enumeratePlaylist(playlistID)
         If Not str = "-1" Then
             'parse the string
             strarr = str.Split(":"c)
@@ -668,103 +650,6 @@
 
         Return strarr
     End Function
-    'Public Function getPlaylistContentsAsTreeview(ByVal name As String) As TreeView
-    '    'returns the full directory structure of the device
-    '    'returns an empty treeview if theplaylist is empty
-
-    '    Trace.WriteLine("MTPAxe: building playlist contents - " & name)
-    '    If axe Is Nothing Then Throw New Exception("MTPAxe is not started")
-
-    '    Dim theTreeView As New TreeView
-
-    '    'get the directory tree from the device
-    '    Dim strTree As String
-    '    strTree = enumeratePlaylist(name)
-    '    If Not strTree = "-1" Then
-    '        Try
-    '            theTreeView = getPlaylistContentsAsTreeview_helper(strTree)
-    '        Catch ex As Exception
-    '            theTreeView = New TreeView
-    '            Trace.WriteLine("MTPAxe: bulding playlist contents - empty playlist")
-    '        End Try
-    '    End If
-
-    '    Return theTreeView
-    'End Function
-    'Private Function getPlaylistContentsAsTreeview_helper(ByVal directoryTree As String) As TreeView
-    '    'builds a treeview based on the given directory tree, in the format returned
-    '    'by getDirectoryTree, if the directoryTree is not in the right format, unpredicable behaviour will occur
-    '    Dim nodes() As String
-    '    Dim properties As String
-    '    Dim treenodes() As TreeNode
-    '    Dim tn As TreeNode
-    '    Dim tagIndex As Integer
-    '    Dim index As Integer = 0
-    '    Dim index2 As Integer = 0
-    '    Dim treeview1 As New TreeView
-
-    '    Dim shinfo As New SHFILEINFO()
-    '    Dim fileExt As String
-    '    Dim imglst As New ImageList
-    '    imglst.ColorDepth = ColorDepth.Depth32Bit
-    '    treeview1.ImageList = imglst
-    '    shinfo.szDisplayName = New String(Chr(0), 260)
-    '    shinfo.szTypeName = New String(Chr(0), 80)
-
-    '    'keeps track of the minimum and maximum directory level
-    '    Dim minLevel As Short = -1, maxLevel As Short = -1, level As Byte
-
-    '    nodes = directoryTree.Split(":"c)
-    '    ReDim treenodes(nodes.Length - 1)
-
-    '    For Each node As String In nodes
-    '        'extract the properties associated with each node
-    '        tagIndex = node.LastIndexOf(">"c)
-    '        properties = node.Substring(1, tagIndex - 1)
-
-    '        'keep track of the maximum and minimim directory depth
-    '        'if tihs is the first iteration, set the minimum and the maximum
-    '        'to the value of the first node
-    '        level = Byte.Parse((properties.Split("/"c))(0))
-    '        If minLevel = -1 And maxLevel = -1 Then
-    '            minLevel = level
-    '            maxLevel = level
-    '        End If
-    '        If level < minLevel Then
-    '            minLevel = level
-    '        End If
-    '        If level > maxLevel Then
-    '            maxLevel = level
-    '        End If
-
-    '        tn = New TreeNode
-    '        tn.Tag = node.Substring(1, tagIndex - 1) 'store level,type,parent in the tag
-    '        tn.Text = node.Substring(tagIndex + 1, node.Length - tagIndex - 1)
-
-    '        fileExt = IO.Path.GetExtension(tn.Text)
-    '        tn.ImageKey = fileExt   'the key to the image is the file extension
-    '        tn.SelectedImageKey = fileExt
-
-    '        'see whether node is file or directory
-    '        If (Integer.Parse((tn.Tag.ToString.Split("/"c))(1)) And WMDM_FILE_ATTR_FILE) = WMDM_FILE_ATTR_FILE Then
-    '        Else
-    '            'its a directory
-    '            tn.ImageKey = "*"
-    '            tn.SelectedImageKey = "*"
-    '        End If
-
-    '        treenodes(index) = tn
-    '        index += 1
-    '    Next
-
-    '    'just make a list
-    '    For Each tn In treenodes
-    '        treeview1.Nodes.Add(tn)
-    '    Next
-
-
-    '    Return treeview1
-    'End Function
 
     Public Function uploadFile(ByVal path As String, ByVal destinationID As String, ByVal type As Integer, Optional ByVal metadata As StorageItem = Nothing) As String
         'copies the file specified by path to the folder specified by destination
@@ -814,7 +699,7 @@
 
         If axe Is Nothing Then Throw New Exception("MTPAxe is not started")
 
-        sOut.WriteLine(MTPAXE_M_STORAGE_DELETEBYID)
+        sOut.WriteLine(MTPAXE_M_STORAGE_DELETE)
         sOut.WriteLine(storageID)
 
         'now wait for the return value to be sent to the buffer

@@ -137,7 +137,6 @@
     End Property
 
 
-
     Public Sub New()
         mLevel = 0
         mtype = 0
