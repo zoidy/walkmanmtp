@@ -32,8 +32,13 @@ Public Class Main
         End If
     End Sub
     Private Sub AboutToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles mnuHelpAboutToolStripMenuItem.Click
-        MsgBox("WalkmanMTP by Dr. Zoidberg v" & Application.ProductVersion & vbCrLf & _
-               "Taglib# v" & System.Reflection.Assembly.GetAssembly(GetType(TagLib.File)).GetName.Version.ToString, MsgBoxStyle.Information, "About")
+        Dim mtpAxeVer As String = ""
+        If axe IsNot Nothing Then
+            mtpAxeVer = axe.getMTPAxeVersion
+        End If
+        MsgBox("WalkmanMTP by Dr. Zoidberg v" & Application.ProductVersion & vbCrLf & mtpAxeVer & vbCrLf & vbCrLf & _
+               "Taglib# by Brian Nickel v" & System.Reflection.Assembly.GetAssembly(GetType(TagLib.File)).GetName.Version.ToString & vbCrLf & _
+               "Icons by Mark James (www.famfamfam.com/lab/icons/silk) and poggos", MsgBoxStyle.Information, "About")
 
     End Sub
     Private Sub InformationToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles mnuHelpInformationToolStripMenuItem.Click
@@ -46,6 +51,10 @@ Public Class Main
     End Sub
     Private Sub SyncDeviceToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles mnuFileSyncDeviceToolStripMenuItem.Click
         btnSync_Click(Nothing, Nothing)
+    End Sub
+    Private Sub ShowDeviceIconToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles mnuOptionsShowDeviceIconToolStripMenuItem.Click
+        mnuOptionsShowDeviceIconToolStripMenuItem.Checked = Not mnuOptionsShowDeviceIconToolStripMenuItem.Checked
+        pboxDevIcon.Visible = mnuOptionsShowDeviceIconToolStripMenuItem.Checked
     End Sub
 #End Region
 
@@ -66,21 +75,23 @@ Public Class Main
         Me.btnRenamePlaylist.Image = My.Resources.Playlist_rename
         Me.btnSync.Image = My.Resources.SyncDevice
         Me.btnRefreshDevices.Image = My.Resources.DevicesList_refresh
-        Me.pboxDevIcon.Image = My.Resources.DeviceIcon
+        Me.pboxDevIcon.Image = My.Resources.NoDeviceIcon
         Me.lvFileManagementDeleteToolStripMenuItem.Image = My.Resources.Delete
         Me.lvFileManagementSortAscendingToolStripMenuItem.Image = My.Resources.SortAscending
         Me.lvFileManagementSortDescendingToolStripMenuItem.Image = My.Resources.SortDescending
         Me.lvPlaylistContentsDeleteToolStripMenuItem.Image = My.Resources.Delete
         Me.lvPlaylistContentsSelctionSortAscendingToolStripMenuItem.Image = My.Resources.SortAscending
         Me.lvPlaylistContentsSelectionSortDescendingToolStripMenuItem.Image = My.Resources.SortDescending
-        Me.tvPlaylistFilesCollapseChildrenToolStripMenuItem.Image = My.Resources.CollapseChild
-        Me.tvPlaylistFilesExpandChildrenToolStripMenuItem.Image = My.Resources.ExpandChild
+        Me.mnutvPlaylistFilesCollapseChildrenToolStripMenuItem.Image = My.Resources.CollapseChild
+        Me.mnutvPlaylistFilesExpandChildrenToolStripMenuItem.Image = My.Resources.ExpandChild
         Me.mnuFileQuitToolStripMenuItem.Image = My.Resources.Quit
         Me.mnuFileSyncDeviceToolStripMenuItem.Image = My.Resources.SyncDevice
         Me.mnuHelpAboutToolStripMenuItem.Image = My.Resources.About
         Me.mnuHelpInformationToolStripMenuItem.Image = My.Resources.Information
         Me.mnuOptionsShowDebugWindowToolStripMenuItem.Image = My.Resources.Log
         Me.mnuOptionsShowDeviceIconToolStripMenuItem.Image = My.Resources.DeviceIcon
+        Me.mnutvPlaylistFilesCollapseChildrenToolStripMenuItem.Image = My.Resources.CollapseChild
+        Me.mnutvPlaylistFilesExpandChildrenToolStripMenuItem.Image = My.Resources.ExpandChild
     End Sub
     Private Sub Main_VisibleChanged(ByVal sender As Object, ByVal e As System.EventArgs) Handles Me.VisibleChanged
         If Me.Visible Then
@@ -123,7 +134,7 @@ Public Class Main
                   "All albums created, modified or deleted will be updated", MsgBoxStyle.Exclamation Or MsgBoxStyle.YesNo, "Sync device?") = MsgBoxResult.No Then
             Exit Sub
         End If
-        
+
         Dim t As New Threading.Thread(New Threading.ThreadStart(AddressOf Splash.ShowDialog))
         t.SetApartmentState(Threading.ApartmentState.MTA)
         If Not Splash.Visible Then t.Start()
@@ -273,7 +284,7 @@ Public Class Main
 
     End Sub
 
-    
+
 
 
 
@@ -305,9 +316,7 @@ Public Class Main
 
             If Not matchfound Then
                 'delete it
-                'note: MTPAxe only deletes the first playlist with matching name
-                'so the wrong one could still be deleted
-                If axe.deletePlaylist(tpage.Text) = "-1" Then
+                If axe.deleteFile(tpage.Tag) = "-1" Then
                     Trace.WriteLine("Sync: error deleting playlist " & tpage.Text)
                     MsgBox("Sync: error deleting playlist " & tpage.Text, MsgBoxStyle.Critical Or MsgBoxStyle.ApplicationModal)
                     Exit Sub
@@ -340,7 +349,7 @@ Public Class Main
                     If axe.createPlaylist(tpage.Text.Remove(tpage.Text.Length - 1, 1), str) = "-1" Then
                         Trace.WriteLine("Sync: error creating playlist " & tpage.Text)
                         MsgBox("Sync: error creating playlist " & tpage.Text, MsgBoxStyle.Critical Or MsgBoxStyle.Critical)
-                        Exit Sub
+                        'don't exit on error, keep processing subsequent lists
                     End If
 
                 End If 'lv.items.count
@@ -445,14 +454,14 @@ Public Class Main
         End If
     End Sub
 
-    Private Sub CollapseChildrenToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles tvPlaylistFilesCollapseChildrenToolStripMenuItem.Click
+    Private Sub CollapseChildrenToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles mnutvPlaylistFilesCollapseChildrenToolStripMenuItem.Click
         Me.tvPlaylistsFilesOnDevice.BeginUpdate()
         For Each node As TreeNode In Me.tvPlaylistsFilesOnDevice.SelectedNodes
             node.Collapse(False)
         Next
         Me.tvPlaylistsFilesOnDevice.EndUpdate()
     End Sub
-    Private Sub ExpandChildrenToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles tvPlaylistFilesExpandChildrenToolStripMenuItem.Click
+    Private Sub ExpandChildrenToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles mnutvPlaylistFilesExpandChildrenToolStripMenuItem.Click
         Me.tvPlaylistsFilesOnDevice.BeginUpdate()
         For Each node As TreeNode In Me.tvPlaylistsFilesOnDevice.SelectedNodes
             node.ExpandAll()
@@ -460,7 +469,7 @@ Public Class Main
         Me.tvPlaylistsFilesOnDevice.EndUpdate()
     End Sub
 
-    
+
     Private Sub DeleteToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles lvPlaylistContentsDeleteToolStripMenuItem.Click
         'get the current playlist
         Dim tpage As TabPage = Me.tabPlaylists.SelectedTab
@@ -710,11 +719,18 @@ Public Class Main
         Dim item As StorageItem
         Dim strIDs() As String
         For Each node As TreeNode In plFldr.Nodes
-            strIDs = axe.getPlaylistContentsIDs(node.Text)
+            strIDs = axe.getPlaylistContentsIDs(CType(node.Tag, StorageItem).ID)
             If strIDs IsNot Nothing Then
-                'create a new playlist tab and listview based on the playlist name
+                'create a new playlist tab and listview based on the playlist name and the playlist's
+                'PersistentUniqueID
                 tpage = createNewPlaylist(node.Text, True)
                 lv = tpage.Controls("lvPl" & node.Text)
+                'since this playlist is one that exists on the player, it has a PersistentUniqueID
+                'use this ID instead of the automatically generated ID to identify this playlist tab.
+                'If the playlist is modified later, we can use this ID to delete it. Don't pass the ID
+                'into the createNewPlaylist function since if the user creates a playlist, it won't have
+                'a PersistentUniqueID yet, in which case the default identifier is used.
+                tpage.Tag = CType(node.Tag, StorageItem).ID
 
                 For Each id As String In strIDs
                     If fullFileListing IsNot Nothing AndAlso fullFileListing.Nodes.Count > 0 Then
@@ -827,7 +843,7 @@ Public Class Main
         End With
         'use the tag of teh TabPage to keep track of the playlists (in case they have the same name
         'we need a way to differentiate them)
-        tpage.Tag = Now.Ticks
+        tpage.Tag = Now.Ticks.ToString
         tpage.Controls.Add(lv)
         Me.tabPlaylists.TabPages.Add(tpage)
 
@@ -1289,6 +1305,52 @@ Public Class Main
 
         listviewItemSortSelected(Me.lvFileManagementDeviceFilesInFolder, SortOrder.Ascending)
     End Sub
+    Private Sub DeleteToolStripMenuItem1_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles lvFileManagementDeleteToolStripMenuItem.Click
+        lvFileManagementDeviceFilesInFolder_KeyDown(Nothing, New KeyEventArgs(Keys.Delete))
+    End Sub
+    Private Sub lvFileManagementDeviceFilesInFolder_KeyDown(ByVal sender As Object, ByVal e As System.Windows.Forms.KeyEventArgs) Handles lvFileManagementDeviceFilesInFolder.KeyDown
+        If e.KeyData = Keys.Delete Then
+
+            If MsgBox("Are you sure? This will delete files recursively", MsgBoxStyle.YesNo Or MsgBoxStyle.Question, "Really delete?") = MsgBoxResult.No Then Exit Sub
+
+            Dim t As New Threading.Thread(New Threading.ThreadStart(AddressOf Splash.ShowDialog))
+            t.SetApartmentState(Threading.ApartmentState.MTA)
+            If Not Splash.Visible Then t.Start()
+            Splash.setText("Deleting")
+            Splash.setTitle("Deleting...")
+
+            Trace.WriteLine("Deleting files...")
+
+            'delete the selected item(s)
+            Dim item As StorageItem
+            For Each lvitem As ListViewItem In Me.lvFileManagementDeviceFilesInFolder.SelectedItems
+                item = CType(lvitem.Tag, StorageItem)
+                If item IsNot Nothing Then
+                    Trace.WriteLine("Deleting " & lvitem.Text & "-" & item.ID & "...")
+                    Splash.setText("Deleting " & lvitem.Text)
+                    If Not axe.deleteFile(item.ID) = "-1" Then
+                        'remove from tree if successful
+                        Dim node As TreeNode
+                        node = findTreeNodeByID(fullFileListing.Nodes(0), item.ID)
+                        If node IsNot Nothing Then
+                            node.Remove()
+                            node = Nothing
+                        End If
+                    End If
+                    Trace.WriteLine("Deleting " & lvitem.Text & "...Done")
+                End If
+                lvitem.Remove()
+                lvitem = Nothing
+            Next
+
+            Trace.WriteLine("Deleting files...Done")
+
+            t.Abort()
+
+            refreshFileTransfersDeviceFiles()
+            refreshPlaylistDeviceFiles()
+        End If
+    End Sub
 
     Private Sub lvFileManagementDeviceFilesInFolder_ColumnClick(ByVal sender As Object, ByVal e As System.Windows.Forms.ColumnClickEventArgs) Handles lvFileManagementDeviceFilesInFolder.ColumnClick
         Dim lv As ListViewEx = CType(sender, ListView)
@@ -1351,32 +1413,6 @@ Public Class Main
         End If
 
         Return count
-    End Function
-    Private Function xfindTreeNode(ByRef root As TreeNode, ByRef theNode As TreeNode) As TreeNode
-        'search for the specified node in the child nodes of root and 
-        'return it. if not found, nothing is returned
-        'root is the node to search, theNode is the node we're looking for
-        Dim ret As TreeNode = Nothing
-
-        If root.Tag.Equals(theNode.Tag) Then
-            Return root
-        End If
-
-        For Each node As TreeNode In root.Nodes
-            If node.Tag.Equals(theNode.Tag) Then
-                ret = node 'check if the node is the folder we're looking for
-            ElseIf node.Nodes.Count > 0 Then
-                'else check the child nodes
-                ret = xfindTreeNode(node, theNode)
-            End If
-
-            'if we found it, return it
-            If ret IsNot Nothing Then
-                Return ret
-            End If
-        Next
-
-        Return ret
     End Function
     Private Function findTreeNodeByName(ByRef root As TreeNode, ByVal name As String) As TreeNode
         'searches for the first matching treenode with the given name
@@ -1630,19 +1666,7 @@ Public Class Main
 #End Region
 
  
-    Private Sub ShowDeviceIconToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles mnuOptionsShowDeviceIconToolStripMenuItem.Click
-        mnuOptionsShowDeviceIconToolStripMenuItem.Checked = Not mnuOptionsShowDeviceIconToolStripMenuItem.Checked
-        pboxDevIcon.Visible = mnuOptionsShowDeviceIconToolStripMenuItem.Checked
-    End Sub
-
-    Private Sub DeleteToolStripMenuItem1_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles lvFileManagementDeleteToolStripMenuItem.Click
-        lvFileManagementDeviceFilesInFolder_KeyDown(Nothing, New KeyEventArgs(Keys.Delete))
-    End Sub
-
-    Private Sub lvFileManagementDeviceFilesInFolder_KeyDown(ByVal sender As Object, ByVal e As System.Windows.Forms.KeyEventArgs) Handles lvFileManagementDeviceFilesInFolder.KeyDown
-        If e.KeyData = Keys.Delete Then
-            MsgBox("Deleting items is not yet supported. Use explorer to delete files")
-        End If
-    End Sub
+    
+    
 
 End Class

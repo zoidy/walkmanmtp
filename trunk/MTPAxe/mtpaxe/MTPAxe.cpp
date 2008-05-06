@@ -4,7 +4,7 @@
 #include "stdafx.h"
 #include "MTPAxe.h"
 
-#define MTPAXE_ver "MTPAxe by Dr. Zoidberg v0.3.9.1\n"
+#define MTPAXE_ver "MTPAxe by Dr. Zoidberg v0.3.9.3\n"
 
 //file for writing returnMsg output to file
 FILE *f=NULL;
@@ -122,10 +122,10 @@ int _tmain(int argc, _TCHAR* argv[])
 					setCurrentDevice(name);
 					printf("enumerating storage...");
 					deviceEnumerateStorage();
-					printf("\nEnter name of playlist to delete: ");
+					printf("\nEnter ID of playlist to delete: ");
 					wscanf(L"%\n",name);
 					wscanf(L"%[^\n]",name);
-					deviceDeletePlaylist(name);
+					storageDeleteStorage(name);
 					printf("enter 0 to exit:");
 					break;
 						  }
@@ -173,10 +173,10 @@ int _tmain(int argc, _TCHAR* argv[])
 					wscanf(L"%[^\n]",items);
 					deviceCreatePlaylist(buffer,items);
 					break;
-				case MTPAXE_M_DEVICE_DELETEPLAYLIST:
+				case MTPAXE_M_STORAGE_DELETE:
 					wscanf(L"%\n",buffer);	//stupid scanf... this weird thing is so the program will read 
 					wscanf(L"%[^\n]",buffer); //an entire line (incl. whitespace) but wait until a newline is encountered, instead of reading the stream imme
-					deviceDeletePlaylist(buffer);
+					storageDeleteStorage(buffer);
 					break;
 				case MTPAXE_M_PLAYLIST_ENUMERATECONTENTS:
 					wscanf(L"%\n",buffer);	
@@ -847,87 +847,6 @@ void deviceGetIcon(wchar_t *iconSavePath )
 }
 
 
-void storageGetSizeInfo(void)
-{	//this function gets the first root storage item
-	//of the currently specified device and returns the
-	//capacity and free space in the form <capacity>:<free space> in bytes
-	//the storage for the current device must have been previously enumerated or else
-	//this function won't work.  don't enumerate in this function since we dont want to 
-	//slow the app down with extra enumerations
-	//returns -1 on error
-
-	if(m_pIdvMgr==NULL){returnMsg("-1\n","storageGetSizeInfo: DeviceManager not initialized\n");return;}
-	if(pCurrDev==NULL){returnMsg("-1\n","storageGetSizeInfo: no active device is set\n");return;}
-	
-	IWMDMStorage3 *pStor=NULL;		//pointer to the root file (if found)
-
-	//get the first storage item (must have been prevously enumerated, see function comments)
-	arrStorageItem storItem;
-	storItem=arrStorageItems[0];
-	pStor=storItem.pStorage;
-	if (pStor==NULL){returnMsg("-1\n","storageGetSizeInfo: Error root getting storage\n");return;}
-	
-	IWMDMStorageGlobals *storGlb;
-	hr=pStor->GetStorageGlobals(&storGlb);
-	if FAILED(hr){returnMsg("-1\n","storageGetSizeInfo: Error getting storage globals\n");return;}
-
-	DWORD sizeLO;
-	DWORD sizeHI;
-	DWORD freeLO;
-	DWORD freeHI;
-	hr=storGlb->GetTotalSize(&sizeLO,&sizeHI);
-	if FAILED(hr){returnMsg("-1\n","storageGetSizeInfo: Error getting total size\n");return;}
-	hr=storGlb->GetTotalFree(&freeLO,&freeHI);
-	if FAILED(hr){returnMsg("-1\n","storageGetSizeInfo: Error getting free size\n");return;}
-
-	storGlb->Release();
-
-	unsigned long long size;
-	unsigned long long free;
-	size=sizeHI;
-	size=(size<<32)+sizeLO;
-	free=freeHI;
-	free=(free<<32)+freeLO;
-
-	char buffer[100];
-	sprintf(buffer,"%llu:%llu\n",size,free);
-	returnMsg(buffer);
-}
-
-void deviceDeletePlaylist(wchar_t *playlistName)
-{	//deltes the specified playlist on the device. 
-	//return 0 on sucesss, -1 on error
-
-	if(m_pIdvMgr==NULL){returnMsg("-1\n","deviceDeletePlaylist: DeviceManager not initialized\n");return;}
-	if(pCurrDev==NULL){returnMsg("-1\n","deviceDeletePlaylist: no active device is set\n");return;}
-
-
-	//find the desired playlist
-	IWMDMStorage3 *thePlaylist=NULL;
-	thePlaylist=findStorageFromPath(2,WMDM_FILE_ATTR_FILE,playlistName);
-	if(thePlaylist==NULL){returnMsg("-1\n","deviceDeletePlaylist: coudn't find the playlist\n");return;}
-
-	IWMDMStorage3 *pStor=NULL;
-	hr=thePlaylist->QueryInterface(IID_IWMDMStorage3,(void**)&pStor);
-	if(FAILED(hr)){returnMsg("-1\n","deviceDeletePlaylist: coudn't get storage interface to playlist\n");return;}
-	
-	//now have a storage interface the Playlist to delete
-
-	IWMDMStorageControl3 *pStorCtrl;
-	hr = pStor->QueryInterface(IID_IWMDMStorageControl3,(void**)&pStorCtrl);
-	if(FAILED(hr)){returnMsg("-1\n","deviceDeletePlaylist: could not get storage control interface of the playlist\n");return;}
-
-	//now have a storagecontrol3 interface for the playlist to delete
-
-	hr=pStorCtrl->Delete(WMDM_MODE_BLOCK,NULL);
-	if(FAILED(hr)){returnMsg("-1\n","deviceDeletePlaylist could not get delete playlist\n");return;}
-
-	pStorCtrl->Release();
-	pStor->Release();
-
-	returnMsg("0\n");
-
-}
 void deviceCreatePlaylist(wchar_t *playlistName,wchar_t *items)
 {	//creates a playlist on the device. items is a : separated list of persistentUniqueID's
 	//return 0 on sucesss, -1 on error
@@ -1065,9 +984,9 @@ void deviceCreatePlaylist_helper(wchar_t *items,unsigned long *pFoundItemsCount,
 		itemID=wcstok(NULL,L":");
 	}
 }
-void playlistEnumerateContents(wchar_t *playlistName)
-{	//enumerates the contents of a playlist.  returns a : separated list (in the same format as
-	//deviceEnumerateStorage) of the storage items contained in the playlist. -1 on error
+void playlistEnumerateContents(wchar_t *playlistID)
+{	//enumerates the contents of a playlist.  returns a : separated list of the PersistentUniqueID's
+	//of the storage items contained in the playlist. -1 on error
 
 	char buffer[MTPAXE_DEVICEENUMSTORAGE_MAXOUTPUTSTRINGSIZE];	//the return string
 	wchar_t tmpBuffer[50];										//buffer for each ID in the loop
@@ -1079,7 +998,7 @@ void playlistEnumerateContents(wchar_t *playlistName)
 
 	//find the desired playlist
 	IWMDMStorage3 *thePlaylist=NULL;
-	thePlaylist=findStorageFromPath(2,WMDM_FILE_ATTR_FILE,playlistName);
+	thePlaylist=findStorageFromID(playlistID);
 	if(thePlaylist==NULL){returnMsg("-1\n","playlistEnumerateContents: coudn't find the playlist\n");return;}
 
 	IWMDMStorage4 *pStor=NULL;
@@ -1142,6 +1061,87 @@ void playlistEnumerateContents(wchar_t *playlistName)
 	}
 
 	CoTaskMemFree(pReferencesArray);
+}
+void storageGetSizeInfo(void)
+{	//this function gets the first root storage item
+	//of the currently specified device and returns the
+	//capacity and free space in the form <capacity>:<free space> in bytes
+	//the storage for the current device must have been previously enumerated or else
+	//this function won't work.  don't enumerate in this function since we dont want to 
+	//slow the app down with extra enumerations
+	//returns -1 on error
+
+	if(m_pIdvMgr==NULL){returnMsg("-1\n","storageGetSizeInfo: DeviceManager not initialized\n");return;}
+	if(pCurrDev==NULL){returnMsg("-1\n","storageGetSizeInfo: no active device is set\n");return;}
+	
+	IWMDMStorage3 *pStor=NULL;		//pointer to the root file (if found)
+
+	//get the first storage item (must have been prevously enumerated, see function comments)
+	arrStorageItem storItem;
+	storItem=arrStorageItems[0];
+	pStor=storItem.pStorage;
+	if (pStor==NULL){returnMsg("-1\n","storageGetSizeInfo: Error root getting storage\n");return;}
+	
+	IWMDMStorageGlobals *storGlb;
+	hr=pStor->GetStorageGlobals(&storGlb);
+	if FAILED(hr){returnMsg("-1\n","storageGetSizeInfo: Error getting storage globals\n");return;}
+
+	DWORD sizeLO;
+	DWORD sizeHI;
+	DWORD freeLO;
+	DWORD freeHI;
+	hr=storGlb->GetTotalSize(&sizeLO,&sizeHI);
+	if FAILED(hr){returnMsg("-1\n","storageGetSizeInfo: Error getting total size\n");return;}
+	hr=storGlb->GetTotalFree(&freeLO,&freeHI);
+	if FAILED(hr){returnMsg("-1\n","storageGetSizeInfo: Error getting free size\n");return;}
+
+	storGlb->Release();
+
+	unsigned long long size;
+	unsigned long long free;
+	size=sizeHI;
+	size=(size<<32)+sizeLO;
+	free=freeHI;
+	free=(free<<32)+freeLO;
+
+	char buffer[100];
+	sprintf(buffer,"%llu:%llu\n",size,free);
+	returnMsg(buffer);
+}
+
+void storageDeleteStorage(wchar_t *storageID)
+{	//deltes the specified storage on the device. 
+	//return 0 on sucesss, -1 on error
+
+	if(m_pIdvMgr==NULL){returnMsg("-1\n","storageDeleteStorage: DeviceManager not initialized\n");return;}
+	if(pCurrDev==NULL){returnMsg("-1\n","storageDeleteStorage: no active device is set\n");return;}
+
+
+	//find the desired storage
+	IWMDMStorage3 *theStorage=NULL;
+	theStorage=findStorageFromID(storageID);
+	if(theStorage==NULL){returnMsg("-1\n","storageDeleteStorage: coudn't find the storage\n");return;}
+
+	IWMDMStorage3 *pStor=NULL;
+	hr=theStorage->QueryInterface(IID_IWMDMStorage3,(void**)&pStor);
+	if(FAILED(hr)){returnMsg("-1\n","storageDeleteStorage: coudn't get storage interface to storage\n");return;}
+	
+	//now have a storage3 interface the Storage to delete
+
+	IWMDMStorageControl3 *pStorCtrl;
+	hr = pStor->QueryInterface(IID_IWMDMStorageControl3,(void**)&pStorCtrl);
+	if(FAILED(hr)){returnMsg("-1\n","storageDeleteStorage: could not get storage control interface of the Storage to delete\n");return;}
+
+	//now have a storagecontrol3 interface for the storage to delete
+
+	hr=pStorCtrl->Delete(WMDM_MODE_BLOCK|WMDM_MODE_RECURSIVE,NULL );
+	if(FAILED(hr)){returnMsg("-1\n","storageDeleteStorage could not get delete storage\n");return;}
+
+	pStorCtrl->Release();
+	pStor->Release();
+
+	returnMsg("0\n");
+
 }
 void storageCreateFromFile(wchar_t *itemPath,wchar_t *destStorageID, int type,wchar_t *title, wchar_t *albumArtist, wchar_t *albumTitle, wchar_t *genre, wchar_t *year, wchar_t *trackNum)
 {	//copies a file to the specified destination storage.

@@ -1,6 +1,10 @@
 Change log <release date>:<WalkmanMTP version> - <MTPAxe version>
 
-29-arp-08: 0.3.9.1 - 0.3.9
+05-may-08: 0.3.9.3 - 0.3.9.3
+	-properly fixed a previously implemented workaround for wmp11
+	-now supports having playlists/files with the same name in the same directory
+	-can now delete files and folders from within the filemanagement tab
+29-apr-08: 0.3.9.1 - 0.3.9
 	-fixed small bug where the artist tag wouldn't be read sometimes. 
 	-other small changes.
 28-apr-08: 0.3.9 - 0.3.9
