@@ -71,8 +71,12 @@ int _tmain(int argc, _TCHAR* argv[])
 						wmdmAuthenticate();
 						enumerateDevices();
 						setCurrentDevice(L"WALKMAN");
-						deviceEnumerateStorage();
-						deviceEnumerateStorage();
+						
+						deviceGetType();
+						deviceGetFormatsSupport();
+						deviceGetAdditionalInfo();
+						//deviceEnumerateStorage();
+						//deviceEnumerateStorage();
 						//storageCreateFromFile(L"C:\\wmtp.mp3",L"{00000004-0000-0000-0000-000000000000}",0,L"aa bb",L"bsd s",L"1\u010Ec fsd",L"d1d sd",L"1888",L"2");
 						
 						//sprintf(s,"<1,295176,Storage Media>MUSIC");
@@ -92,7 +96,7 @@ int _tmain(int argc, _TCHAR* argv[])
 					gl_output_to_file=true;	//enable output to file
 					MTPAxe_version();
 					wmdmAuthenticate();
-					printf("Available devices:\n");
+					printf("Dump directory tree - Available devices:\n");
 					enumerateDevices();
 					wchar_t name[30];
 					printf("enter the device to enumerate (case sensitive): ");
@@ -114,11 +118,12 @@ int _tmain(int argc, _TCHAR* argv[])
 				case -101:{
 					//for trouble shooting purposes, deltes a playlist if nothing else can delete it
 					wmdmAuthenticate();
-					printf("Available devices:\n");
+					printf("Delete playlist - Available devices:\n");
 					enumerateDevices();
 					wchar_t name[30];
 					printf("enter the device to enumerate (case sensitive): ");
-					wscanf(L"%s",name);
+					wscanf(L"%\n",name);
+					wscanf(L"%[^\n]",name);
 					setCurrentDevice(name);
 					printf("enumerating storage...");
 					deviceEnumerateStorage();
@@ -149,10 +154,13 @@ int _tmain(int argc, _TCHAR* argv[])
 					setCurrentDevice(buffer);
 					break;
 				case MTPAXE_M_DEVICE_GETMANUFACTURER:
-					getDeviceManufacturer();
+					deviceGetManufacturer();
 					break;
 				case MTPAXE_M_DEVICE_GETTYPE:
-					getDeviceType();
+					deviceGetType();
+					break;
+				case MTPAXE_M_DEVICE_GETADDITIONALINFO:
+					deviceGetAdditionalInfo();
 					break;
 				case MTPAXE_M_DEVICE_ENUMERATESTORAGE:
 					deviceEnumerateStorage();
@@ -163,7 +171,7 @@ int _tmain(int argc, _TCHAR* argv[])
 					deviceGetIcon(buffer);
 					break;
 				case MTPAXE_M_DEVICE_GETSUPPORTEDFORMATS:
-					deviceGetSupportedFormats();
+					deviceGetFormatsSupport();
 					break;
 				case MTPAXE_M_DEVICE_CREATEPLAYLIST:
 					wchar_t items[MTPAXE_DEVICEENUMSTORAGE_MAXOUTPUTSTRINGSIZE];
@@ -235,44 +243,16 @@ int _tmain(int argc, _TCHAR* argv[])
 	CoUninitialize();
 }
 
-void returnMsg(char *value,char *errorMsg)
-{	//prints a return string to stdout and optionally, an error msg. to stderr
-	//note:if value represents an error value, an errorMsg description should always be included
-	if(gl_output_enabled)
-	{
-		printf("%s",value);
-		_flushall();
-		if(!errorMsg==NULL){
-			fprintf(stderr,"%s",errorMsg);
-			_flushall();
-		}
-	}
-
-	if(gl_output_to_file)
-	{
-		if(f==NULL)
-			f=fopen("MTPAxe_dump.txt", "w, ccs=UNICODE");
-		if(f==NULL)
-			printf("couldn't create dump file");
-		else{
-			_towchar theStringW(value);
-			fwprintf(f,L"%s",(LPWSTR)theStringW);
-			if(errorMsg!=NULL)
-			{
-				_towchar theErrorW(errorMsg);
-				fwprintf(f,L"error: %s",(LPWSTR)theErrorW);
-			}
-			_flushall();
-		}
-	}else//don't close the file until gl_output_to_file is set to false
-		if (f!=NULL){fclose(f);f=NULL;}
-	
-}
-
+//****************************************************************************
+//*                 misc. functions
+//****************************************************************************
 void MTPAxe_version(void)
 {	//prints out the version of the program
 	returnMsg(MTPAXE_ver);
 }
+//*******************************************************************************
+//*                          device manager control
+//*******************************************************************************
 int setCurrentDevice(wchar_t *deviceName)
 {	//sets the current device to deviceName. if called internally, this function returns 0 on success
 	//and -1 on error. 
@@ -372,30 +352,6 @@ void getDeviceCount(void)
 	}
 	
 }
-void getDeviceManufacturer(void)
-{/*gets the manufacturer of the currently specified device.
-   returns -1 on error
- */
-
-	if(m_pIdvMgr==NULL){returnMsg("-1\n","getDeviceManufacturer: DeviceManager not initialized\n");return;}
-	if(pCurrDev==NULL){returnMsg("-1\n","getDeviceManufacturer: no active device is set\n");return;}
-	
-	//we now have a reference to a dvevice
-	WCHAR wManName[MTPAXE_MAXFILENAMESIZE];
-	char buffer[MTPAXE_MAXFILENAMESIZE*2];
-	char buffer2[MTPAXE_MAXFILENAMESIZE*2];
-	size_t retr;
-	
-	hr = pCurrDev->GetManufacturer(wManName,256);
-	if SUCCEEDED(hr) 
-	{
-		wcstombs_s(&retr, buffer, MTPAXE_MAXFILENAMESIZE*2, wManName,_TRUNCATE);
-		sprintf(buffer2,"%s\n",buffer);
-		returnMsg(buffer2);
-	}else{
-		returnMsg("-1\n","getDeviceManufacturer:could not get device manufacturer\n");
-	}
-}
 void enumerateDevices(void)
 {/*returns a ':' separated string containing the names
    of all connected devices.  returns "-1" if there are no devices
@@ -466,14 +422,116 @@ void enumerateDevices(void)
 	pIEnumDev->Release();
 
 }
+//*******************************************************************************
+//*                          device management
+//*************************************************************************************
+void deviceGetManufacturer(void)
+{/*gets the manufacturer of the currently specified device.
+   returns -1 on error
+ */
 
+	if(m_pIdvMgr==NULL){returnMsg("-1\n","getDeviceManufacturer: DeviceManager not initialized\n");return;}
+	if(pCurrDev==NULL){returnMsg("-1\n","getDeviceManufacturer: no active device is set\n");return;}
+	
+	//we now have a reference to a dvevice
+	WCHAR wManName[MTPAXE_MAXFILENAMESIZE];
+	char buffer[MTPAXE_MAXFILENAMESIZE*2];
+	char buffer2[MTPAXE_MAXFILENAMESIZE*2];
+	size_t retr;
+	
+	hr = pCurrDev->GetManufacturer(wManName,256);
+	if SUCCEEDED(hr) 
+	{
+		wcstombs_s(&retr, buffer, MTPAXE_MAXFILENAMESIZE*2, wManName,_TRUNCATE);
+		sprintf(buffer2,"%s\n",buffer);
+		returnMsg(buffer2);
+	}else{
+		returnMsg("-1\n","getDeviceManufacturer:could not get device manufacturer\n");
+	}
+}
 
+void deviceGetAdditionalInfo(void)
+{	//gets more info on the device in a : separated list.  The name of the property is followed by the property value
+	//eg. FriendlyName:Walkman
+	if(m_pIdvMgr==NULL){returnMsg("-1\n","deviceGetNames: DeviceManager not initialized\n");return;}
+	if(pCurrDev==NULL){returnMsg("-1\n","deviceGetNames: no active device is set\n");return;}
 
+	IWMDMDevice3 *pDev3=NULL;
 
+	hr=pCurrDev->QueryInterface(IID_IWMDMDevice3,(void**)&pDev3);
+	if(pDev3==NULL){returnMsg("-1\n","deviceGetNames: couldn't get Device3 interface\n");return;}
 
-void getDeviceType(void)
+	PROPVARIANT pvFormatsSupported;
+	PropVariantInit(&pvFormatsSupported);
+
+	//initialize return buffer
+	wchar_t *buffer=(wchar_t*)CoTaskMemAlloc(700);
+	buffer[0]=0;
+	buffer[1]=0;
+
+	hr=pDev3->GetProperty(g_wszWMDMDeviceFriendlyName,&pvFormatsSupported);
+	if(hr==S_OK)
+	{
+		wcscat(buffer,L"DeviceFriendlyName:");
+		wcscat(buffer,(wchar_t*)pvFormatsSupported.bstrVal);
+		wcscat(buffer,L":");
+	}
+	hr=pDev3->GetProperty(g_wszWMDMDeviceModelName,&pvFormatsSupported);
+	if(hr==S_OK){
+		wcscat(buffer,L"DeviceModelName:");
+		wcscat(buffer,(wchar_t*)pvFormatsSupported.bstrVal);
+		wcscat(buffer,L":");
+	}
+	hr=pDev3->GetProperty(g_wszWMDMDeviceFirmwareVersion,&pvFormatsSupported);
+	if(hr==S_OK)
+	{
+		wcscat(buffer,L"DeviceFirmwareVersion:");
+		wcscat(buffer,(wchar_t*)pvFormatsSupported.uintVal );
+		wcscat(buffer,L":");
+	}
+	WMDMID sn;
+	unsigned char receivedMAC[WMDM_MAC_LENGTH];
+	hr=pDev3->GetSerialNumber(&sn,receivedMAC);
+	if(hr==S_OK)
+	{
+		wcscat(buffer,L"SerialNumber:");
+
+		wchar_t *cSN=(wchar_t*)CoTaskMemAlloc(2*sn.SerialNumberLength+2);
+		swprintf(cSN,2*sn.SerialNumberLength+2,L"%s",sn.pID);
+
+		wcscat(buffer,cSN);
+		wcscat(buffer,L":");
+
+		CoTaskMemFree(cSN);
+	}
+
+	wchar_t *cName=(wchar_t*)CoTaskMemAlloc(200);
+	hr=pDev3->GetCanonicalName(cName,100);
+	if(hr==S_OK)
+	{
+		wcscat(buffer,L"CanonicalName:");
+		wcscat(buffer,cName);
+		wcscat(buffer,L":");
+	}
+
+	//remove the trailiing ':'
+	buffer[wcslen(buffer)-1]=0;
+	wcscat(buffer,L"\n");
+
+	//convert to multibyte
+	size_t ret;
+	char *retstr=(char*)CoTaskMemAlloc(wcslen(buffer)*2+2);
+	wcstombs_s(&ret, retstr, wcslen(buffer)*2+2, buffer,_TRUNCATE);
+
+	returnMsg(retstr);
+
+	CoTaskMemFree(buffer);
+	CoTaskMemFree(retstr);
+	PropVariantClear(&pvFormatsSupported);
+}
+void deviceGetType(void)
 {/*gets the device attributes for the currently active device
-   returns a ';' separated list of the supported attributes, -1 on error
+   returns a ':' separated list of the supported attributes, -1 on error
  */
 
 
@@ -493,26 +551,158 @@ void getDeviceType(void)
 	{
 		//clear the return array
 		sprintf(attr,"");
-		if (tempDW & WMDM_DEVICE_TYPE_PLAYBACK)					strcat(attr,"WMDM_DEVICE_TYPE_PLAYBACK;");
-		if (tempDW & WMDM_DEVICE_TYPE_RECORD)					strcat(attr,"WMDM_DEVICE_TYPE_RECORD;");
-		if (tempDW & WMDM_DEVICE_TYPE_DECODE)					strcat(attr,"WMDM_DEVICE_TYPE_DECODE;");
-		if (tempDW & WMDM_DEVICE_TYPE_ENCODE)					strcat(attr,"WMDM_DEVICE_TYPE_ENCODE;");
-		if (tempDW & WMDM_DEVICE_TYPE_STORAGE)					strcat(attr,"WMDM_DEVICE_TYPE_STORAGE;");
-		if (tempDW & WMDM_DEVICE_TYPE_VIRTUAL)					strcat(attr,"WMDM_DEVICE_TYPE_VIRTUAL;");
-		if (tempDW & WMDM_DEVICE_TYPE_SDMI)						strcat(attr,"WMDM_DEVICE_TYPE_SDMI;");
-		if (tempDW & WMDM_DEVICE_TYPE_NONSDMI)					strcat(attr,"WMDM_DEVICE_TYPE_NONSDMI;");
-		if (tempDW & WMDM_DEVICE_TYPE_NONREENTRANT)				strcat(attr,"WMDM_DEVICE_TYPE_NONREENTRANT;");
-		if (tempDW & WMDM_DEVICE_TYPE_FILELISTRESYNC)			strcat(attr,"WMDM_DEVICE_TYPE_FILELISTRESYNC;");
-		if (tempDW & WMDM_DEVICE_TYPE_VIEW_PREF_METADATAVIEW)	strcat(attr,"WMDM_DEVICE_TYPE_VIEW_PREF_METADATAVIEW;");
+		if (tempDW & WMDM_DEVICE_TYPE_PLAYBACK)					strcat(attr,"WMDM_DEVICE_TYPE_PLAYBACK:");
+		if (tempDW & WMDM_DEVICE_TYPE_RECORD)					strcat(attr,"WMDM_DEVICE_TYPE_RECORD:");
+		if (tempDW & WMDM_DEVICE_TYPE_DECODE)					strcat(attr,"WMDM_DEVICE_TYPE_DECODE:");
+		if (tempDW & WMDM_DEVICE_TYPE_ENCODE)					strcat(attr,"WMDM_DEVICE_TYPE_ENCODE:");
+		if (tempDW & WMDM_DEVICE_TYPE_STORAGE)					strcat(attr,"WMDM_DEVICE_TYPE_STORAGE:");
+		if (tempDW & WMDM_DEVICE_TYPE_VIRTUAL)					strcat(attr,"WMDM_DEVICE_TYPE_VIRTUAL:");
+		if (tempDW & WMDM_DEVICE_TYPE_SDMI)						strcat(attr,"WMDM_DEVICE_TYPE_SDMI:");
+		if (tempDW & WMDM_DEVICE_TYPE_NONSDMI)					strcat(attr,"WMDM_DEVICE_TYPE_NONSDMI:");
+		if (tempDW & WMDM_DEVICE_TYPE_NONREENTRANT)				strcat(attr,"WMDM_DEVICE_TYPE_NONREENTRANT:");
+		if (tempDW & WMDM_DEVICE_TYPE_FILELISTRESYNC)			strcat(attr,"WMDM_DEVICE_TYPE_FILELISTRESYNC:");
+		if (tempDW & WMDM_DEVICE_TYPE_VIEW_PREF_METADATAVIEW)	strcat(attr,"WMDM_DEVICE_TYPE_VIEW_PREF_METADATAVIEW:");
+		//remove the traling :
+		attr[strlen(attr)-1]=0;
 		strcat(attr,"\n");
 		returnMsg(attr);
 	}else{
 		returnMsg("-1\n","getDeviceType: could not get device attributes\n");
 	}
 	
-	delete attr;
 }
 
+void deviceGetFormatsSupport(void)
+{	//returns a : separated list of the formats the device officially supports
+	//returns -1 on error ("" is returned for blank list)
+	if(m_pIdvMgr==NULL){returnMsg("-1\n","deviceGetFormatsSupport: DeviceManager not initialized\n");return;}
+	if(pCurrDev==NULL){returnMsg("-1\n","deviceGetFormatsSupport: no active device is set\n");return;}
+
+	IWMDMDevice3 *pDev3=NULL;
+
+	hr=pCurrDev->QueryInterface(IID_IWMDMDevice3,(void**)&pDev3);
+	if(pDev3==NULL){returnMsg("-1\n","deviceGetFormatsSupport: couldn't get Device3 interface\n");return;}
+
+	PROPVARIANT pvFormatsSupported;
+	PropVariantInit(&pvFormatsSupported);
+
+	hr=pDev3->GetProperty(g_wszWMDMFormatsSupported,&pvFormatsSupported);
+	if(hr!=S_OK)
+	{
+		returnMsg("-1\n","deviceGetFormatsSupport: coulnd't get property\n");
+		PropVariantClear(&pvFormatsSupported);
+		return;
+	}
+
+	SAFEARRAY *formatList=pvFormatsSupported.parray;
+	WMDM_FORMATCODE formatCode=WMDM_FORMATCODE_NOTUSED;
+	char *buffer=(char*)CoTaskMemAlloc(3000);
+	buffer[0]=0;
+
+	for(long iCap=0;iCap<(long)formatList->rgsabound[0].cElements;iCap++)
+	{
+		SafeArrayGetElement(formatList,&iCap,&formatCode);
+		if(formatCode!=WMDM_FORMATCODE_NOTUSED)
+		{
+			switch(formatCode)
+			{
+			case WMDM_FORMATCODE_MP3:{strcat(buffer,"WMDM_FORMATCODE_MP3");break;}
+			case 0xb984:{strcat(buffer,"WMDM_FORMATCODE_3GP");break;}
+			case WMDM_FORMATCODE_UNDEFINED  :{strcat(buffer,"WMDM_FORMATCODE_UNDEFINED");break;}
+		    case WMDM_FORMATCODE_ASSOCIATION:{strcat(buffer,"WMDM_FORMATCODE_ASSOCIATION");break;}
+			case WMDM_FORMATCODE_SCRIPT  :{strcat(buffer,"WMDM_FORMATCODE_SCRIPT");break;}
+			case WMDM_FORMATCODE_EXECUTABLE:{strcat(buffer,"WMDM_FORMATCODE_EXECUTABLE");break;}
+			case WMDM_FORMATCODE_TEXT:{strcat(buffer,"WMDM_FORMATCODE_TEXT");break;}
+		    case WMDM_FORMATCODE_HTML :{strcat(buffer,"WMDM_FORMATCODE_HTML");break;}
+			case WMDM_FORMATCODE_DPOF:{strcat(buffer,"WMDM_FORMATCODE_DPOF");break;}
+			case WMDM_FORMATCODE_AIFF :{strcat(buffer,"WMDM_FORMATCODE_AIFF");break;}
+			case WMDM_FORMATCODE_WAVE:{strcat(buffer,"WMDM_FORMATCODE_WAVE");break;}
+		    case WMDM_FORMATCODE_AVI :{strcat(buffer,"WMDM_FORMATCODE_AVI");break;}
+			case WMDM_FORMATCODE_MPEG:{strcat(buffer,"WMDM_FORMATCODE_MPEG");break;}
+			case WMDM_FORMATCODE_ASF:{strcat(buffer,"WMDM_FORMATCODE_ASF");break;}
+			case WMDM_FORMATCODE_RESERVED_FIRST:{strcat(buffer,"WMDM_FORMATCODE_RESERVED_FIRST");break;}
+		    case WMDM_FORMATCODE_RESERVED_LAST :{strcat(buffer,"WMDM_FORMATCODE_RESERVED_LAST");break;}
+			case WMDM_FORMATCODE_IMAGE_UNDEFINED:{strcat(buffer,"WMDM_FORMATCODE_IMAGE_UNDEFINED");break;}
+			case WMDM_FORMATCODE_IMAGE_EXIF :{strcat(buffer,"WMDM_FORMATCODE_IMAGE_EXIF");break;}
+			case WMDM_FORMATCODE_IMAGE_TIFFEP:{strcat(buffer,"WMDM_FORMATCODE_IMAGE_TIFFEP");break;}
+		    case WMDM_FORMATCODE_IMAGE_FLASHPIX:{strcat(buffer,"WMDM_FORMATCODE_IMAGE_FLASHPIX");break;}
+			case WMDM_FORMATCODE_IMAGE_BMP:{strcat(buffer,"WMDM_FORMATCODE_IMAGE_BMP");break;}
+			case WMDM_FORMATCODE_IMAGE_CIFF:{strcat(buffer,"WMDM_FORMATCODE_IMAGE_CIFF");break;}
+			case WMDM_FORMATCODE_IMAGE_GIF:{strcat(buffer,"WMDM_FORMATCODE_IMAGE_GIF");break;}
+		    case WMDM_FORMATCODE_IMAGE_JFIF:{strcat(buffer,"WMDM_FORMATCODE_IMAGE_JFIF");break;}
+			case WMDM_FORMATCODE_IMAGE_PCD:{strcat(buffer,"WMDM_FORMATCODE_IMAGE_PCD");break;}
+			case WMDM_FORMATCODE_IMAGE_PICT:{strcat(buffer,"WMDM_FORMATCODE_IMAGE_PICT");break;}
+			case WMDM_FORMATCODE_IMAGE_PNG:{strcat(buffer,"WMDM_FORMATCODE_IMAGE_PNG");break;}
+		    case WMDM_FORMATCODE_IMAGE_TIFF:{strcat(buffer,"WMDM_FORMATCODE_IMAGE_TIFF");break;}
+			case WMDM_FORMATCODE_IMAGE_TIFFIT:{strcat(buffer,"WMDM_FORMATCODE_IMAGE_TIFFIT");break;}
+			case WMDM_FORMATCODE_IMAGE_JP2:{strcat(buffer,"WMDM_FORMATCODE_IMAGE_JP2");break;}
+			case WMDM_FORMATCODE_IMAGE_JPX:{strcat(buffer,"WMDM_FORMATCODE_IMAGE_JPX");break;}
+		    case WMDM_FORMATCODE_IMAGE_RESERVED_FIRST:{strcat(buffer,"WMDM_FORMATCODE_IMAGE_RESERVED_FIRST");break;}
+			case WMDM_FORMATCODE_IMAGE_RESERVED_LAST:{strcat(buffer,"WMDM_FORMATCODE_IMAGE_RESERVED_LAST");break;}
+			case WMDM_FORMATCODE_UNDEFINEDFIRMWARE:{strcat(buffer,"WMDM_FORMATCODE_UNDEFINEDFIRMWARE");break;}
+			case WMDM_FORMATCODE_UNDEFINEDAUDIO:{strcat(buffer,"WMDM_FORMATCODE_UNDEFINEDAUDIO");break;}
+		    case WMDM_FORMATCODE_WMA:{strcat(buffer,"WMDM_FORMATCODE_WMA");break;}
+			case 0xb902:{strcat(buffer,"WMDM_FORMATCODE_OGG");break;}
+			case 0xb903:{strcat(buffer,"WMDM_FORMATCODE_AAC");break;}
+			case 0xb904:{strcat(buffer,"WMDM_FORMATCODE_AUDIBLE");break;}
+		    case 0xb906:{strcat(buffer,"WMDM_FORMATCODE_FLAC");break;}
+			case WMDM_FORMATCODE_UNDEFINEDVIDEO:{strcat(buffer,"WMDM_FORMATCODE_UNDEFINEDVIDEO");break;}
+			case WMDM_FORMATCODE_WMV:{strcat(buffer,"WMDM_FORMATCODE_WMV");break;}
+			case 0xb982:{strcat(buffer,"WMDM_FORMATCODE_MP4");break;}
+		    case 0xb983:{strcat(buffer,"WMDM_FORMATCODE_MP2");break;}
+			case WMDM_FORMATCODE_UNDEFINEDCOLLECTION:{strcat(buffer,"WMDM_FORMATCODE_UNDEFINEDCOLLECTION");break;}
+			case WMDM_FORMATCODE_ABSTRACTMULTIMEDIAALBUM:{strcat(buffer,"WMDM_FORMATCODE_ABSTRACTMULTIMEDIAALBUM");break;}
+			case WMDM_FORMATCODE_ABSTRACTIMAGEALBUM  :{strcat(buffer,"WMDM_FORMATCODE_ABSTRACTIMAGEALBUM ");break;}
+		    case WMDM_FORMATCODE_ABSTRACTAUDIOALBUM:{strcat(buffer,"WMDM_FORMATCODE_ABSTRACTAUDIOALBUM");break;}
+			case WMDM_FORMATCODE_ABSTRACTVIDEOALBUM:{strcat(buffer,"WMDM_FORMATCODE_ABSTRACTVIDEOALBUM");break;}
+			case WMDM_FORMATCODE_ABSTRACTAUDIOVIDEOPLAYLIST:{strcat(buffer,"WMDM_FORMATCODE_ABSTRACTAUDIOVIDEOPLAYLIST");break;}
+			case WMDM_FORMATCODE_ABSTRACTCONTACTGROUP:{strcat(buffer,"WMDM_FORMATCODE_ABSTRACTCONTACTGROUP");break;}
+		    case WMDM_FORMATCODE_ABSTRACTMESSAGEFOLDER:{strcat(buffer,"WMDM_FORMATCODE_ABSTRACTMESSAGEFOLDER");break;}
+			case WMDM_FORMATCODE_ABSTRACTCHAPTEREDPRODUCTION:{strcat(buffer,"WMDM_FORMATCODE_ABSTRACTCHAPTEREDPRODUCTION");break;}
+			case WMDM_FORMATCODE_WPLPLAYLIST :{strcat(buffer,"WMDM_FORMATCODE_WPLPLAYLIST");break;}
+			case WMDM_FORMATCODE_M3UPLAYLIST:{strcat(buffer,"WMDM_FORMATCODE_M3UPLAYLIST");break;}
+		    case WMDM_FORMATCODE_MPLPLAYLIST:{strcat(buffer,"WMDM_FORMATCODE_MPLPLAYLIST");break;}
+			case WMDM_FORMATCODE_ASXPLAYLIST:{strcat(buffer,"WMDM_FORMATCODE_ASXPLAYLIST");break;}
+			case WMDM_FORMATCODE_PLSPLAYLIST:{strcat(buffer,"WMDM_FORMATCODE_PLSPLAYLIST");break;}
+			case WMDM_FORMATCODE_UNDEFINEDDOCUMENT:{strcat(buffer,"WMDM_FORMATCODE_UNDEFINEDDOCUMENT");break;}
+		    case WMDM_FORMATCODE_ABSTRACTDOCUMENT:{strcat(buffer,"WMDM_FORMATCODE_ABSTRACTDOCUMENT");break;}
+			case 0xba82:{strcat(buffer,"WMDM_FORMATCODE_XMLDOCUMENT");break;}
+			case 0xba83:{strcat(buffer,"WMDM_FORMATCODE_MICROSOFTWORDDOCUMENT");break;}
+		    case 0xba84 :{strcat(buffer,"WMDM_FORMATCODE_MHTCOMPILEDHTMLDOCUMENT");break;}
+			case 0xba85:{strcat(buffer,"WMDM_FORMATCODE_MICROSOFTEXCELSPREADSHEET");break;}
+			case 0xba86:{strcat(buffer,"WMDM_FORMATCODE_MICROSOFTPOWERPOINTDOCUMENT");break;}
+			case WMDM_FORMATCODE_UNDEFINEDMESSAGE:{strcat(buffer,"WMDM_FORMATCODE_UNDEFINEDMESSAGE");break;}
+		    case WMDM_FORMATCODE_ABSTRACTMESSAGE:{strcat(buffer,"WMDM_FORMATCODE_ABSTRACTMESSAGE");break;}
+			case WMDM_FORMATCODE_UNDEFINEDCONTACT:{strcat(buffer,"WMDM_FORMATCODE_UNDEFINEDCONTACT");break;}
+			case WMDM_FORMATCODE_ABSTRACTCONTACT:{strcat(buffer,"WMDM_FORMATCODE_ABSTRACTCONTACT");break;}
+			case WMDM_FORMATCODE_VCARD2:{strcat(buffer,"WMDM_FORMATCODE_VCARD2");break;}
+		    case WMDM_FORMATCODE_VCARD3:{strcat(buffer,"WMDM_FORMATCODE_VCARD3");break;}
+			case WMDM_FORMATCODE_UNDEFINEDCALENDARITEM:{strcat(buffer,"WMDM_FORMATCODE_UNDEFINEDCALENDARITEM");break;}
+			case WMDM_FORMATCODE_ABSTRACTCALENDARITEM:{strcat(buffer,"WMDM_FORMATCODE_ABSTRACTCALENDARITEM");break;}
+			case WMDM_FORMATCODE_VCALENDAR1:{strcat(buffer,"WMDM_FORMATCODE_VCALENDAR1");break;}
+		    case 0xbe03 :{strcat(buffer,"WMDM_FORMATCODE_VCALENDAR2");break;}
+			case WMDM_FORMATCODE_UNDEFINEDWINDOWSEXECUTABLE:{strcat(buffer,"WMDM_FORMATCODE_UNDEFINEDWINDOWSEXECUTABLE");break;}
+			case 0xbe81:{strcat(buffer,"WMDM_FORMATCODE_MEDIA_CAST");break;}
+		    case 0xbe82:{strcat(buffer,"WMDM_FORMATCODE_SECTION");break;}
+			default:{
+							char code[10];
+							sprintf(code,"%x",formatCode);
+							strcat(buffer,code);
+						 }
+			}//end switch
+
+			strcat(buffer,":");
+		}//end if formatCode!=not used
+	}//end for
+
+	//remove the trailiing ':'
+	buffer[strlen(buffer)-1]=0;
+	strcat(buffer,"\n");
+
+	returnMsg(buffer);
+	PropVariantClear(&pvFormatsSupported);
+	CoTaskMemFree(buffer);
+}
 int deviceEnumerateStorage(void)
 {	/*gets the full tree of all storage objects in the current device, -1 on error
 	when called internally, it returns -1 on error, 0 for operation completed
@@ -861,7 +1051,7 @@ void deviceCreatePlaylist(wchar_t *playlistName,wchar_t *items)
 	{
 		//insert the playlists folder
 		//find the root strage (it will always be the first item in the storage array)
-		IWMDMStorage3 *rootStor=NULL;
+		IWMDMStorage4 *rootStor=NULL;
 		rootStor=arrStorageItems[0].pStorage;
 
 		//get the storage control
@@ -875,6 +1065,49 @@ void deviceCreatePlaylist(wchar_t *playlistName,wchar_t *items)
 							 NULL,
 							 (IWMDMStorage**)&getPlaylistStor);
 		if(FAILED(hr)){returnMsg("-1\n","deviceDeletePlaylist: coudn't create Playlists folder\n");return;}
+
+		//insert was successful. now add the new storage item to the array
+
+		IWMDMStorage4 *insertedStorage4=NULL;
+		hr=getPlaylistStor->QueryInterface(IID_IWMDMStorage4,(void**)&insertedStorage4);
+		if(FAILED(hr)){returnMsg("-1\n","deviceDeletePlaylist: couldn't get storage4 interface of inserted item\n");return;}
+
+		arrStorageItem plItem;
+		IWMDMMetaData *pMData;							//the metadata associated with the storage
+		LPCWSTR MDataAttribs[2];						//the metadata to retreive
+		MDataAttribs[0]=g_wszWMDMFileName;				//.
+		MDataAttribs[1]=g_wszWMDMPersistentUniqueID;	//.
+		WMDM_TAG_DATATYPE dtype;							//these vars are used for the metadata QueryByName call
+		BYTE *value;									//.
+		unsigned int len;								//.
+
+		hr=insertedStorage4->GetSpecifiedMetadata(2,MDataAttribs,&pMData);
+		hr=pMData->QueryByName(g_wszWMDMFileName,&dtype,&value,&len);
+		plItem.fileName=(wchar_t*)value;
+		hr=pMData->QueryByName(g_wszWMDMPersistentUniqueID,&dtype,&value,&len);
+		plItem.persistentUniqueID=(wchar_t*)value;
+		pMData->Release();
+
+		hr=rootStor->GetSpecifiedMetadata(2,MDataAttribs,&pMData);
+		hr=pMData->QueryByName(g_wszWMDMFileName,&dtype,&value,&len);
+		plItem.parentFileName=(wchar_t*)value;
+		pMData->Release();
+
+		plItem.level=1;
+		plItem.pStorage=insertedStorage4;
+		plItem.pStorageParent=rootStor;
+		plItem.size=0;
+		value=(BYTE*)CoTaskMemAlloc(2);value[0]=0;value[1]=0;
+		plItem.albumArtist=(wchar_t*)value;
+		value=(BYTE*)CoTaskMemAlloc(2);value[0]=0;value[1]=0;
+		plItem.albumTitle=(wchar_t*)value;
+		value=(BYTE*)CoTaskMemAlloc(2);value[0]=0;value[1]=0;
+		plItem.genre=(wchar_t*)value;
+		value=(BYTE*)CoTaskMemAlloc(2);value[0]=0;value[1]=0;
+		plItem.year=(wchar_t*)value;
+		plItem.type=WMDM_FILE_ATTR_FOLDER;
+		arrStorageItems[numStorageItems]=plItem;
+		numStorageItems++;
 
 		pRootCtrl->Release();
 	}
@@ -984,6 +1217,9 @@ void deviceCreatePlaylist_helper(wchar_t *items,unsigned long *pFoundItemsCount,
 		itemID=wcstok(NULL,L":");
 	}
 }
+//************************************************************************************
+//*                           Storage management
+//************************************************************************************
 void playlistEnumerateContents(wchar_t *playlistID)
 {	//enumerates the contents of a playlist.  returns a : separated list of the PersistentUniqueID's
 	//of the storage items contained in the playlist. -1 on error
@@ -1299,6 +1535,7 @@ void storageCreateFromFile(wchar_t *itemPath,wchar_t *destStorageID, int type,wc
 	plItem.albumArtist=albumArtist;
 	plItem.albumTitle=albumTitle;
 	plItem.genre=genre;
+	plItem.year=year;
 	if(type==0){plItem.type=WMDM_FILE_ATTR_FILE;}else{plItem.type=WMDM_FILE_ATTR_FOLDER;}
 	arrStorageItems[numStorageItems]=plItem;
 	numStorageItems++;
@@ -1311,128 +1548,44 @@ void storageCreateFromFile(wchar_t *itemPath,wchar_t *destStorageID, int type,wc
 	sprintf(ret,"%s\n",t);
 	returnMsg(ret);
 }
-/*TODO*/ 
-void deviceGetSupportedFormats(void)
-{	//gets the supported file/audio/video/playlist formats of the device
-	//returns -1 on error, else a string containing the number which has
-	//the formats (in a bitmask)
 
-	if(m_pIdvMgr==NULL){returnMsg("-1\n","deviceGetSupportedFormats: DeviceManager not initialized\n");return;}
-	if(pCurrDev==NULL){returnMsg("-1\n","deviceGetSupportedFormats: no active device is set\n");return;}
+//************************************************************************************************
+//*                              Internal functions
+//************************************************************************************************
+void returnMsg(char *value,char *errorMsg)
+{	//prints a return string to stdout and optionally, an error msg. to stderr
+	//note:if value represents an error value, an errorMsg description should always be included
+	if(gl_output_enabled)
+	{
+		printf("%s",value);
+		_flushall();
+		if(!errorMsg==NULL){
+			fprintf(stderr,"%s",errorMsg);
+			_flushall();
+		}
+	}
 
-	////_WAVEFORMATEX *pAudioFormat;
-	////unsigned int audioFormatCount;
-	////_VIDEOINFOHEADER *pVideoFormat;
-	////unsigned int videoFormatCount;
-	////WMFILECAPABILITIES *pFileFormat;
-	////unsigned int fileFormatCount;
-	////LPWSTR *pMIMEFormats;
-	////unsigned int mimeFormatCount;
-
-	////hr=pCurrDev->GetFormatSupport2(WMDM_GET_FORMAT_SUPPORT_AUDIO |
-	////							   WMDM_GET_FORMAT_SUPPORT_VIDEO |
-	////							   WMDM_GET_FORMAT_SUPPORT_FILE,
-	////							   &pAudioFormat,&audioFormatCount,
-	////							   &pVideoFormat,&videoFormatCount,
-	////							   &pFileFormat,&fileFormatCount);
-	////hr=pCurrDev->GetFormatSupport(&pAudioFormat,&audioFormatCount,
-	////							  &pMIMEFormats,&mimeFormatCount);
-	//if FAILED(hr){returnMsg("-1\n","deviceGetSupportedFormats: could not get supported formats\n");return;}
-
-	////loop through audio formats
-	//for (int i=0;i<audioFormatCount;i++)
-	//{	
-	//	//PrintWaveFormatGuid(
-	//	//pAudioFormat[0].wFormatTag 
-	//}
-	//char buffer[2510];
-	//sprintf(buffer,"%d",hr);
-
-	//strcat(buffer,"\n");
-	//returnMsg(buffer);
+	if(gl_output_to_file)
+	{
+		if(f==NULL)
+			f=fopen("MTPAxe_dump.txt", "w, ccs=UNICODE");
+		if(f==NULL)
+			printf("couldn't create dump file");
+		else{
+			_towchar theStringW(value);
+			fwprintf(f,L"%s",(LPWSTR)theStringW);
+			if(errorMsg!=NULL)
+			{
+				_towchar theErrorW(errorMsg);
+				fwprintf(f,L"error: %s",(LPWSTR)theErrorW);
+			}
+			_flushall();
+		}
+	}else//don't close the file until gl_output_to_file is set to false
+		if (f!=NULL){fclose(f);f=NULL;}
+	
 }
-void deviceGetSupportedFormats_helper(WMDM_FORMATCODE *fc,char *buffer)
-{	//finds the string associated with formatCode and appends it to buffer
-	if (*fc==WMDM_FORMATCODE_MP3) strcat(buffer,"WMDM_FORMATCODE_ALLIMAGES");
-//WMDM_FORMATCODE_UNDEFINED  
-//WMDM_FORMATCODE_ASSOCIATION 
-//WMDM_FORMATCODE_SCRIPT  
-//WMDM_FORMATCODE_EXECUTABLE 
-//WMDM_FORMATCODE_TEXT  
-//WMDM_FORMATCODE_HTML  
-//WMDM_FORMATCODE_DPOF  
-//WMDM_FORMATCODE_AIFF 
-//WMDM_FORMATCODE_WAVE  
-//WMDM_FORMATCODE_MP3  
-//WMDM_FORMATCODE_AVI 
-//WMDM_FORMATCODE_MPEG 
-//WMDM_FORMATCODE_ASF 
-//WMDM_FORMATCODE_RESERVED_FIRST  
-//WMDM_FORMATCODE_RESERVED_LAST 
-//WMDM_FORMATCODE_IMAGE_UNDEFINED  
-//WMDM_FORMATCODE_IMAGE_EXIF  
-//WMDM_FORMATCODE_IMAGE_TIFFEP  
-//WMDM_FORMATCODE_IMAGE_FLASHPIX  
-//WMDM_FORMATCODE_IMAGE_BMP  
-//WMDM_FORMATCODE_IMAGE_CIFF 
-//WMDM_FORMATCODE_IMAGE_GIF  
-//WMDM_FORMATCODE_IMAGE_JFIF  
-//WMDM_FORMATCODE_IMAGE_PCD  
-//WMDM_FORMATCODE_IMAGE_PICT  
-//WMDM_FORMATCODE_IMAGE_PNG  
-//WMDM_FORMATCODE_IMAGE_TIFF  
-//WMDM_FORMATCODE_IMAGE_TIFFIT  
-//WMDM_FORMATCODE_IMAGE_JP2 
-//WMDM_FORMATCODE_IMAGE_JPX 
-//WMDM_FORMATCODE_IMAGE_RESERVED_FIRST 
-//WMDM_FORMATCODE_IMAGE_RESERVED_LAST  
-//WMDM_FORMATCODE_UNDEFINEDFIRMWARE  
-//WMDM_FORMATCODE_WINDOWSIMAGEFORMAT 
-//WMDM_FORMATCODE_UNDEFINEDAUDIO 
-//WMDM_FORMATCODE_WMA  
-//WMDM_FORMATCODE_OGG 
-//WMDM_FORMATCODE_AAC 
-//WMDM_FORMATCODE_AUDIBLE 
-//WMDM_FORMATCODE_FLAC 
-//WMDM_FORMATCODE_UNDEFINEDVIDEO  
-//WMDM_FORMATCODE_WMV 
-//WMDM_FORMATCODE_MP4 
-//WMDM_FORMATCODE_MP2
-//WMDM_FORMATCODE_UNDEFINEDCOLLECTION 
-//WMDM_FORMATCODE_ABSTRACTMULTIMEDIAALBUM 
-//WMDM_FORMATCODE_ABSTRACTIMAGEALBUM  
-//WMDM_FORMATCODE_ABSTRACTAUDIOALBUM 
-//WMDM_FORMATCODE_ABSTRACTVIDEOALBUM  
-//WMDM_FORMATCODE_ABSTRACTAUDIOVIDEOPLAYLIST 
-//WMDM_FORMATCODE_ABSTRACTCONTACTGROUP
-//WMDM_FORMATCODE_ABSTRACTMESSAGEFOLDER  
-//WMDM_FORMATCODE_ABSTRACTCHAPTEREDPRODUCTION 
-//WMDM_FORMATCODE_WPLPLAYLIST  
-//WMDM_FORMATCODE_M3UPLAYLIST  
-//WMDM_FORMATCODE_MPLPLAYLIST  
-//WMDM_FORMATCODE_ASXPLAYLIST  
-//WMDM_FORMATCODE_PLSPLAYLIST  
-//WMDM_FORMATCODE_UNDEFINEDDOCUMENT 
-//WMDM_FORMATCODE_ABSTRACTDOCUMENT 
-//WMDM_FORMATCODE_XMLDOCUMENT 
-//WMDM_FORMATCODE_MICROSOFTWORDDOCUMENT
-//WMDM_FORMATCODE_MHTCOMPILEDHTMLDOCUMENT 
-//WMDM_FORMATCODE_MICROSOFTEXCELSPREADSHEET 
-//WMDM_FORMATCODE_MICROSOFTPOWERPOINTDOCUMENT 
-//WMDM_FORMATCODE_UNDEFINEDMESSAGE 
-//WMDM_FORMATCODE_ABSTRACTMESSAGE  
-//WMDM_FORMATCODE_UNDEFINEDCONTACT 
-//WMDM_FORMATCODE_ABSTRACTCONTACT 
-//WMDM_FORMATCODE_VCARD2  
-//WMDM_FORMATCODE_VCARD3  
-//WMDM_FORMATCODE_UNDEFINEDCALENDARITEM 
-//WMDM_FORMATCODE_ABSTRACTCALENDARITEM 
-//WMDM_FORMATCODE_VCALENDAR1
-//WMDM_FORMATCODE_VCALENDAR2
-//WMDM_FORMATCODE_UNDEFINEDWINDOWSEXECUTABLE 
-//WMDM_FORMATCODE_MEDIA_CAST 
-//WMDM_FORMATCODE_SECTION 
-}
+
 IWMDMDevice3 * findDevice(wchar_t* deviceName)
 {	//returns a device object based on the provided device name. returns NULL if not found
 	//the value is returned through the device pointer passed in

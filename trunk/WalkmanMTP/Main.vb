@@ -1,6 +1,6 @@
 ﻿Imports WalkmanMTP.ListViewDnD
 Public Class Main
-    Private axe As MTPAxe
+    Public axe As MTPAxe
 
     'used for keeping track of the complete file listing on the device
     Private fullFileListing As TreeView
@@ -119,7 +119,7 @@ Public Class Main
             MessageBox.Show("No device selected. Please select a device from the list and then retry.", "Walkman MTP", MessageBoxButtons.OK, MessageBoxIcon.Exclamation)
             Exit Sub
         End If
-        MsgBox("To Do")
+        DeviceDetails.Show()
     End Sub
     Private Sub btnRefreshDevices_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnRefreshDevices.Click
         initAndRefreshApp()
@@ -209,7 +209,11 @@ Public Class Main
         Me.cmbDevices.Items.AddRange(devarr)
 
         'select the walkman device automatically
-        Me.cmbDevices.SelectedItem = "WALKMAN"
+        If Me.cmbDevices.Items.Contains("WALKMAN") Then
+            Me.cmbDevices.SelectedItem = "WALKMAN"
+        ElseIf Me.cmbDevices.Items.Contains("MTP Device") Then
+            Me.cmbDevices.SelectedItem = "MTP Device"
+        End If
 
         t.Abort()
 

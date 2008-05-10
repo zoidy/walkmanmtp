@@ -10,6 +10,8 @@
     Private Const MTPAXE_M_DEVICE_GETMANUFACTURER = 20
     Private Const MTPAXE_M_DEVICE_GETTYPE = 21
     Private Const MTPAXE_M_DEVICE_ENUMERATESTORAGE = 22
+    Private Const MTPAXE_M_DEVICE_GETSUPPORTEDFORMATS = 23
+    Private Const MTPAXE_M_DEVICE_GETADDITIONALINFO = 24
     Private Const MTPAXE_M_DEVICE_GETICON = 25
     Private Const MTPAXE_M_DEVICE_CREATEPLAYLIST = 26
     Private Const MTPAXE_M_PLAYLIST_ENUMERATECONTENTS = 30
@@ -88,6 +90,7 @@
         'now wait for the return value to be sent to the buffer
         Return sIn.ReadLine
     End Function
+
 
 #Region "Device manager functions"
     Public Function getDeviceManagerRevision() As String
@@ -241,6 +244,42 @@
 
         Return s
     End Function
+    Public Function getDeviceAdditionalInfo() As String
+        'this function returns "" on error
+        'MTPAxe returns -1 on error, revision number if no error
+
+        Dim s As String
+
+        If axe Is Nothing Then Throw New Exception("MTPAxe is not started")
+
+        sOut.WriteLine(MTPAXE_M_DEVICE_GETADDITIONALINFO)
+        s = sIn.ReadLine
+
+        If s = "-1" Then
+            Trace.WriteLine(sErr.ReadLine)
+            Return ""
+        End If
+
+        Return s
+    End Function
+    Public Function getDeviceSupportedFormats() As String
+        'this function returns "" on error
+        'MTPAxe returns -1 on error, revision number if no error
+
+        Dim s As String
+
+        If axe Is Nothing Then Throw New Exception("MTPAxe is not started")
+
+        sOut.WriteLine(MTPAXE_M_DEVICE_GETSUPPORTEDFORMATS)
+        s = sIn.ReadLine
+
+        If s = "-1" Then
+            Trace.WriteLine(sErr.ReadLine)
+            Return ""
+        End If
+
+        Return s
+    End Function
 
     '*****************************************************************************************
     'enumerate storage must be called at least once prior to using the following functions
@@ -273,52 +312,6 @@
         Return theTreeView
     End Function
 
-    'Private Function findTreeNode(ByRef root As TreeNode, ByVal nName As String, ByVal nType As Integer, ByVal nLevel As Integer) As TreeNode
-    '    'searches for a node given a starting root node.  the search includes the root node (not just the children)
-    '    'if the node is not found, Nothing is returned
-
-    '    Dim nodeLevel As Integer, nodeType As Integer, item As StorageItem
-
-    '    'first, check to see if the root node matches the node we're loking for
-    '    'get node attributes
-    '    item = CType(root.Tag, StorageItem)
-    '    nodeLevel = item.DirectoryDepth
-    '    nodeType = item.StorageType
-    '    If root.Text = nName AndAlso nodeLevel = nLevel AndAlso nodeType & nType Then
-    '        'were done
-    '        Return root
-    '    End If
-
-    '    For Each tn As TreeNode In root.Nodes
-    '        'get node attributes
-    '        item = CType(tn.Tag, StorageItem)
-    '        nodeLevel = item.DirectoryDepth
-    '        nodeType = item.StorageType
-
-    '        'check for matches 
-    '        If tn.Text = nName AndAlso nodeLevel = nLevel AndAlso nodeType & nType Then
-    '            'were done
-    '            Return tn
-    '        Else
-    '            'no match. check if it's a folder and make recursive cal
-    '            If nodeType & MTPAxe.WMDM_FILE_ATTR_FOLDER Then
-    '                Dim foundNode As TreeNode
-    '                foundNode = findTreeNode(tn, nName, nType, nLevel)
-    '                'if the node was found in the subtree, then were done
-    '                If Not foundNode Is Nothing Then
-    '                    Return foundNode
-    '                End If
-
-    '            End If
-
-    '        End If
-
-    '    Next
-
-    '    'if we reach here, no matching nodes were found in subtree
-    '    Return Nothing
-
-    'End Function
     Private Function findTreeNodeByID(ByRef root As TreeNode, ByVal ID As String) As TreeNode
         'searches for the first matching treenode with the given PersistentUniqueID
         Dim ret As TreeNode = Nothing

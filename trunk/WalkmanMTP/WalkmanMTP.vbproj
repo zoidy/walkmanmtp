@@ -63,6 +63,12 @@
     <Import Include="WalkmanMTP.MultiSelectTreeview" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DeviceDetails.Designer.vb">
+      <DependentUpon>DeviceDetails.vb</DependentUpon>
+    </Compile>
+    <Compile Include="DeviceDetails.vb">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="ListViewEx.vb">
       <SubType>Component</SubType>
     </Compile>
@@ -108,6 +114,10 @@
     <Compile Include="WinAPI.vb" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="DeviceDetails.resx">
+      <DependentUpon>DeviceDetails.vb</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
     <EmbeddedResource Include="Main.resx">
       <DependentUpon>Main.vb</DependentUpon>
       <SubType>Designer</SubType>
