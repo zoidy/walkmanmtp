@@ -20,6 +20,7 @@
 #define MTPAXE_M_DEVICE_GETTYPE 21
 #define MTPAXE_M_DEVICE_ENUMERATESTORAGE 22
 #define MTPAXE_M_DEVICE_GETSUPPORTEDFORMATS 23
+#define MTPAXE_M_DEVICE_GETADDITIONALINFO 24
 #define MTPAXE_M_DEVICE_GETICON 25
 #define MTPAXE_M_DEVICE_CREATEPLAYLIST 26
 #define MTPAXE_M_PLAYLIST_ENUMERATECONTENTS 30
@@ -38,18 +39,19 @@ void MTPAxe_version(void);
 int setCurrentDevice(wchar_t*);
 void getDeviceManagerRevision(void);
 void getDeviceCount(void);
-void getDeviceManufacturer(void);
-void getDeviceType(void);
+void deviceGetManufacturer(void);
+void deviceGetAdditionalInfo(void);
+void deviceGetType(void);
 void enumerateDevices(void);
 void wmdmAuthenticate(void);
 int deviceEnumerateStorage(void);
 void deviceGetIcon(wchar_t*);
-void deviceGetSupportedFormats(void);
 void deviceCreatePlaylist(wchar_t *,wchar_t *);
 void storageDeleteStorage(wchar_t*);
 void storageGetSizeInfo(void);
 void storageCreateFromFile(wchar_t*,wchar_t*,int,wchar_t*,wchar_t*,wchar_t*,wchar_t*,wchar_t*,wchar_t*);
 void playlistEnumerateContents(wchar_t*);
+void deviceGetFormatsSupport(void);
 
 
 //these functions are internal only
@@ -59,4 +61,3 @@ IWMDMDevice3 * findDevice(wchar_t*);
 void deviceCreatePlaylist_helper(wchar_t*,unsigned long*,IWMDMStorage**);
 void deviceEnumerateStorage_helper(IWMDMEnumStorage*,IWMDMStorage4*,int);
 void dumpStorageItemsArray(void);
-void deviceGetSupportedFormats_helper(WMDM_FORMATCODE *,wchar_t *);
