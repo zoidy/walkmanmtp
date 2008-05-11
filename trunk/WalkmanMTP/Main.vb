@@ -219,6 +219,8 @@ Public Class Main
 
     End Sub
     Private Sub initSelectedDevice(ByVal devName As String)
+        DeviceConnected = False
+
         If axe Is Nothing Then
             Trace.WriteLine("initSelectedDevice: MTPAxe is not initialized")
             MsgBox("initSelectedDevice: MTPAxe is not initialized", MsgBoxStyle.Critical Or MsgBoxStyle.ApplicationModal)
@@ -247,6 +249,7 @@ Public Class Main
             refreshPlaylistDeviceFiles()
             refreshFileTransfersDeviceFiles()
             refreshPlaylistsList()
+            refreshAlbumsList()
 
             Splash.setText("Reading device info")
             Me.lblManufacturer.Text = axe.getDeviceManufacturer()
@@ -277,6 +280,8 @@ Public Class Main
             Else
                 Trace.WriteLine("initSelectedDevice: device icon not found")
             End If
+
+            DeviceConnected = True
         Catch ex As Exception
             Trace.WriteLine("initSelectedDevice: Error initializing '" & devName & "'" & ":" & ex.Message & " in " & ex.Source)
             MsgBox("Error initializing '" & devName & "'" & vbCrLf & ex.Message & " in " & ex.Source, MsgBoxStyle.Critical Or MsgBoxStyle.ApplicationModal)
@@ -284,7 +289,12 @@ Public Class Main
 
         Cursor.Current = Cursors.Default
         t.Abort()
-        DeviceConnected = True
+
+        If DeviceConnected = False Then
+            If MsgBox("There was an error initializing " & devName & ". Continue at your own risk", MsgBoxStyle.Critical Or MsgBoxStyle.YesNo) = MsgBoxResult.Yes Then
+                DeviceConnected = True
+            End If
+        End If
 
     End Sub
 
@@ -896,6 +906,259 @@ Public Class Main
             End If
         End If
     End Sub
+#End Region
+
+#Region "Albums"
+    Private Sub refreshAlbumsList()
+        'note: this function only uses the fullFileListing tree for finding the playlists
+        'not for finding the playlist contents.  This is because the fullFileListing tree
+        'does not contain the reference information contained inside of the playlists.
+        'As a result it is still necessary to call some enumeration functions on the device
+
+        Trace.WriteLine("Refreshing albums list...")
+
+        'let the user know were busy
+        Dim t As New Threading.Thread(New Threading.ThreadStart(AddressOf Splash.ShowDialog))
+        t.SetApartmentState(Threading.ApartmentState.MTA)
+        If Not Splash.Visible Then
+            t.Start()
+            Splash.setTitle(Me.cmbDevices.Text)
+        End If
+
+        Splash.setText("Getting albums")
+
+        'originalPlaylists = New Collection
+
+        'create a blacnk playlist by default
+        'deleteAllPlaylists()
+        'createNewPlaylist("New Playlist", False)
+
+        Dim plFldr As TreeNode
+        plFldr = findTreeNodeByName(fullFileListing.Nodes(0), "Albums")
+        If plFldr Is Nothing Then
+            Trace.WriteLine("Error refreshing albums - Albums folder not found")
+            Exit Sub
+        End If
+        If plFldr.Nodes.Count = 0 Then
+            Trace.WriteLine("Error refreshing albums - no albums found")
+            Exit Sub
+        End If
+
+        Dim lv As ListViewEx
+        Dim lvItem As ListViewItem
+        Dim plItem As TreeNode
+        Dim item As StorageItem
+        Dim strIDs() As String
+        For Each node As TreeNode In plFldr.Nodes
+            lvItem = New ListViewItem
+            item = CType(node.Tag, StorageItem)
+            If item IsNot Nothing Then
+                lvItem.Text = node.Text
+                lvItem.SubItems.Add(item.AlbumArtist)
+                lvItem.Tag = node.Tag
+                Me.lvAlbumsList.Items.Add(lvItem)
+                'strIDs = axe.getPlaylistContentsIDs(CType(node.Tag, StorageItem).ID)
+                'If strIDs IsNot Nothing Then
+                'End If
+                'strIDs = Nothing
+            End If
+            item = Nothing
+        Next
+
+        t.Abort()
+        Trace.WriteLine("Refreshing albums...complete")
+    End Sub
+
+    Private Sub lvAlbumsList_DragEnter(ByVal sender As Object, ByVal e As System.Windows.Forms.DragEventArgs) Handles lvAlbumsList.DragEnter
+        Me.Activate()
+        e.Effect = e.AllowedEffect
+    End Sub
+    Private Sub lvAlbumsList_DragDrop(ByVal sender As Object, ByVal e As System.Windows.Forms.DragEventArgs) Handles lvAlbumsList.DragDrop
+        If Not DeviceConnected Then
+            'MessageBox.Show("No device selected. Please select a device from the list and then retry.", "Walkman MTP", MessageBoxButtons.OK, MessageBoxIcon.Exclamation)
+            'Exit Sub
+        End If
+
+        Dim t As New Threading.Thread(New Threading.ThreadStart(AddressOf Splash.ShowDialog))
+        t.SetApartmentState(Threading.ApartmentState.MTA)
+        If Not Splash.Visible Then t.Start()
+        Splash.setText("Building album list")
+        Splash.setTitle("Building album list..")
+
+        'check to see if files and folders are being dragged from explorer
+        Dim draggedFiles() As String = e.Data.GetData(DataFormats.FileDrop)
+        If draggedFiles IsNot Nothing Then
+            lvAlbumslist_DragDrop_helper(draggedFiles)
+        End If
+
+        t.Abort()
+    End Sub
+    
+    Private Sub lvAlbumslist_DragDrop_helper(ByVal draggedFiles() As String)
+        'the albums should be in the leaves of the folder(s) dragged in.
+        'i.e. if a folder has no subfolders, it is considered an album and all
+        'of the files in the folder will be added to the album
+
+        Dim albums As TreeView
+        Trace.WriteLine("Building albums list")
+        albums = buildAlbumsListFromDirectory(draggedFiles)
+        If albums Is Nothing Then
+            MsgBox("No albums found")
+            Trace.WriteLine("Building albums list - no albums found")
+            Exit Sub
+        End If
+
+        'add the returned albums to the listview
+        Dim imglist As New ImageList
+        imglist.Images.Add("+", My.Resources.Album_entryWithArt)
+        imglist.Images.Add("-", My.Resources.Album_entryWithoutArt)
+        Me.lvAlbumsList.SmallImageList = imglist
+
+        For Each node As TreeNode In albums.Nodes
+            Dim lvitem As New ListViewItem
+            Dim metadata As StorageItem
+
+            metadata = CType(node.Tag, StorageItem)
+
+            lvitem.Text = metadata.AlbumTitle
+            lvitem.SubItems.Add(metadata.AlbumArtist)
+            lvitem.SubItems.Add(metadata.Year)
+            lvitem.SubItems.Add(metadata.Genre)
+            If metadata.AlbumArtPath = "" Then
+                lvitem.ImageKey = "-"
+            Else
+                lvitem.ImageKey = "+"
+            End If
+            Me.lvAlbumsList.Items.Add(lvitem)
+
+            'if the group doesn't exist create it
+            Dim theGroup As ListViewGroup
+            theGroup = Me.lvAlbumsList.Groups(metadata.AlbumArtist)
+            If theGroup Is Nothing Then
+                theGroup = New ListViewGroup
+                theGroup.Name = metadata.AlbumArtist
+                theGroup.Header = metadata.AlbumArtist
+                Me.lvAlbumsList.Groups.Add(theGroup)
+            End If
+            theGroup.Items.Add(lvitem)
+
+        Next
+        'since we're grouping by artist name, can hide the artist column
+        Me.lvAlbumsList.Columns(1).Width = 0
+
+        For Each node As TreeNode In albums.Nodes
+            Me.TreeView1.Nodes.Add(node.Clone)
+        Next
+        albums.Dispose()
+        albums = Nothing
+    End Sub
+    Private Function buildAlbumsListFromDirectory(ByVal dirPaths() As String) As TreeView
+        'builds a flat list of albums starting from the possibly nested list of directories dirPaths
+        'the returned treeview will have 1 node for each album and each of those nodes will contain N 
+        'subnodes which are the files themselves.  The treeview will have a directory depth of 1 (starting
+        'from 0 for the root). empty directories will not be added
+
+        Dim tv As TreeView = New TreeView
+        Try
+            For Each Dir As String In dirPaths
+                'first check to see if dir is really a directory. if it isn't ignore it
+                If IO.Directory.Exists(Dir) Then
+                    'if it is a directory, check to see if it is a leaf
+                    Dim subDirs() As String = IO.Directory.GetDirectories(Dir)
+                    If subDirs.Length = 0 Then
+                        'Dir is a leaf so count it as an album
+                        Dim albumMetadata As New StorageItem
+                        Dim album As New TreeNode
+
+                        'get files in the directory
+                        Dim files() As String = IO.Directory.GetFiles(Dir)
+                        Array.Sort(files)
+
+                        Dim firstFileFound As Boolean = False  'use the first valid file in the directory to set the album metadata
+                        Dim albumArtFound As Boolean = False 'use the first jpg in the directory for the album art
+                        For Each file In files
+                            Try
+                                Dim fileMetadata As New StorageItem
+                                Dim song As New TreeNode
+
+                                'the first thing to do, is check for album art. the first jpg file will be taken
+                                'as the cover.
+                                If Not albumArtFound Then
+                                    If IO.Path.GetExtension(file) = ".jpg" Or IO.Path.GetExtension(file) = ".jpeg" Then
+                                        albumMetadata.AlbumArtPath = file
+                                        albumArtFound = True
+                                    End If
+                                End If
+                                'note the file extension must be correct or taglib won't properly recognize the file
+                                Dim tagReader As TagLib.File = TagLib.File.Create(file)
+                                fileMetadata.Title = tagReader.Tag.Title
+                                fileMetadata.AlbumTitle = tagReader.Tag.Album
+                                fileMetadata.AlbumArtist = tagReader.Tag.FirstArtist
+                                If fileMetadata.AlbumArtist = "" Then
+                                    fileMetadata.AlbumArtist = tagReader.Tag.FirstAlbumArtist
+                                    If fileMetadata.AlbumArtist = "" Then
+                                        fileMetadata.AlbumArtist = tagReader.Tag.FirstPerformer
+                                        If fileMetadata.AlbumArtist = "" Then
+                                            fileMetadata.AlbumArtist = tagReader.Tag.FirstComposer
+                                        End If
+                                    End If
+                                End If
+                                fileMetadata.Genre = tagReader.Tag.FirstGenre
+                                fileMetadata.TrackNum = tagReader.Tag.Track
+                                fileMetadata.Year = tagReader.Tag.Year
+                                tagReader = Nothing
+
+                                song.Tag = fileMetadata
+                                song.Text = fileMetadata.Title
+
+                                'add the song to the album
+                                album.Nodes.Add(song)
+
+                                'if we haven't yet found a file to use for the album metadata, try using this one
+                                'note this metadata is for display purposes only, since the walkman doesn't save
+                                'any metadata for albums (even if it is explicitly saved. only title and genre are saved for some reason)
+                                'use the first file found that has valid album title and artist(presumably, it will have a genre and year too)
+                                If Not firstFileFound Then
+                                    If fileMetadata.AlbumTitle <> "" And fileMetadata.AlbumArtist <> "" Then
+                                        albumMetadata.AlbumArtist = fileMetadata.AlbumArtist
+                                        albumMetadata.AlbumTitle = fileMetadata.AlbumTitle
+                                        albumMetadata.Genre = fileMetadata.Genre
+                                        albumMetadata.Year = fileMetadata.Year
+                                        firstFileFound = True
+                                    End If
+                                End If
+                            Catch ex As Exception
+                                Trace.WriteLine("taglib-sharp error (wrong file extension maybe?): " & ex.Message & " for file=" & file)
+                            End Try
+                        Next
+
+                        album.Tag = albumMetadata
+                        album.Text = albumMetadata.AlbumTitle
+
+                        tv.Nodes.Add(album)
+                    Else
+                        'Dir is not a leaf. search the subdirectories for all leaves
+                        Dim subTv As TreeView
+                        subTv = buildAlbumsListFromDirectory(subDirs)
+                        If subTv IsNot Nothing Then
+                            'add all returned albums to the main albums list
+                            For Each node As TreeNode In subTv.Nodes
+                                tv.Nodes.Add(node.Clone)
+                            Next
+                            subTv.Dispose()
+                            subTv = Nothing
+                        End If
+                    End If
+                End If
+            Next
+        Catch ex As Exception
+            Trace.WriteLine("buildAlbumsListFromDirectory error - " & ex.Message & "," & ex.Source)
+            tv = Nothing
+        End Try
+
+        Return tv
+    End Function
+
 #End Region
 
 #Region "FileManagement"
@@ -1670,7 +1933,5 @@ Public Class Main
 #End Region
 
  
-    
-    
 
 End Class

@@ -14,6 +14,7 @@
     Private Const MTPAXE_M_DEVICE_GETADDITIONALINFO = 24
     Private Const MTPAXE_M_DEVICE_GETICON = 25
     Private Const MTPAXE_M_DEVICE_CREATEPLAYLIST = 26
+    Private Const MTPAXE_M_DEVICE_CREATEALBUM = 27
     Private Const MTPAXE_M_PLAYLIST_ENUMERATECONTENTS = 30
     Private Const MTPAXE_M_STORAGE_GETSIZEINFO = 40
     Private Const MTPAXE_M_STORAGE_CREATEFROMFILE = 41
@@ -642,6 +643,32 @@
         End If
 
         Return strarr
+    End Function
+
+    Public Function createAlbum(ByVal albumTitle As String, ByVal items As String, ByVal metadata As StorageItem, ByVal albumArtPath As String) As String
+        Trace.WriteLine("MTPAxe: creating album " & albumTitle)
+
+        Dim s As String
+
+        If axe Is Nothing Then Throw New Exception("MTPAxe is not started")
+
+        If metadata Is Nothing Then metadata = New StorageItem
+
+        sOut.WriteLine(MTPAXE_M_DEVICE_CREATEALBUM)
+        sOut.WriteLine(albumTitle)
+        sOut.WriteLine(IIf(metadata.AlbumArtist = "", "`", metadata.AlbumArtist))
+        sOut.WriteLine(IIf(metadata.Genre = "", "`", metadata.Genre))
+        sOut.WriteLine(IIf(metadata.Year = "", "`", metadata.Year))
+
+        'now wait for the return value to be sent to the buffer
+        s = sIn.ReadLine
+
+        If s = "-1" Then
+            Trace.WriteLine("MTPAxe: creating album - " & sErr.ReadLine)
+            Return "-1"
+        End If
+
+        Return s
     End Function
 
     Public Function uploadFile(ByVal path As String, ByVal destinationID As String, ByVal type As Integer, Optional ByVal metadata As StorageItem = Nothing) As String

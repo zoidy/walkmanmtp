@@ -166,6 +166,9 @@
     <None Include="Resources\CollapseChild.png" />
     <None Include="Resources\ExpandChild.png" />
     <None Include="Resources\NoDeviceIcon.png" />
+    <None Include="Resources\Album_entryWithoutArt.png" />
+    <None Include="Resources\Album_entryWithArt.png" />
+    <None Include="Resources\Album_delete.png" />
     <Content Include="WMTPbig.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />

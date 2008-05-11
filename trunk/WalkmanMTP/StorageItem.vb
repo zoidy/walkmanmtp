@@ -13,6 +13,7 @@
     Private mFileName As String
     Private mID As String
     Private mParentID As String
+    Private mAlbumArtPath As String
 
 
     Public Property DirectoryDepth() As Integer
@@ -135,6 +136,21 @@
             mParentID = value
         End Set
     End Property
+    ''' <summary>
+    ''' this is only for album items. the caller must ensure this is a valid
+    ''' path since no checks are done on the string
+    ''' </summary>
+    ''' <value></value>
+    ''' <returns></returns>
+    ''' <remarks></remarks>
+    Public Property AlbumArtPath() As String
+        Get
+            AlbumArtPath = mAlbumArtPath
+        End Get
+        Set(ByVal value As String)
+            mAlbumArtPath = value
+        End Set
+    End Property
 
 
     Public Sub New()
@@ -150,5 +166,6 @@
         mTracknum = ""
         mFileName = ""
         mID = ""
+        mAlbumArtPath = ""
     End Sub
 End Class
