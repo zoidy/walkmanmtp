@@ -67,6 +67,27 @@ Namespace My.Resources
             End Get
         End Property
         
+        Friend ReadOnly Property Album_delete() As System.Drawing.Bitmap
+            Get
+                Dim obj As Object = ResourceManager.GetObject("Album_delete", resourceCulture)
+                Return CType(obj,System.Drawing.Bitmap)
+            End Get
+        End Property
+        
+        Friend ReadOnly Property Album_entryWithArt() As System.Drawing.Bitmap
+            Get
+                Dim obj As Object = ResourceManager.GetObject("Album_entryWithArt", resourceCulture)
+                Return CType(obj,System.Drawing.Bitmap)
+            End Get
+        End Property
+        
+        Friend ReadOnly Property Album_entryWithoutArt() As System.Drawing.Bitmap
+            Get
+                Dim obj As Object = ResourceManager.GetObject("Album_entryWithoutArt", resourceCulture)
+                Return CType(obj,System.Drawing.Bitmap)
+            End Get
+        End Property
+        
         Friend ReadOnly Property CollapseChild() As System.Drawing.Bitmap
             Get
                 Dim obj As Object = ResourceManager.GetObject("CollapseChild", resourceCulture)

@@ -23,6 +23,7 @@
 #define MTPAXE_M_DEVICE_GETADDITIONALINFO 24
 #define MTPAXE_M_DEVICE_GETICON 25
 #define MTPAXE_M_DEVICE_CREATEPLAYLIST 26
+#define MTPAXE_M_DEVICE_CREATEALBUM 27
 #define MTPAXE_M_PLAYLIST_ENUMERATECONTENTS 30
 #define MTPAXE_M_STORAGE_GETSIZEINFO 40
 #define MTPAXE_M_STORAGE_CREATEFROMFILE 41
@@ -47,6 +48,7 @@ void wmdmAuthenticate(void);
 int deviceEnumerateStorage(void);
 void deviceGetIcon(wchar_t*);
 void deviceCreatePlaylist(wchar_t *,wchar_t *);
+void deviceCreateAlbum(wchar_t*,wchar_t*,wchar_t*,wchar_t*,wchar_t*,wchar_t*);
 void storageDeleteStorage(wchar_t*);
 void storageGetSizeInfo(void);
 void storageCreateFromFile(wchar_t*,wchar_t*,int,wchar_t*,wchar_t*,wchar_t*,wchar_t*,wchar_t*,wchar_t*);
@@ -58,6 +60,7 @@ void deviceGetFormatsSupport(void);
 IWMDMStorage4 * findStorageFromPath(int,int, wchar_t*);
 IWMDMStorage4 * findStorageFromID(wchar_t*);
 IWMDMDevice3 * findDevice(wchar_t*);
-void deviceCreatePlaylist_helper(wchar_t*,unsigned long*,IWMDMStorage**);
+void createStorageReferencesContainer(unsigned long,wchar_t*,wchar_t*,wchar_t* =NULL,wchar_t* =NULL,wchar_t* =NULL,wchar_t* =NULL);
+void itemsListToStorageArray(wchar_t*,unsigned long*,IWMDMStorage**);
 void deviceEnumerateStorage_helper(IWMDMEnumStorage*,IWMDMStorage4*,int);
 void dumpStorageItemsArray(void);

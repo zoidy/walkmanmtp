@@ -121,6 +121,15 @@
   <data name="About" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\About.png;System.Drawing.Bitmap, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
+  <data name="Album_delete" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Album_delete.png;System.Drawing.Bitmap, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Album_entryWithArt" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Album_entryWithArt.png;System.Drawing.Bitmap, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Album_entryWithoutArt" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Album_entryWithoutArt.png;System.Drawing.Bitmap, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
   <data name="CollapseChild" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\CollapseChild.png;System.Drawing.Bitmap, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>

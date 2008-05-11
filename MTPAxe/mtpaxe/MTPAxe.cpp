@@ -57,6 +57,14 @@ int _tmain(int argc, _TCHAR* argv[])
 
 	//general purpose temp buffer
 	wchar_t buffer[MTPAXE_MAXFILENAMESIZE];
+	char type[2];
+	wchar_t title[400];
+	wchar_t artist[100];
+	wchar_t album[300];
+	wchar_t genre[100];
+	wchar_t year[10];
+	wchar_t trackNum[4];
+	wchar_t items[MTPAXE_DEVICEENUMSTORAGE_MAXOUTPUTSTRINGSIZE];
 
 	//start the message loop
 	int msg=99;	
@@ -71,11 +79,13 @@ int _tmain(int argc, _TCHAR* argv[])
 						wmdmAuthenticate();
 						enumerateDevices();
 						setCurrentDevice(L"WALKMAN");
+						deviceEnumerateStorage();
+						dumpStorageItemsArray();
+							
+						//deviceGetType();
+						//deviceGetFormatsSupport();
+						//deviceGetAdditionalInfo();
 						
-						deviceGetType();
-						deviceGetFormatsSupport();
-						deviceGetAdditionalInfo();
-						//deviceEnumerateStorage();
 						//deviceEnumerateStorage();
 						//storageCreateFromFile(L"C:\\wmtp.mp3",L"{00000004-0000-0000-0000-000000000000}",0,L"aa bb",L"bsd s",L"1\u010Ec fsd",L"d1d sd",L"1888",L"2");
 						
@@ -84,9 +94,10 @@ int _tmain(int argc, _TCHAR* argv[])
 						//storageCreateFromFile("c:\\01 - Cosmic Disturbance.m4a",s,0);
 						//storageCreateFromFile("c:\\testart.jpg",s,0);
 
-						//swprintf(buffer,MTPAXE_MAXFILENAMESIZE,L"%s",L"{0000009E-0000-0000-52C8-0B48D65E0600}:{0000009F-0000-0000-55C8-0B4846A50100}");
+						//swprintf(buffer,MTPAXE_MAXFILENAMESIZE,L"%s",L"{00000081-0000-0000-0000-000000000000}");
 						//deviceCreatePlaylist(L"test",buffer);
-						//playlistEnumerateContents(L"angra.unplgd");
+						//deviceEnumerateStorage();
+						//playlistEnumerateContents(L"{00000027-0000-0000-B1A9-2548581E0C00}");
 						break;}
 				case -3:
 					playlistEnumerateContents(L"playlist_name2");
@@ -174,12 +185,26 @@ int _tmain(int argc, _TCHAR* argv[])
 					deviceGetFormatsSupport();
 					break;
 				case MTPAXE_M_DEVICE_CREATEPLAYLIST:
-					wchar_t items[MTPAXE_DEVICEENUMSTORAGE_MAXOUTPUTSTRINGSIZE];
 					wscanf(L"%\n",buffer);	//stupid scanf... this weird thing is so the program will read 
 					wscanf(L"%[^\n]",buffer); //an entire line (incl. whitespace) but wait until a newline is encountered, instead of reading the stream immediately
 					wscanf(L"%\n",items);
 					wscanf(L"%[^\n]",items);
 					deviceCreatePlaylist(buffer,items);
+					break;
+				case MTPAXE_M_DEVICE_CREATEALBUM:
+					wscanf(L"%\n",buffer);	
+					wscanf(L"%[^\n]",buffer);
+					wscanf(L"%\n",items);
+					wscanf(L"%[^\n]",items);
+					wscanf(L"%\n",artist);
+					wscanf(L"%[^\n]",artist);
+					wscanf(L"%\n",genre);
+					wscanf(L"%[^\n]",genre);
+					wscanf(L"%\n",year);
+					wscanf(L"%[^\n]",year);
+					wscanf(L"%\n",title);//this is the album art path
+					wscanf(L"%[^\n]",title);
+					deviceCreateAlbum(buffer,items,artist,genre,year,title);
 					break;
 				case MTPAXE_M_STORAGE_DELETE:
 					wscanf(L"%\n",buffer);	//stupid scanf... this weird thing is so the program will read 
@@ -196,13 +221,6 @@ int _tmain(int argc, _TCHAR* argv[])
 					break;
 				case MTPAXE_M_STORAGE_CREATEFROMFILE:{
 					wchar_t item[MTPAXE_MAXFILENAMESIZE];
-					char type[2];
-					wchar_t title[400];
-					wchar_t artist[100];
-					wchar_t album[300];
-					wchar_t genre[100];
-					wchar_t year[10];
-					wchar_t trackNum[4];
 					wscanf(L"%\n",item);
 					wscanf(L"%[^\n]",item);
 					wscanf(L"%\n",buffer);	
@@ -453,13 +471,13 @@ void deviceGetManufacturer(void)
 void deviceGetAdditionalInfo(void)
 {	//gets more info on the device in a : separated list.  The name of the property is followed by the property value
 	//eg. FriendlyName:Walkman
-	if(m_pIdvMgr==NULL){returnMsg("-1\n","deviceGetNames: DeviceManager not initialized\n");return;}
-	if(pCurrDev==NULL){returnMsg("-1\n","deviceGetNames: no active device is set\n");return;}
+	if(m_pIdvMgr==NULL){returnMsg("-1\n","deviceGetAdditionalInfo: DeviceManager not initialized\n");return;}
+	if(pCurrDev==NULL){returnMsg("-1\n","deviceGetAdditionalInfo: no active device is set\n");return;}
 
 	IWMDMDevice3 *pDev3=NULL;
 
 	hr=pCurrDev->QueryInterface(IID_IWMDMDevice3,(void**)&pDev3);
-	if(pDev3==NULL){returnMsg("-1\n","deviceGetNames: couldn't get Device3 interface\n");return;}
+	if(pDev3==NULL){returnMsg("-1\n","deviceGetAdditionalInfo: couldn't get Device3 interface\n");return;}
 
 	PROPVARIANT pvFormatsSupported;
 	PropVariantInit(&pvFormatsSupported);
@@ -1038,188 +1056,16 @@ void deviceGetIcon(wchar_t *iconSavePath )
 
 
 void deviceCreatePlaylist(wchar_t *playlistName,wchar_t *items)
-{	//creates a playlist on the device. items is a : separated list of persistentUniqueID's
-	//return 0 on sucesss, -1 on error
-
-	if(m_pIdvMgr==NULL){returnMsg("-1\n","deviceCreatePlaylist: DeviceManager not initialized\n");return;}
-	if(pCurrDev==NULL){returnMsg("-1\n","deviceCreatePlaylist: no active device is set\n");return;}
-
-	//find the PLAYLISTS folder. if it's not there, create it
-	IWMDMStorage3 *getPlaylistStor=NULL;
-	getPlaylistStor=findStorageFromPath(1,WMDM_FILE_ATTR_FOLDER,L"Playlists");
-	if(getPlaylistStor==NULL)
-	{
-		//insert the playlists folder
-		//find the root strage (it will always be the first item in the storage array)
-		IWMDMStorage4 *rootStor=NULL;
-		rootStor=arrStorageItems[0].pStorage;
-
-		//get the storage control
-		IWMDMStorageControl *pRootCtrl;
-		hr=rootStor->QueryInterface(IID_IWMDMStorageControl3,(void**)&pRootCtrl);
-		if(FAILED(hr)){returnMsg("-1\n","deviceDeletePlaylist: coudn't create Playlists folder: error getting root storage control\n");return;}
-
-		hr=pRootCtrl->Insert(WMDM_MODE_BLOCK|WMDM_STORAGECONTROL_INSERTINTO|WMDM_CONTENT_FOLDER|WMDM_FILE_CREATE_OVERWRITE,
-							 L"Playlists",
-							 NULL,
-							 NULL,
-							 (IWMDMStorage**)&getPlaylistStor);
-		if(FAILED(hr)){returnMsg("-1\n","deviceDeletePlaylist: coudn't create Playlists folder\n");return;}
-
-		//insert was successful. now add the new storage item to the array
-
-		IWMDMStorage4 *insertedStorage4=NULL;
-		hr=getPlaylistStor->QueryInterface(IID_IWMDMStorage4,(void**)&insertedStorage4);
-		if(FAILED(hr)){returnMsg("-1\n","deviceDeletePlaylist: couldn't get storage4 interface of inserted item\n");return;}
-
-		arrStorageItem plItem;
-		IWMDMMetaData *pMData;							//the metadata associated with the storage
-		LPCWSTR MDataAttribs[2];						//the metadata to retreive
-		MDataAttribs[0]=g_wszWMDMFileName;				//.
-		MDataAttribs[1]=g_wszWMDMPersistentUniqueID;	//.
-		WMDM_TAG_DATATYPE dtype;							//these vars are used for the metadata QueryByName call
-		BYTE *value;									//.
-		unsigned int len;								//.
-
-		hr=insertedStorage4->GetSpecifiedMetadata(2,MDataAttribs,&pMData);
-		hr=pMData->QueryByName(g_wszWMDMFileName,&dtype,&value,&len);
-		plItem.fileName=(wchar_t*)value;
-		hr=pMData->QueryByName(g_wszWMDMPersistentUniqueID,&dtype,&value,&len);
-		plItem.persistentUniqueID=(wchar_t*)value;
-		pMData->Release();
-
-		hr=rootStor->GetSpecifiedMetadata(2,MDataAttribs,&pMData);
-		hr=pMData->QueryByName(g_wszWMDMFileName,&dtype,&value,&len);
-		plItem.parentFileName=(wchar_t*)value;
-		pMData->Release();
-
-		plItem.level=1;
-		plItem.pStorage=insertedStorage4;
-		plItem.pStorageParent=rootStor;
-		plItem.size=0;
-		value=(BYTE*)CoTaskMemAlloc(2);value[0]=0;value[1]=0;
-		plItem.albumArtist=(wchar_t*)value;
-		value=(BYTE*)CoTaskMemAlloc(2);value[0]=0;value[1]=0;
-		plItem.albumTitle=(wchar_t*)value;
-		value=(BYTE*)CoTaskMemAlloc(2);value[0]=0;value[1]=0;
-		plItem.genre=(wchar_t*)value;
-		value=(BYTE*)CoTaskMemAlloc(2);value[0]=0;value[1]=0;
-		plItem.year=(wchar_t*)value;
-		plItem.type=WMDM_FILE_ATTR_FOLDER;
-		arrStorageItems[numStorageItems]=plItem;
-		numStorageItems++;
-
-		pRootCtrl->Release();
-	}
-	IWMDMStorage4 *pStor=NULL; 
-	hr=getPlaylistStor->QueryInterface(IID_IWMDMStorage4,(void**)&pStor);
-	if(FAILED(hr)){returnMsg("-1\n","deviceDeletePlaylist: coudn't get storage interface to playlist folder\n");return;}
-
-	//now have a storage interface the Playlists folder
-
-	IWMDMMetaData *pMetaData;
-	hr=pStor->CreateEmptyMetadataObject(&pMetaData);
-	if(FAILED(hr)){returnMsg("-1\n","deviceCreatePlaylist: could not create empty metadata object in the storage\n");return;}
-
-	DWORD dw=WMDM_FORMATCODE_ABSTRACTAUDIOVIDEOPLAYLIST;
-	hr=pMetaData->AddItem(WMDM_TYPE_DWORD,g_wszWMDMFormatCode,(BYTE *)&dw, sizeof(dw));
-	if(FAILED(hr)){returnMsg("-1\n","deviceCreatePlaylist: could not add playlist to metadata object\n");return;}
-
-	IWMDMStorageControl3 *pStorCtrl;
-	hr = pStor->QueryInterface(IID_IWMDMStorageControl3,(void**)&pStorCtrl);
-	if(FAILED(hr)){returnMsg("-1\n","deviceCreatePlaylist: could not get storage control interface\n");return;}
-
-	//now have a storagecontrol3 interface
-
-	//add the playlist to the playlists folder
-	IWMDMStorage *pStorPlaylist;
-
-	hr = pStorCtrl->Insert3(WMDM_MODE_BLOCK | WMDM_CONTENT_FILE,
-                            0,
-                            NULL,
-                            playlistName,
-                            NULL,
-                            NULL,
-                            pMetaData,
-                            NULL,
-                            &pStorPlaylist);
-	
-	if(FAILED(hr)){returnMsg("-1\n","deviceCreatePlaylist: could not insert playlist\n");return;}
-
-	//insertion was successful. add it now to the storage items array
-	IWMDMStorage4 *pStorPlaylist4;
-	hr=pStorPlaylist->QueryInterface(IID_IWMDMStorage4,(void**)&pStorPlaylist4);
-	if(FAILED(hr)){returnMsg("-1\n","deviceCreatePlaylist: error getting storage4 interface from inserted playlist\n");return;}
-
-	arrStorageItem plItem;
-	IWMDMMetaData *pMData;							//the metadata associated with the storage
-	LPCWSTR MDataAttribs[2];						//the metadata to retreive
-	MDataAttribs[0]=g_wszWMDMFileName;				//.
-	MDataAttribs[1]=g_wszWMDMPersistentUniqueID;	//.
-	WMDM_TAG_DATATYPE dtype;							//these vars are used for the metadata QueryByName call
-	BYTE *value;									//.
-	unsigned int len;								//.
-
-	hr=pStorPlaylist4->GetSpecifiedMetadata(2,MDataAttribs,&pMData);
-	hr=pMData->QueryByName(g_wszWMDMFileName,&dtype,&value,&len);
-	plItem.fileName=(wchar_t*)value;
-	hr=pMData->QueryByName(g_wszWMDMPersistentUniqueID,&dtype,&value,&len);
-	plItem.persistentUniqueID=(wchar_t*)value;
-	pMData->Release();
-
-	plItem.level=2;
-	plItem.pStorage=pStorPlaylist4;
-	plItem.pStorageParent=pStor;
-	plItem.type=WMDM_FILE_ATTR_FILE;
-	arrStorageItems[numStorageItems]=plItem;
-	numStorageItems++;
-	
-	//now have a Storage4 interface so we can set the references
-
-	//get the storage items to set the references to
-	IWMDMStorage *plItems[MTPAXE_MAXNUMBEROFSTORAGEITEMS];
-	DWORD numItems=0; //setting this to 0 clears all references
-	deviceCreatePlaylist_helper(items,&numItems,plItems);
-
-	//set the references
-	hr=pStorPlaylist4->SetReferences(numItems,plItems);
-	if(FAILED(hr)){returnMsg("-1\n","deviceCreatePlaylist: could not set playlist references\n");return;}
-
-	pMetaData->Release();
-	pStor->Release();
-	//pStorPlaylist->Release(); //don't release this, it causes problems for some reason when using findStorageFrompath
-	//pStorPlaylist4->Release(); //don't release this either, since it's now part of the ArrStorageitems array
-
-	returnMsg("0\n");
-
+{	//don't return anything in this function. status messages will be returned
+	//by createStorageReferencesContainer
+	createStorageReferencesContainer(WMDM_FORMATCODE_ABSTRACTAUDIOVIDEOPLAYLIST,playlistName,items);
 }
-void deviceCreatePlaylist_helper(wchar_t *items,unsigned long *pFoundItemsCount,IWMDMStorage **arrStorRet)
-{	//parses the items list and returns an array of pointers to
-	//the storage items referenced in the list. foundItemsCount is the number of items in this array
-	//if a referenced storage item is not found, it will not be included in the returned array
-
-	IWMDMStorage4 *tmpStorItem=NULL;
-
-	wchar_t *itemID=NULL;	//pointer to the next token
-	itemID=wcstok(items,L":");
-	while(itemID!=NULL)
-	{	//should now have a valid item ID.search for it in the arrStorageItems array
-		tmpStorItem=findStorageFromID(itemID);
-
-		if(tmpStorItem!=NULL)
-		{	//the item was found. add it to the return array
-			arrStorRet[*pFoundItemsCount]=tmpStorItem;
-			(*pFoundItemsCount)++;
-		}
-		tmpStorItem=NULL;
-
-		//get the next id
-		itemID=wcstok(NULL,L":");
-	}
+void deviceCreateAlbum(wchar_t *albumTitle,wchar_t *items,wchar_t *albumArtist,wchar_t *albumYear,wchar_t *genre,wchar_t *albumArtFile)
+{
+	//don't return anything in this function. status messages will be returned
+	//by createStorageReferencesContainer
+	createStorageReferencesContainer(WMDM_FORMATCODE_ABSTRACTAUDIOALBUM,albumTitle,items,albumArtist,albumYear,genre,albumArtFile);
 }
-//************************************************************************************
-//*                           Storage management
-//************************************************************************************
 void playlistEnumerateContents(wchar_t *playlistID)
 {	//enumerates the contents of a playlist.  returns a : separated list of the PersistentUniqueID's
 	//of the storage items contained in the playlist. -1 on error
@@ -1247,7 +1093,7 @@ void playlistEnumerateContents(wchar_t *playlistID)
 	DWORD numRefs;
 
 	hr=pStor->GetReferences(&numRefs,&pReferencesArray);
-	if(FAILED(hr)){returnMsg("-1\n","playlistEnumerateContents: coudn't get storage interface to playlist\n");return;}
+	if(FAILED(hr)){returnMsg("-1\n","playlistEnumerateContents: coudn't get references\n");return;}
 	pStor->Release();
 
 	//initialize buffer to remove to -1
@@ -1654,11 +1500,238 @@ IWMDMStorage4 * findStorageFromID(wchar_t *persistentUniqueID)
 
 	return NULL;
 }
+void createStorageReferencesContainer(unsigned long typeOfContainer,wchar_t *containerName,wchar_t *items,wchar_t *albumArtist,wchar_t *albumYear,wchar_t *genre,wchar_t *albumArtFile)
+{	//creates a playlist or an album on the currently selected device.
+	//typeOfContainer must be WMDM_FORMATCODE_ABSTRACTAUDIOVIDEOPLAYLIST or WMDM_FORMATCODE_ABSTRACTAUDIOALBUM
+	//container name is the name of the playlist or album
+	//items is a : separated list of persistentUniqueID's
+	//albumAuthor and albumArtFile only apply to albums. they will be ignored if creating a playlist
+	//return 0 on sucesss, -1 on error
+
+	if(m_pIdvMgr==NULL){returnMsg("-1\n","createStorageReferencesContainer: DeviceManager not initialized\n");return;}
+	if(pCurrDev==NULL){returnMsg("-1\n","createStorageReferencesContainer: no active device is set\n");return;}
+	if (typeOfContainer!=WMDM_FORMATCODE_ABSTRACTAUDIOVIDEOPLAYLIST && typeOfContainer!=WMDM_FORMATCODE_ABSTRACTAUDIOALBUM)
+	{
+		returnMsg("-1\n","createStorageReferencesContainer: invalid container type\n");
+		return;
+	}
+
+	wchar_t containerFolderName[10];
+	if (typeOfContainer==WMDM_FORMATCODE_ABSTRACTAUDIOVIDEOPLAYLIST)
+		swprintf(containerFolderName,10,L"Playlists");
+	else
+		swprintf(containerFolderName,10,L"Albums");
+
+	//find the PLAYLISTS or Albums folder. if it's not there, create it
+	IWMDMStorage3 *getPlaylistStor=NULL;
+	getPlaylistStor=findStorageFromPath(1,WMDM_FILE_ATTR_FOLDER,containerFolderName);
+	if(getPlaylistStor==NULL)
+	{
+		//insert the playlists or albums folder
+		//find the root strage (it will always be the first item in the storage array)
+		IWMDMStorage4 *rootStor=NULL;
+		rootStor=arrStorageItems[0].pStorage;
+
+		//get the storage control
+		IWMDMStorageControl *pRootCtrl;
+		hr=rootStor->QueryInterface(IID_IWMDMStorageControl3,(void**)&pRootCtrl);
+		if(FAILED(hr)){returnMsg("-1\n","createStorageReferencesContainer: coudn't create Playlists or Albums folder: error getting root storage control\n");return;}
+
+		hr=pRootCtrl->Insert(WMDM_MODE_BLOCK|WMDM_STORAGECONTROL_INSERTINTO|WMDM_CONTENT_FOLDER|WMDM_FILE_CREATE_OVERWRITE,
+							 containerFolderName,
+							 NULL,
+							 NULL,
+							 (IWMDMStorage**)&getPlaylistStor);
+		if(FAILED(hr)){returnMsg("-1\n","createStorageReferencesContainer: coudn't create Playlists or Albums folder\n");return;}
+
+		//insert was successful. now add the new storage item to the array
+
+		IWMDMStorage4 *insertedStorage4=NULL;
+		hr=getPlaylistStor->QueryInterface(IID_IWMDMStorage4,(void**)&insertedStorage4);
+		if(FAILED(hr)){returnMsg("-1\n","createStorageReferencesContainer: couldn't get storage4 interface of inserted folder\n");return;}
+
+		arrStorageItem plItem;
+		IWMDMMetaData *pMData;							//the metadata associated with the storage
+		LPCWSTR MDataAttribs[2];						//the metadata to retreive
+		MDataAttribs[0]=g_wszWMDMFileName;				//.
+		MDataAttribs[1]=g_wszWMDMPersistentUniqueID;	//.
+		WMDM_TAG_DATATYPE dtype;							//these vars are used for the metadata QueryByName call
+		BYTE *value;									//.
+		unsigned int len;								//.
+
+		hr=insertedStorage4->GetSpecifiedMetadata(2,MDataAttribs,&pMData);
+		hr=pMData->QueryByName(g_wszWMDMFileName,&dtype,&value,&len);
+		plItem.fileName=(wchar_t*)value;
+		hr=pMData->QueryByName(g_wszWMDMPersistentUniqueID,&dtype,&value,&len);
+		plItem.persistentUniqueID=(wchar_t*)value;
+		pMData->Release();
+
+		hr=rootStor->GetSpecifiedMetadata(2,MDataAttribs,&pMData);
+		hr=pMData->QueryByName(g_wszWMDMFileName,&dtype,&value,&len);
+		plItem.parentFileName=(wchar_t*)value;
+		pMData->Release();
+
+		plItem.level=1;
+		plItem.pStorage=insertedStorage4;
+		plItem.pStorageParent=rootStor;
+		plItem.size=0;
+		value=(BYTE*)CoTaskMemAlloc(2);value[0]=0;value[1]=0;
+		plItem.albumArtist=(wchar_t*)value;
+		value=(BYTE*)CoTaskMemAlloc(2);value[0]=0;value[1]=0;
+		plItem.albumTitle=(wchar_t*)value;
+		value=(BYTE*)CoTaskMemAlloc(2);value[0]=0;value[1]=0;
+		plItem.genre=(wchar_t*)value;
+		value=(BYTE*)CoTaskMemAlloc(2);value[0]=0;value[1]=0;
+		plItem.year=(wchar_t*)value;
+		value=(BYTE*)CoTaskMemAlloc(2);value[0]=0;value[1]=0;
+		plItem.title=(wchar_t*)value;
+		plItem.type=WMDM_FILE_ATTR_FOLDER;
+		arrStorageItems[numStorageItems]=plItem;
+		numStorageItems++;
+
+		pRootCtrl->Release();
+	}
+	IWMDMStorage4 *pStor=NULL; 
+	hr=getPlaylistStor->QueryInterface(IID_IWMDMStorage4,(void**)&pStor);
+	if(FAILED(hr)){returnMsg("-1\n","createStorageReferencesContainer: coudn't get storage interface to playlist or Albums folder\n");return;}
+
+	//now have a storage interface the Playlists or Albums folder
+
+	IWMDMMetaData *pMetaData;
+	hr=pStor->CreateEmptyMetadataObject(&pMetaData);
+	if(FAILED(hr)){returnMsg("-1\n","createStorageReferencesContainer: could not create empty metadata object in the storage\n");return;}
+
+	hr=pMetaData->AddItem(WMDM_TYPE_DWORD,g_wszWMDMFormatCode,(BYTE *)&typeOfContainer, sizeof(typeOfContainer));
+	if(FAILED(hr)){returnMsg("-1\n","createStorageReferencesContainer: could not add playlist or album to metadata object\n");return;}
+	hr=pMetaData->AddItem(WMDM_TYPE_STRING,g_wszWMDMTitle,(BYTE *)containerName, 2*wcslen(containerName)+2);
+	if(FAILED(hr)){returnMsg("-1\n","createStorageReferencesContainer: could not add title to playlist or album metadata object\n");return;}
+	//for albums only
+	if(typeOfContainer==WMDM_FORMATCODE_ABSTRACTAUDIOALBUM)
+	{
+		if(albumArtist!=NULL)
+		{
+			hr=pMetaData->AddItem(WMDM_TYPE_STRING,g_wszWMDMAuthor,(BYTE *)albumArtist, 2*wcslen(albumArtist)+2);
+			if(FAILED(hr)){returnMsg("-1\n","createStorageReferencesContainer: could not add title to playlist or album metadata object\n");return;}
+		}
+		if(albumArtFile!=NULL)
+		{
+			unsigned long long size=0;
+			FILE *theFile=_wfopen(albumArtFile,L"rb");
+			if(theFile!=NULL)
+			{
+				fseek(theFile,0,SEEK_END);
+				size=_ftelli64(theFile);
+				char *pCoverData = (char*)CoTaskMemAlloc((size_t)size);
+				fread((void *)pCoverData, 1, (size_t)size, theFile);
+				fclose(theFile);
+
+				hr = pMetaData->AddItem(WMDM_TYPE_BINARY, g_wszWMDMAlbumCoverData, (BYTE *)pCoverData, (UINT)size);
+				CoTaskMemFree(pCoverData);
+				if(FAILED(hr)){returnMsg("-1\n","createStorageReferencesContainer: could not add cover art to album metadata object\n");return;}
+			}
+			
+		}
+	}
+
+	IWMDMStorageControl3 *pStorCtrl;
+	hr = pStor->QueryInterface(IID_IWMDMStorageControl3,(void**)&pStorCtrl);
+	if(FAILED(hr)){returnMsg("-1\n","createStorageReferencesContainer: could not get storage control interface\n");return;}
+
+	//now have a storagecontrol3 interface
+
+	//add the playlist or album to the Playlists or Albums folder
+	IWMDMStorage *pStorPlaylist;
+
+	hr = pStorCtrl->Insert3(WMDM_MODE_BLOCK | WMDM_CONTENT_FILE,
+                            0,
+                            NULL,
+                            containerName,
+                            NULL,
+                            NULL,
+                            pMetaData,
+                            NULL,
+                            &pStorPlaylist);
+	
+	if(FAILED(hr)){returnMsg("-1\n","createStorageReferencesContainert: could not insert playlist or album\n");return;}
+
+	//insertion was successful. add it now to the storage items array
+	IWMDMStorage4 *pStorPlaylist4;
+	hr=pStorPlaylist->QueryInterface(IID_IWMDMStorage4,(void**)&pStorPlaylist4);
+	if(FAILED(hr)){returnMsg("-1\n","createStorageReferencesContainer: error getting storage4 interface from inserted playlist or album\n");return;}
+
+	arrStorageItem plItem;
+	IWMDMMetaData *pMData;							//the metadata associated with the storage
+	LPCWSTR MDataAttribs[2];						//the metadata to retreive
+	MDataAttribs[0]=g_wszWMDMFileName;				//.
+	MDataAttribs[1]=g_wszWMDMPersistentUniqueID;	//.
+	WMDM_TAG_DATATYPE dtype;						//these vars are used for the metadata QueryByName call
+	BYTE *value;									//.
+	unsigned int len;								//.
+
+	hr=pStorPlaylist4->GetSpecifiedMetadata(2,MDataAttribs,&pMData);
+	hr=pMData->QueryByName(g_wszWMDMFileName,&dtype,&value,&len);
+	plItem.fileName=(wchar_t*)value;
+	hr=pMData->QueryByName(g_wszWMDMPersistentUniqueID,&dtype,&value,&len);
+	plItem.persistentUniqueID=(wchar_t*)value;
+	pMData->Release();
+
+	plItem.level=2;
+	plItem.pStorage=pStorPlaylist4;
+	plItem.pStorageParent=pStor;
+	plItem.type=WMDM_FILE_ATTR_FILE;
+	arrStorageItems[numStorageItems]=plItem;
+	numStorageItems++;
+	
+	//now have a Storage4 interface so we can set the references
+
+	//get the storage items to set the references to
+	IWMDMStorage *plItems[MTPAXE_MAXNUMBEROFSTORAGEITEMS];
+	DWORD numItems=0; //setting this to 0 clears all references
+	itemsListToStorageArray(items,&numItems,plItems);
+
+	//set the references
+	hr=pStorPlaylist4->SetReferences(numItems,plItems);
+	if(FAILED(hr)){returnMsg("-1\n","createStorageReferencesContainer: could not set playlist or album references\n");return;}
+
+	pMetaData->Release();
+	getPlaylistStor->Release();
+	pStorPlaylist->Release();
+	//pStorPlaylist4->Release(); //don't release this either, since it's now part of the ArrStorageitems array
+
+	returnMsg("0\n");
+
+}
+void itemsListToStorageArray(wchar_t *items,unsigned long *pFoundItemsCount,IWMDMStorage **arrStorRet)
+{	//parses the items list and returns an array of pointers to
+	//the storage items referenced in the list.
+	//items is a : separated list of PersistentUniqueID's
+	//foundItemsCount is the number of items in the returned array array
+	//if a referenced storage item is not found, it will not be included in the returned array
+
+	IWMDMStorage4 *tmpStorItem=NULL;
+
+	wchar_t *itemID=NULL;	//pointer to the next token
+	itemID=wcstok(items,L":");
+	while(itemID!=NULL)
+	{	//should now have a valid item ID.search for it in the arrStorageItems array
+		tmpStorItem=findStorageFromID(itemID);
+
+		if(tmpStorItem!=NULL)
+		{	//the item was found. add it to the return array
+			arrStorRet[*pFoundItemsCount]=tmpStorItem;
+			(*pFoundItemsCount)++;
+		}
+		tmpStorItem=NULL;
+
+		//get the next id
+		itemID=wcstok(NULL,L":");
+	}
+}
 void dumpStorageItemsArray(void)
 {
 	FILE *dumpFile;
 	dumpFile=fopen("MTPAxe_dump_items.txt", "w, ccs=UNICODE");
-	if(f==NULL)
+	if(dumpFile==NULL)
 	{
 		printf("couldn't create dump file");
 		return;
