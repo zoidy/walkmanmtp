@@ -169,6 +169,7 @@
     <None Include="Resources\Album_entryWithoutArt.png" />
     <None Include="Resources\Album_entryWithArt.png" />
     <None Include="Resources\Album_delete.png" />
+    <None Include="Resources\Album_add.png" />
     <Content Include="WMTPbig.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />
