@@ -85,15 +85,7 @@
             Year = mYear
         End Get
         Set(ByVal value As String)
-            'check for valid values
-            Dim tmp As Integer
-            Integer.TryParse(value, tmp)
-            'tmp now contains the integer representation of value, or 0 if conversion failed
-            If tmp = 0 Then
-                mYear = ""
-            Else
-                mYear = Format(tmp, "0000")
-            End If
+            mYear = value
         End Set
     End Property
     Public Property TrackNum() As String
