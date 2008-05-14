@@ -10,6 +10,9 @@ Public Class Main
     'distinguish which lists have to be deleted and added
     Private originalPlaylists As Collection
 
+    Private originalAlbums As New TreeView
+    Private modifiedAlbums As New TreeView
+
     'keeps track of what column was clicked last in order to enable 
     'sorting ascending or descending if the column header is clicked more than once
     Dim playlistListView_lastColumnClicked As Short = -1
@@ -97,7 +100,9 @@ Public Class Main
         Me.mnuTVFileManagementExpandChildren.Image = My.Resources.ExpandChild
         Me.btnAddNewAlbum.Image = My.Resources.Album_add
         Me.btnDeleteAlbum.Image = My.Resources.Album_delete
-        Me.pbAlbumArt.image = My.Resources.NoDeviceIcon
+        Me.pbAlbumArt.Image = My.Resources.NoDeviceIcon
+
+        Me.tabviewMain.SelectedIndex = 1
     End Sub
     Private Sub Main_VisibleChanged(ByVal sender As Object, ByVal e As System.EventArgs) Handles Me.VisibleChanged
         If Me.Visible Then
@@ -933,6 +938,9 @@ Public Class Main
 
         Splash.setText("Getting albums")
 
+        originalAlbums = New TreeView
+        modifiedAlbums = New TreeView
+
         'originalPlaylists = New Collection
 
         'create a blacnk playlist by default
@@ -1003,6 +1011,9 @@ Public Class Main
     End Sub
     Private Sub cleanUpTmpAlbumArtFiles()
         'deletes any temporary album art files createdby buildAlbumsListFromDirectory
+        If Me.pbAlbumArt.Image IsNot Nothing Then
+            Me.pbAlbumArt.Image.Dispose()
+        End If
         Dim metadata As StorageItem = Nothing
         For Each Album As ListViewItem In Me.lvAlbumsList.Items
             metadata = CType(Album.Tag, StorageItem)
@@ -1018,12 +1029,121 @@ Public Class Main
         Next
         removeAlbumsFromAlbumsList(Me.lvAlbumsList.SelectedItems)
     End Sub
+    Private Sub clearAlbumDetailsView()
+        'clears all textboxes and fields in the album details view
+        If Me.pbAlbumArt.Image IsNot Nothing Then
+            Me.pbAlbumArt.Image.Dispose()
+        End If
+        Me.lvAlbumItems.Items.Clear()
+        Me.txtAlbumTitle.Clear()
+        Me.txtAlbumArtist.Clear()
+        Me.txtAlbumGenre.Clear()
+        Me.txtAlbumYear.Clear()
+        Me.lblAlbumArtDimensions.Text = ""
+        Me.lblAlbumArtFileSize.Text = ""
+        Me.lblAlbumNumberOfTracks.Text = ""
+        Me.lblAlbumTotalSize.Text = ""
+        Me.pbAlbumArt.Image = My.Resources.NoDeviceIcon
+    End Sub
+
+    Private Sub btnClearAllAlbums_LinkClicked(ByVal sender As System.Object, ByVal e As System.Windows.Forms.LinkLabelLinkClickedEventArgs) Handles btnClearAllAlbums.LinkClicked
+        Me.lvAlbumsList.Items.Clear()
+        originalAlbums.Nodes.Clear()
+        originalAlbums = New TreeView
+        modifiedAlbums.Nodes.Clear()
+        modifiedAlbums = New TreeView
+    End Sub
 
     Private Sub lvAlbumsList_KeyDown(ByVal sender As Object, ByVal e As System.Windows.Forms.KeyEventArgs) Handles lvAlbumsList.KeyDown
         If e.KeyCode = Keys.Delete Then
             removeAlbumsFromAlbumsList(Me.lvAlbumsList.SelectedItems)
         End If
     End Sub
+    Private Sub lvAlbumsList_MouseClick(ByVal sender As Object, ByVal e As System.Windows.Forms.MouseEventArgs) Handles lvAlbumsList.MouseClick
+        'show the right click menu on mouse click
+        If e.Button = Windows.Forms.MouseButtons.Right Then
+            'Dim lv As ListViewEx = CType(sender, ListViewEx)
+
+            ''get the node under the right click
+            'Dim selNode As ListViewItem = lv.SelectedItems(0)
+            'If selNode IsNot Nothing Then
+            '    mnuLvPlaylistContentsRightClick.Show(lv.PointToScreen(e.Location))
+            'End If
+        End If
+
+        clearAlbumDetailsView()
+
+        'if there is only 1 item selected, show it's details
+        If Me.lvAlbumsList.SelectedItems.Count = 1 Then
+            Dim metadata As StorageItem = CType(Me.lvAlbumsList.SelectedItems(0).Tag, StorageItem)
+            If metadata IsNot Nothing Then
+                'search the tree for the album.  The modified albums list takes precedence
+                Dim foundnode As TreeNode = Nothing
+                For Each node As TreeNode In modifiedAlbums.Nodes
+                    foundnode = findTreeNodeByID(node, metadata.ID)
+                    If foundnode IsNot Nothing Then
+                        Exit For
+                    End If
+                Next
+                If foundnode Is Nothing Then
+                    For Each node As TreeNode In originalAlbums.Nodes
+                        foundnode = findTreeNodeByID(node, metadata.ID)
+                        If foundnode IsNot Nothing Then
+                            Exit For
+                        End If
+                    Next
+                End If
+                If foundnode Is Nothing Then
+                    Trace.WriteLine("Album " & Me.lvAlbumsList.SelectedItems(0).Text & " not found")
+                    MsgBox("Album " & Me.lvAlbumsList.SelectedItems(0).Text & " not found", MsgBoxStyle.Critical)
+                    Exit Sub
+                End If
+
+                'once we have the album node, add all of the items to the list
+                Me.lvAlbumItems.Items.Clear()
+                Dim lvitem As ListViewItem
+                Dim songMetadata As StorageItem
+                For Each node In foundnode.Nodes
+                    songMetadata = CType(node.tag, StorageItem)
+                    If songMetadata IsNot Nothing Then
+                        lvitem = New ListViewItem
+                        lvitem.Text = songMetadata.FileName
+                        lvitem.SubItems.Add(songMetadata.TrackNum)
+                        lvitem.SubItems.Add(songMetadata.Title)
+                        lvitem.SubItems.Add(songMetadata.AlbumArtist)
+                        lvitem.SubItems.Add(songMetadata.Year)
+                        lvitem.SubItems.Add(songMetadata.Genre)
+                        lvitem.Tag = songMetadata
+
+                        Me.lvAlbumItems.Items.Add(lvitem)
+                    End If
+                Next
+
+                'add album information
+                Me.txtAlbumArtist.Text = metadata.AlbumArtist
+                Me.txtAlbumGenre.Text = metadata.Genre
+                Me.txtAlbumTitle.Text = metadata.AlbumTitle
+                Me.txtAlbumYear.Text = metadata.Year
+                Me.lblAlbumNumberOfTracks.Text = Format(foundnode.Nodes.Count, "00")
+                Me.lblAlbumTotalSize.Text = metadata.Size
+                Try
+                    If IO.File.Exists(metadata.AlbumArtPath) Then
+                        Me.pbAlbumArt.Image = New Bitmap(metadata.AlbumArtPath)
+                        Me.lblAlbumArtFileSize.Text = Math.Round((New IO.FileInfo(metadata.AlbumArtPath)).Length / 1024, 2).ToString("N1") & " KB"
+                        Me.lblAlbumArtDimensions.Text = Me.pbAlbumArt.Image.Width.ToString & " x " & Me.pbAlbumArt.Image.Height.ToString
+                    End If
+                Catch ex As Exception
+                    Trace.WriteLine("lvAlbumsList_MouseClick: error displaying album art - " & ex.Message & "," & ex.Source)
+                End Try
+
+            End If
+        Else
+            'if there is more than 1 item selected. clear the album details
+            clearalbumdetailsview()
+        End If
+
+    End Sub
+    
     Private Sub lvAlbumsList_DragEnter(ByVal sender As Object, ByVal e As System.Windows.Forms.DragEventArgs) Handles lvAlbumsList.DragEnter
         Me.Activate()
         e.Effect = e.AllowedEffect
@@ -1056,7 +1176,7 @@ Public Class Main
 
         Dim albums As TreeView
         Trace.WriteLine("Building albums list")
-        albums = buildAlbumsListFromDirectory(draggedFiles)
+        albums = buildAlbumsListFromPaths(draggedFiles)
         If albums Is Nothing Then
             MsgBox("No albums found")
             Trace.WriteLine("Building albums list - no albums found")
@@ -1102,18 +1222,26 @@ Public Class Main
         'since we're grouping by artist name, can hide the artist column
         Me.lvAlbumsList.Columns(1).Width = 0
 
-        albums.Dispose()
+        'add the new items to the albums tree
+        If modifiedAlbums IsNot Nothing Then
+            For Each node As TreeNode In albums.Nodes
+                modifiedAlbums.Nodes.Add(node.Clone)
+            Next
+        End If
+
+        albums.Nodes.Clear()
         albums = Nothing
     End Sub
-    Private Function buildAlbumsListFromDirectory(ByVal dirPaths() As String) As TreeView
-        'builds a flat list of albums starting from the possibly nested list of directories dirPaths
+    Private Function buildAlbumsListFromPaths(ByVal fileSystemEntries() As String) As TreeView
+        'builds a flat list of albums starting from the possibly nested list of files or directories 
+        'in the array fileSystemEntries()
         'the returned treeview will have 1 node for each album and each of those nodes will contain N 
         'subnodes which are the files themselves.  The treeview will have a directory depth of 1 (starting
         'from 0 for the root). empty directories will not be added
 
         Dim tv As TreeView = New TreeView
         Try
-            For Each Dir As String In dirPaths
+            For Each Dir As String In fileSystemEntries
                 'first check to see if dir is really a directory. if it isn't ignore it
                 If IO.Directory.Exists(Dir) Then
                     'if it is a directory, check to see if it is a leaf
@@ -1156,9 +1284,12 @@ Public Class Main
                                         End If
                                     End If
                                 End If
+                                fileMetadata.FileName = IO.Path.GetFileName(file)
                                 fileMetadata.Genre = tagReader.Tag.FirstGenre
                                 fileMetadata.TrackNum = tagReader.Tag.Track
                                 fileMetadata.Year = tagReader.Tag.Year
+                                'fileMetadata.Size = Math.Ceiling((New IO.FileInfo(file)).Length / 1024).ToString("N0") & " KB"
+
                                 tagReader = Nothing
 
                                 'if we haven't yet found a file to use for the album metadata, try using this one
@@ -1168,7 +1299,7 @@ Public Class Main
                                 If Not firstFileFound Then
                                     If fileMetadata.AlbumTitle <> "" And fileMetadata.AlbumArtist <> "" Then
                                         'don't overwrite the tag if it's already determined to be Various
-                                        If Not albumMetadata.AlbumArtist = "Various" Then albumMetadata.AlbumArtist = fileMetadata.AlbumArtist                                        
+                                        If Not albumMetadata.AlbumArtist = "Various" Then albumMetadata.AlbumArtist = fileMetadata.AlbumArtist
                                         If Not albumMetadata.Genre = "Various" Then albumMetadata.Genre = fileMetadata.Genre
                                         If Not albumMetadata.Year = "Various" Then albumMetadata.Year = fileMetadata.Year
                                         albumMetadata.AlbumTitle = fileMetadata.AlbumTitle
@@ -1243,6 +1374,10 @@ Public Class Main
                             End If
                         End If
 
+                        'since this album is not yet on the player, we need a way to identify it
+                        'so we can search the tree for it later
+                        albumMetadata.ID = Now.Ticks.ToString
+
                         album.Tag = albumMetadata
                         album.Text = albumMetadata.AlbumTitle
 
@@ -1251,7 +1386,7 @@ Public Class Main
                     Else
                         'Dir is not a leaf. search the subdirectories for all leaves
                         Dim subTv As TreeView
-                        subTv = buildAlbumsListFromDirectory(subDirs)
+                        subTv = buildAlbumsListFromPaths(subDirs)
                         If subTv IsNot Nothing Then
                             'add all returned albums to the main albums list
                             For Each node As TreeNode In subTv.Nodes
@@ -2045,5 +2180,6 @@ Public Class Main
     End Class
 
 #End Region
+
 
 End Class
