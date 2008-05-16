@@ -30,7 +30,14 @@ Making playlists:
 -click the Sync button to upload the playlists to the player.
 
 Making albums:
--not yet supported
+-Drag and drop files from explorer into the Albums List (left hand panel on the albums tab)
+ Files will automatically be sorted into their respective albums and album art will
+ be added automatically (embedded and image in the same folder as the song is supported)
+ if available. 
+-For drag and drop behaviour see the section
+ "Album Creation Behaviour For Files Dragged From Windows Explorer" below
+-Note: some embedded album art gives trouble. i.e. the extracted file is not a valid jpg
+ Using Mp3Tag along with id3v2.3 works well to avoid the problem
 
 File management:
 -Go to the file management tab and select the folder you wish to copy files to.
@@ -66,5 +73,162 @@ drive instead
 
 To Do
 =====
--add the ability to add albums and album art
 -better international filename support
+
+
+
+===========================================================================================
+=Album Creation Behaviour For Files Dragged From Windows Explorer
+==========================================================================================
+This section describes how albums will be created on the device when
+any combination of valid songs, album art in any folder structure is dragged into the
+"Albums" list (the left hand pane in the Albums tab)
+
+Important note: If there are two separate folders, each with songs having the same album name, 
+all of the songs will be placed under a single album, and not two separate albums. This is by design.
+If you want these identical files under separate albums anyways, drag them in separately
+
+CASE1
+=======
+Dragged item is a file(s)
+
+
+
+**Example1 (single file)**
+song1byArtist1onAlbumTitle1Genre1
+
+After dragging in the song, the album list will show
+title          artist     genre      
+------------------------------------------------
+AlbumTitle1    Artist1    Genre1    
+
+No album art will be added to the album unless a jpg is found in the same directory as the song.
+If the song contains embedded album art, then the embedded art will override any image in the directory.
+EMBEDDED ALBUM ART OVERRIDES ANY OTHER JPG IMAGES PRESENT
+
+
+
+
+**Example2 (multiple files on the same album)**
+song1byArtist1onAlbumTitle1Genre1
+song2byArtist1onAlbumTitle1Genre1
+image.jpg
+
+After dragging in the songs, the album list will show
+title           artist       genre      
+------------------------------------------------
+AlbumTitle1    Artist1       Genre1    <image.jpg>
+
+Note that it doesn't matter if image.jpg is dragged in or not. It will be added as album art
+since it resides in the same directory as the files dragged in.
+
+
+
+**Example3 (multiple dragged files with different album titles and different artists/cover art on the same album)**
+song1byArtist1onAlbumTitle1Genre1
+song2byArtist1onAlbumTitle1Genre1
+song1byArtist2onAlbumTitle1Genre2<WithEmbeddedCover1>
+song1byArtist2onAlbumTitle2Genre2<WithEmbeddedCover2>
+song2byArtist2onAlbumTitle2Genre2<WithEmbeddedCover3>
+song1byArtist2onAlbumTitle3Genre2
+song1byArtist3onAlbumTitle4Genre4
+cover1.jpg
+cover2.jpg
+
+After dragging in the files, the album list will show
+title           artist       genre      
+------------------------------------------------
+AlbumTitle1    Various      Various   <embedded cover1>
+AlbumTitle2    Artist2      Genre2    <embedded cover2>
+AlbumTitle3    Artist2      Genre2    <cover1.jpg>
+AlbumTitle4    Artist3      Genre4    <cover1.jpg>
+
+If multiple files are dragged in, an album will be created for each distinct album title that is 
+found. since jpg images are present, the first image found is used for the cover art
+of all files with no embedded art. If files in the album have different cover art, the first 
+valid image file will be used for the album art (remembering that embedded album art takes
+precedence over jpg files)
+
+
+
+
+**Example4 (songs with missing tags)**
+if the AlbumTitle tag is missing (but it's otherwise a valid song), the song will be placed 
+in album Unknown
+
+
+
+**Example5 (no valid files)**
+cover1.jpg
+textfile.txt
+
+Any invalid files are ignored. Since there are no songs, cover1.jpg is ignored.  Music
+files with incorrect extension (e.g. AAC file renamed .mp3) are considered invalid
+
+
+
+
+
+CASE 2
+========
+Dragged item is a folders(s). 
+Process each folder recursively. For each item inside of the opened folder, if the item is
+a folder go to CASE2. If the item is a file go to CASE1
+
+
+
+**Example 1 (folder contains only subfolders)**
+Note: here the items that were dragged from explorer were FOLDER1 and FOLDER2
+FOLDER1
+   ALBUMFOLDER1
+      song1byArtist1onAlbumTitle1Genre1
+      song2byArtist1onAlbumTitle1Genre1
+      cover1.jpg
+   ALBUMFOLDER2
+      song1byArtist2onAlbumTitle2Genre2<WithEmbeddedCover>
+      song2byArtist2onAlbumTitle2Genre2<WithEmbeddedCover>
+   ALBUMFOLDER3
+      song3byArtist2onAlbumTitle1Genre1
+      song1byArtist3onAlbumTitle3Genre1
+      cover2.jpg
+FOLDER2
+   ALBUMFOLDER4
+      image.jpg
+
+
+After dragging in FOLDER1 from explorer,  The albums will appear as (see previous rules)
+title           artist     genre      
+------------------------------------------------
+AlbumTitle1    Various     Genre1    <cover1.jpg>
+AlbumTitle2    Artist2     Genre2    <embedded cover>
+AlbumTitle3    Artist3     Genre1    <cover2.jpg>
+
+
+
+
+CASE3
+=======
+mixed files and folders. this can be decomposed to CASE1 and CASE2
+
+**Example1 (folder with files and subfolders)**
+FOLDER1
+    ALBUMFOLDER1
+      ALBUMFOLDER2
+         song1byArtist1onAlbumTitle1Genre1
+         song1byArtist1onAlbumTitle2Genre1
+      song1byArtist1onAlbumTitle3Genre1
+      song2byArtist2onAlbumTitle3Genre1
+      cover.jpg
+    song1byArtist2onAlbumTitle4Genre2
+    song2byArtist3onAlbumTitle4Genre2
+    song3byArtist3onAlbumTitle3Genre1
+    image.jpg
+
+After dragging in FOLDER1,  The albums will appear as (see previous rules)
+title           artist     genre      
+----------------------------------------------
+AlbumTitle1    Artist1    Genre1    <no album art>
+AlbumTitle2    Artist1    Genre1    <no album art>
+AlbumTitle3    Various    Genre1    <cover.jpg>
+AlbumTitle4    Various    Genre2    <image.jpg>
+
