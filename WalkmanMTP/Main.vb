@@ -1095,6 +1095,10 @@ Public Class Main
         End If
     End Sub
 
+    Private Sub btnAlbumSave_Click(ByVal sender As System.Object, ByVal e As System.EventArgs)
+        txtAlbumTitle.Text = txtAlbumTitle.Text.Replace("*"c, "_"c)
+    End Sub
+
     Private Sub lvAlbumsList_KeyDown(ByVal sender As Object, ByVal e As System.Windows.Forms.KeyEventArgs) Handles lvAlbumsList.KeyDown
         If e.KeyCode = Keys.Delete Then
             For Each Album As ListViewItem In Me.lvAlbumsList.SelectedItems
@@ -1180,7 +1184,10 @@ Public Class Main
                     Me.pbAlbumArt.Image = My.Resources.NoDeviceIcon
                 End Try
 
-            End If
+                'save the selected album into the tag of the album items listview for easy retrieval 
+                Me.lvAlbumItems.Tag = Me.lvAlbumsList.SelectedItems(0)
+
+            End If 'if metadata isnot nothing
 
         End If
     End Sub
@@ -1214,12 +1221,8 @@ Public Class Main
             lvAlbumslist_DragDrop_helper(draggedFiles)
         End If
 
-        'Me.lvAlbumsList.Sorting = SortOrder.Ascending
-        'Me.lvAlbumsList.Sort()
-
         t.Abort()
     End Sub
-    
     Private Sub lvAlbumslist_DragDrop_helper(ByVal draggedFiles() As String)
         'the albums should be in the leaves of the folder(s) dragged in.
         'i.e. if a folder has no subfolders, it is considered an album and all
@@ -1248,7 +1251,7 @@ Public Class Main
 
             metadata = CType(node.Tag, StorageItem)
 
-            lvitem.Text = metadata.AlbumTitle
+            lvitem.Text = metadata.AlbumTitle & "*" 'mark the album as modified (new in this case)
             lvitem.SubItems.Add(metadata.AlbumArtist)
             lvitem.SubItems.Add(metadata.Year)
             lvitem.SubItems.Add(metadata.Genre)
@@ -1259,24 +1262,70 @@ Public Class Main
                 lvitem.ImageKey = "+"
             End If
             Me.lvAlbumsList.Items.Add(lvitem)
+
+            'add the new items to the modified albums tree
+            If modifiedAlbums IsNot Nothing Then
+                modifiedAlbums.Nodes.Add(node.Clone)
+            End If
         Next
 
         'now that we've added all the items, create the groups. don't do this inside of the loop
         'to add items since it's not possible to sort items within groups. they appear
         'in the order they were added to the group
-        'createGroupsFromColumn(Me.lvAlbumsList, 1)
         Me.cmbAlbumListGroupBy.SelectedIndex = -1 'deselect any currently selected item
         Me.cmbAlbumListGroupBy.SelectedIndex = 0
 
-        'add the new items to the modified albums tree
-        If modifiedAlbums IsNot Nothing Then
-            For Each node As TreeNode In albums.Nodes
-                modifiedAlbums.Nodes.Add(node.Clone)
-            Next
-        End If
-
         albums.Nodes.Clear()
         albums = Nothing
+    End Sub
+
+    Private Sub lvAlbumItems_ColumnClick(ByVal sender As Object, ByVal e As System.Windows.Forms.ColumnClickEventArgs) Handles lvAlbumItems.ColumnClick
+        'recycle the column click code for the playlists
+        playlistListView_ColumnClick(Me.lvAlbumItems, e)
+    End Sub
+
+    Private Sub lvAlbumItems_DragEnter(ByVal sender As Object, ByVal e As System.Windows.Forms.DragEventArgs) Handles lvAlbumItems.DragEnter
+        Me.Activate()
+        e.Effect = e.AllowedEffect
+    End Sub
+    Private Sub lvAlbumItems_DragDrop(ByVal sender As Object, ByVal e As System.Windows.Forms.DragEventArgs) Handles lvAlbumItems.DragDrop
+        'check to see if files and folders are being dragged from explorer
+        Dim draggedFiles() As String = e.Data.GetData(DataFormats.FileDrop)
+        If draggedFiles IsNot Nothing Then
+            Dim t As New Threading.Thread(New Threading.ThreadStart(AddressOf Splash.ShowDialog))
+            t.SetApartmentState(Threading.ApartmentState.MTA)
+            If Not Splash.Visible Then t.Start()
+            Splash.setText("Building album list")
+            Splash.setTitle("Building album list..")
+
+            t.Abort()
+        End If
+
+        'save the album changes (the currently selected album is stored in the tag of the album items listview)
+        markAlbumChanged(Me.lvAlbumItems.Tag)
+    End Sub
+
+    Private Sub markAlbumChanged(ByRef album As ListViewItem)
+        If album Is Nothing Then
+            MsgBox("Could not mark the album as changed: no album was selected", MsgBoxStyle.Critical)
+            Trace.WriteLine("Could not mark the album as changed: no album was selected")
+            Exit Sub
+        End If
+
+        'get the storageitem of the selected album
+        Dim metadata As StorageItem = CType(album.Tag, StorageItem)
+        If metadata Is Nothing Then
+            MsgBox("Could not mark the album " & album.Text & "as changed: no metadata available", MsgBoxStyle.Critical)
+            Trace.WriteLine("Could not mark the album " & album.Text & "as changed: no metadata available")
+            Exit Sub
+        End If
+
+        'add the album to the modified albumsl list
+
+        'change the album listviewitem text to reflect the fact that it's been modified
+        If Not album.Text.EndsWith("*"c) Then
+            album.Text = album.Text & "*"
+        End If
     End Sub
     Private Function buildAlbumsListFromPaths(ByVal fileSystemEntries() As String) As TreeView
         'builds a flat list of albums starting from the possibly nested list of files or directories 
@@ -2523,12 +2572,6 @@ Public Class Main
             Dim item_y As ListViewItem = CType(y, ListViewItem)
             Dim subitem_x As ListViewItem.ListViewSubItem
             Dim subitem_y As ListViewItem.ListViewSubItem
-
-            'don't allow any other column other than 0 for now
-            'since the subitems are not yet implemented
-            If whichColumn <> 0 Then
-                Return 0
-            End If
 
             'check to see if we're comparing two folders, a file and a folder, or two files
             If (item_x.ImageKey = "*" And item_y.ImageKey = "*") Or (item_x.ImageKey <> "*" And item_y.ImageKey <> "*") Then
