@@ -38,8 +38,51 @@ Partial Class Main
         Me.cmbDevices = New System.Windows.Forms.ComboBox
         Me.Label1 = New System.Windows.Forms.Label
         Me.tabviewMain = New System.Windows.Forms.TabControl
+        Me.tabpageAlbums = New System.Windows.Forms.TabPage
+        Me.SplitContainer3 = New System.Windows.Forms.SplitContainer
+        Me.cmbAlbumListGroupBy = New System.Windows.Forms.ComboBox
+        Me.btnClearAllAlbums = New System.Windows.Forms.LinkLabel
+        Me.Label14 = New System.Windows.Forms.Label
+        Me.Label7 = New System.Windows.Forms.Label
+        Me.lvAlbumsList = New WalkmanMTP.ListViewDnD.ListViewEx
+        Me.ColumnHeader6 = New System.Windows.Forms.ColumnHeader
+        Me.ColumnHeader7 = New System.Windows.Forms.ColumnHeader
+        Me.ColumnHeader8 = New System.Windows.Forms.ColumnHeader
+        Me.ColumnHeader9 = New System.Windows.Forms.ColumnHeader
+        Me.CheckBox1 = New System.Windows.Forms.CheckBox
+        Me.btnDeleteAlbum = New System.Windows.Forms.Button
+        Me.btnAddNewAlbum = New System.Windows.Forms.Button
+        Me.GroupBox2 = New System.Windows.Forms.GroupBox
+        Me.LinkLabel1 = New System.Windows.Forms.LinkLabel
+        Me.Label12 = New System.Windows.Forms.Label
+        Me.lvAlbumItems = New WalkmanMTP.ListViewDnD.ListViewEx
+        Me.lvAlbumItemsFileName = New System.Windows.Forms.ColumnHeader
+        Me.lvAlbumItemsTrackNum = New System.Windows.Forms.ColumnHeader
+        Me.lvAlbumItemsTitle = New System.Windows.Forms.ColumnHeader
+        Me.lvAlbumItemsArtist = New System.Windows.Forms.ColumnHeader
+        Me.lvAlbumItemsYear = New System.Windows.Forms.ColumnHeader
+        Me.lvAlbumItemsGenre = New System.Windows.Forms.ColumnHeader
+        Me.lvAlbumItemsSize = New System.Windows.Forms.ColumnHeader
+        Me.GroupBox1 = New System.Windows.Forms.GroupBox
+        Me.lblAlbumNumberOfTracks = New System.Windows.Forms.Label
+        Me.lblAlbumTotalSize = New System.Windows.Forms.Label
+        Me.txtAlbumYear = New System.Windows.Forms.TextBox
+        Me.txtAlbumGenre = New System.Windows.Forms.TextBox
+        Me.txtAlbumArtist = New System.Windows.Forms.TextBox
+        Me.txtAlbumTitle = New System.Windows.Forms.TextBox
+        Me.GroupBox3 = New System.Windows.Forms.GroupBox
+        Me.Label15 = New System.Windows.Forms.Label
+        Me.Label11 = New System.Windows.Forms.Label
+        Me.Label13 = New System.Windows.Forms.Label
+        Me.Label10 = New System.Windows.Forms.Label
+        Me.Label9 = New System.Windows.Forms.Label
+        Me.Label8 = New System.Windows.Forms.Label
+        Me.lblAlbumArtFileSize = New System.Windows.Forms.Label
+        Me.lblAlbumArtDimensions = New System.Windows.Forms.Label
+        Me.Label6 = New System.Windows.Forms.Label
         Me.tabpagePlaylists = New System.Windows.Forms.TabPage
         Me.SplitContainer1 = New System.Windows.Forms.SplitContainer
+        Me.tvPlaylistsFilesOnDevice = New WalkmanMTP.MultiSelectTreeview.MultiSelectTreeview
         Me.Label4 = New System.Windows.Forms.Label
         Me.btnPlaylistsFilesOnDeviceRefresh = New System.Windows.Forms.LinkLabel
         Me.btnRenamePlaylist = New System.Windows.Forms.Button
@@ -54,41 +97,20 @@ Partial Class Main
         Me.ColumnHeader3 = New System.Windows.Forms.ColumnHeader
         Me.ColumnHeader4 = New System.Windows.Forms.ColumnHeader
         Me.ColumnHeader5 = New System.Windows.Forms.ColumnHeader
-        Me.tabpageAlbums = New System.Windows.Forms.TabPage
-        Me.SplitContainer3 = New System.Windows.Forms.SplitContainer
-        Me.cmbAlbumListGroupBy = New System.Windows.Forms.ComboBox
-        Me.btnClearAllAlbums = New System.Windows.Forms.LinkLabel
-        Me.Label14 = New System.Windows.Forms.Label
-        Me.Label7 = New System.Windows.Forms.Label
-        Me.CheckBox1 = New System.Windows.Forms.CheckBox
-        Me.btnDeleteAlbum = New System.Windows.Forms.Button
-        Me.btnAddNewAlbum = New System.Windows.Forms.Button
-        Me.GroupBox2 = New System.Windows.Forms.GroupBox
-        Me.LinkLabel1 = New System.Windows.Forms.LinkLabel
-        Me.Label12 = New System.Windows.Forms.Label
-        Me.GroupBox1 = New System.Windows.Forms.GroupBox
-        Me.lblAlbumNumberOfTracks = New System.Windows.Forms.Label
-        Me.lblAlbumTotalSize = New System.Windows.Forms.Label
-        Me.txtAlbumYear = New System.Windows.Forms.TextBox
-        Me.txtAlbumGenre = New System.Windows.Forms.TextBox
-        Me.txtAlbumArtist = New System.Windows.Forms.TextBox
-        Me.txtAlbumTitle = New System.Windows.Forms.TextBox
-        Me.GroupBox3 = New System.Windows.Forms.GroupBox
-        Me.pbAlbumArt = New System.Windows.Forms.PictureBox
-        Me.Label15 = New System.Windows.Forms.Label
-        Me.Label11 = New System.Windows.Forms.Label
-        Me.Label13 = New System.Windows.Forms.Label
-        Me.Label10 = New System.Windows.Forms.Label
-        Me.Label9 = New System.Windows.Forms.Label
-        Me.Label8 = New System.Windows.Forms.Label
-        Me.lblAlbumArtFileSize = New System.Windows.Forms.Label
-        Me.lblAlbumArtDimensions = New System.Windows.Forms.Label
-        Me.Label6 = New System.Windows.Forms.Label
         Me.tabpageFileManagement = New System.Windows.Forms.TabPage
         Me.SplitContainer2 = New System.Windows.Forms.SplitContainer
         Me.btnFileManagementRefresh = New System.Windows.Forms.LinkLabel
         Me.Label5 = New System.Windows.Forms.Label
         Me.tvFileManagementDeviceFolders = New System.Windows.Forms.TreeView
+        Me.lvFileManagementDeviceFilesInFolder = New WalkmanMTP.ListViewDnD.ListViewEx
+        Me.fileName = New System.Windows.Forms.ColumnHeader
+        Me.Size = New System.Windows.Forms.ColumnHeader
+        Me.Title = New System.Windows.Forms.ColumnHeader
+        Me.Artist = New System.Windows.Forms.ColumnHeader
+        Me.Album = New System.Windows.Forms.ColumnHeader
+        Me.year = New System.Windows.Forms.ColumnHeader
+        Me.trackNum = New System.Windows.Forms.ColumnHeader
+        Me.genre = New System.Windows.Forms.ColumnHeader
         Me.lblFileManagementSelectedFolder = New System.Windows.Forms.Label
         Me.imlTabIcons = New System.Windows.Forms.ImageList(Me.components)
         Me.btnDeviceDetails = New System.Windows.Forms.LinkLabel
@@ -97,7 +119,6 @@ Partial Class Main
         Me.lblManufacturer = New System.Windows.Forms.Label
         Me.lblCapacity = New System.Windows.Forms.Label
         Me.gbDevIcon = New System.Windows.Forms.GroupBox
-        Me.pboxDevIcon = New System.Windows.Forms.PictureBox
         Me.ToolTip1 = New System.Windows.Forms.ToolTip(Me.components)
         Me.btnSync = New System.Windows.Forms.Button
         Me.btnRefreshDevices = New System.Windows.Forms.Button
@@ -117,37 +138,10 @@ Partial Class Main
         Me.mnuTvFileManagementRightClick = New System.Windows.Forms.ContextMenuStrip(Me.components)
         Me.mnuTVFileManagementCollapseChildren = New System.Windows.Forms.ToolStripMenuItem
         Me.mnuTVFileManagementExpandChildren = New System.Windows.Forms.ToolStripMenuItem
-        Me.lvAlbumsList = New WalkmanMTP.ListViewDnD.ListViewEx
-        Me.ColumnHeader6 = New System.Windows.Forms.ColumnHeader
-        Me.ColumnHeader7 = New System.Windows.Forms.ColumnHeader
-        Me.ColumnHeader8 = New System.Windows.Forms.ColumnHeader
-        Me.ColumnHeader9 = New System.Windows.Forms.ColumnHeader
-        Me.lvAlbumItems = New WalkmanMTP.ListViewDnD.ListViewEx
-        Me.lvAlbumItemsFileName = New System.Windows.Forms.ColumnHeader
-        Me.lvAlbumItemsTrackNum = New System.Windows.Forms.ColumnHeader
-        Me.lvAlbumItemsTitle = New System.Windows.Forms.ColumnHeader
-        Me.lvAlbumItemsArtist = New System.Windows.Forms.ColumnHeader
-        Me.lvAlbumItemsYear = New System.Windows.Forms.ColumnHeader
-        Me.lvAlbumItemsGenre = New System.Windows.Forms.ColumnHeader
-        Me.lvAlbumItemsSize = New System.Windows.Forms.ColumnHeader
-        Me.tvPlaylistsFilesOnDevice = New WalkmanMTP.MultiSelectTreeview.MultiSelectTreeview
-        Me.lvFileManagementDeviceFilesInFolder = New WalkmanMTP.ListViewDnD.ListViewEx
-        Me.fileName = New System.Windows.Forms.ColumnHeader
-        Me.Size = New System.Windows.Forms.ColumnHeader
-        Me.Title = New System.Windows.Forms.ColumnHeader
-        Me.Artist = New System.Windows.Forms.ColumnHeader
-        Me.Album = New System.Windows.Forms.ColumnHeader
-        Me.year = New System.Windows.Forms.ColumnHeader
-        Me.trackNum = New System.Windows.Forms.ColumnHeader
-        Me.genre = New System.Windows.Forms.ColumnHeader
+        Me.pboxDevIcon = New System.Windows.Forms.PictureBox
+        Me.pbAlbumArt = New System.Windows.Forms.PictureBox
         Me.MenuStrip1.SuspendLayout()
         Me.tabviewMain.SuspendLayout()
-        Me.tabpagePlaylists.SuspendLayout()
-        Me.SplitContainer1.Panel1.SuspendLayout()
-        Me.SplitContainer1.Panel2.SuspendLayout()
-        Me.SplitContainer1.SuspendLayout()
-        Me.tabPlaylists.SuspendLayout()
-        Me.TabPage4.SuspendLayout()
         Me.tabpageAlbums.SuspendLayout()
         Me.SplitContainer3.Panel1.SuspendLayout()
         Me.SplitContainer3.Panel2.SuspendLayout()
@@ -155,17 +149,23 @@ Partial Class Main
         Me.GroupBox2.SuspendLayout()
         Me.GroupBox1.SuspendLayout()
         Me.GroupBox3.SuspendLayout()
-        CType(Me.pbAlbumArt, System.ComponentModel.ISupportInitialize).BeginInit()
+        Me.tabpagePlaylists.SuspendLayout()
+        Me.SplitContainer1.Panel1.SuspendLayout()
+        Me.SplitContainer1.Panel2.SuspendLayout()
+        Me.SplitContainer1.SuspendLayout()
+        Me.tabPlaylists.SuspendLayout()
+        Me.TabPage4.SuspendLayout()
         Me.tabpageFileManagement.SuspendLayout()
         Me.SplitContainer2.Panel1.SuspendLayout()
         Me.SplitContainer2.Panel2.SuspendLayout()
         Me.SplitContainer2.SuspendLayout()
         Me.gbDevIcon.SuspendLayout()
-        CType(Me.pboxDevIcon, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.mnuLvPlaylistContentsRightClick.SuspendLayout()
         Me.mnuLvFileManagementRightClick.SuspendLayout()
         Me.mnuTvPlaylistFilesRightClick.SuspendLayout()
         Me.mnuTvFileManagementRightClick.SuspendLayout()
+        CType(Me.pboxDevIcon, System.ComponentModel.ISupportInitialize).BeginInit()
+        CType(Me.pbAlbumArt, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.SuspendLayout()
         '
         'MenuStrip1
@@ -279,6 +279,446 @@ Partial Class Main
         Me.tabviewMain.Size = New System.Drawing.Size(914, 527)
         Me.tabviewMain.TabIndex = 4
         '
+        'tabpageAlbums
+        '
+        Me.tabpageAlbums.Controls.Add(Me.SplitContainer3)
+        Me.tabpageAlbums.Controls.Add(Me.Label6)
+        Me.tabpageAlbums.ImageKey = "Albums"
+        Me.tabpageAlbums.Location = New System.Drawing.Point(4, 23)
+        Me.tabpageAlbums.Name = "tabpageAlbums"
+        Me.tabpageAlbums.Size = New System.Drawing.Size(906, 500)
+        Me.tabpageAlbums.TabIndex = 3
+        Me.tabpageAlbums.Text = "Albums"
+        Me.tabpageAlbums.UseVisualStyleBackColor = True
+        '
+        'SplitContainer3
+        '
+        Me.SplitContainer3.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D
+        Me.SplitContainer3.Dock = System.Windows.Forms.DockStyle.Fill
+        Me.SplitContainer3.Location = New System.Drawing.Point(0, 0)
+        Me.SplitContainer3.Name = "SplitContainer3"
+        '
+        'SplitContainer3.Panel1
+        '
+        Me.SplitContainer3.Panel1.Controls.Add(Me.cmbAlbumListGroupBy)
+        Me.SplitContainer3.Panel1.Controls.Add(Me.btnClearAllAlbums)
+        Me.SplitContainer3.Panel1.Controls.Add(Me.Label14)
+        Me.SplitContainer3.Panel1.Controls.Add(Me.Label7)
+        Me.SplitContainer3.Panel1.Controls.Add(Me.lvAlbumsList)
+        Me.SplitContainer3.Panel1.Controls.Add(Me.CheckBox1)
+        '
+        'SplitContainer3.Panel2
+        '
+        Me.SplitContainer3.Panel2.Controls.Add(Me.btnDeleteAlbum)
+        Me.SplitContainer3.Panel2.Controls.Add(Me.btnAddNewAlbum)
+        Me.SplitContainer3.Panel2.Controls.Add(Me.GroupBox2)
+        Me.SplitContainer3.Panel2.Controls.Add(Me.GroupBox1)
+        Me.SplitContainer3.Size = New System.Drawing.Size(906, 500)
+        Me.SplitContainer3.SplitterDistance = 419
+        Me.SplitContainer3.SplitterWidth = 2
+        Me.SplitContainer3.TabIndex = 9
+        '
+        'cmbAlbumListGroupBy
+        '
+        Me.cmbAlbumListGroupBy.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList
+        Me.cmbAlbumListGroupBy.Font = New System.Drawing.Font("Tahoma", 6.75!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.cmbAlbumListGroupBy.FormattingEnabled = True
+        Me.cmbAlbumListGroupBy.Items.AddRange(New Object() {"Artist", "Year", "Genre"})
+        Me.cmbAlbumListGroupBy.Location = New System.Drawing.Point(119, 2)
+        Me.cmbAlbumListGroupBy.Name = "cmbAlbumListGroupBy"
+        Me.cmbAlbumListGroupBy.Size = New System.Drawing.Size(121, 19)
+        Me.cmbAlbumListGroupBy.TabIndex = 10
+        '
+        'btnClearAllAlbums
+        '
+        Me.btnClearAllAlbums.Anchor = CType((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
+        Me.btnClearAllAlbums.AutoSize = True
+        Me.btnClearAllAlbums.Location = New System.Drawing.Point(334, 7)
+        Me.btnClearAllAlbums.Name = "btnClearAllAlbums"
+        Me.btnClearAllAlbums.Size = New System.Drawing.Size(83, 13)
+        Me.btnClearAllAlbums.TabIndex = 1
+        Me.btnClearAllAlbums.TabStop = True
+        Me.btnClearAllAlbums.Text = "Clear All Albums"
+        '
+        'Label14
+        '
+        Me.Label14.AutoSize = True
+        Me.Label14.Font = New System.Drawing.Font("Tahoma", 6.75!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.Label14.Location = New System.Drawing.Point(65, 5)
+        Me.Label14.Name = "Label14"
+        Me.Label14.Size = New System.Drawing.Size(48, 11)
+        Me.Label14.TabIndex = 8
+        Me.Label14.Text = "Group By:"
+        '
+        'Label7
+        '
+        Me.Label7.AutoSize = True
+        Me.Label7.Font = New System.Drawing.Font("Tahoma", 8.25!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.Label7.Location = New System.Drawing.Point(1, 3)
+        Me.Label7.Name = "Label7"
+        Me.Label7.Size = New System.Drawing.Size(45, 13)
+        Me.Label7.TabIndex = 8
+        Me.Label7.Text = "Albums:"
+        '
+        'lvAlbumsList
+        '
+        Me.lvAlbumsList.Activation = System.Windows.Forms.ItemActivation.OneClick
+        Me.lvAlbumsList.AllowDrop = True
+        Me.lvAlbumsList.AllowReorder = False
+        Me.lvAlbumsList.Anchor = CType((((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Bottom) _
+                    Or System.Windows.Forms.AnchorStyles.Left) _
+                    Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
+        Me.lvAlbumsList.Columns.AddRange(New System.Windows.Forms.ColumnHeader() {Me.ColumnHeader6, Me.ColumnHeader7, Me.ColumnHeader8, Me.ColumnHeader9})
+        Me.lvAlbumsList.FullRowSelect = True
+        Me.lvAlbumsList.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.Nonclickable
+        Me.lvAlbumsList.LineColor = System.Drawing.Color.Red
+        Me.lvAlbumsList.Location = New System.Drawing.Point(-2, 23)
+        Me.lvAlbumsList.Name = "lvAlbumsList"
+        Me.lvAlbumsList.ShowItemToolTips = True
+        Me.lvAlbumsList.Size = New System.Drawing.Size(419, 475)
+        Me.lvAlbumsList.TabIndex = 0
+        Me.ToolTip1.SetToolTip(Me.lvAlbumsList, "Drag Folders to here. Each folder will be considered as a separate album")
+        Me.lvAlbumsList.UseCompatibleStateImageBehavior = False
+        Me.lvAlbumsList.View = System.Windows.Forms.View.Details
+        '
+        'ColumnHeader6
+        '
+        Me.ColumnHeader6.Tag = "230"
+        Me.ColumnHeader6.Text = "Title"
+        Me.ColumnHeader6.Width = 230
+        '
+        'ColumnHeader7
+        '
+        Me.ColumnHeader7.Tag = "110"
+        Me.ColumnHeader7.Text = "Artist"
+        Me.ColumnHeader7.Width = 110
+        '
+        'ColumnHeader8
+        '
+        Me.ColumnHeader8.Tag = "40"
+        Me.ColumnHeader8.Text = "Year"
+        Me.ColumnHeader8.TextAlign = System.Windows.Forms.HorizontalAlignment.Center
+        Me.ColumnHeader8.Width = 40
+        '
+        'ColumnHeader9
+        '
+        Me.ColumnHeader9.Tag = "120"
+        Me.ColumnHeader9.Text = "Genre"
+        Me.ColumnHeader9.Width = 120
+        '
+        'CheckBox1
+        '
+        Me.CheckBox1.Anchor = CType((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
+        Me.CheckBox1.AutoSize = True
+        Me.CheckBox1.Font = New System.Drawing.Font("Tahoma", 6.75!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.CheckBox1.Location = New System.Drawing.Point(246, -2)
+        Me.CheckBox1.Name = "CheckBox1"
+        Me.CheckBox1.Size = New System.Drawing.Size(92, 26)
+        Me.CheckBox1.TabIndex = 9
+        Me.CheckBox1.Text = "Delete songs" & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "on Album delete"
+        Me.CheckBox1.UseVisualStyleBackColor = True
+        '
+        'btnDeleteAlbum
+        '
+        Me.btnDeleteAlbum.Location = New System.Drawing.Point(9, 43)
+        Me.btnDeleteAlbum.Name = "btnDeleteAlbum"
+        Me.btnDeleteAlbum.Size = New System.Drawing.Size(25, 25)
+        Me.btnDeleteAlbum.TabIndex = 1
+        Me.ToolTip1.SetToolTip(Me.btnDeleteAlbum, "Delete this album")
+        Me.btnDeleteAlbum.UseVisualStyleBackColor = True
+        '
+        'btnAddNewAlbum
+        '
+        Me.btnAddNewAlbum.Location = New System.Drawing.Point(9, 12)
+        Me.btnAddNewAlbum.Name = "btnAddNewAlbum"
+        Me.btnAddNewAlbum.Size = New System.Drawing.Size(25, 25)
+        Me.btnAddNewAlbum.TabIndex = 1
+        Me.ToolTip1.SetToolTip(Me.btnAddNewAlbum, "Create a new blank album")
+        Me.btnAddNewAlbum.UseVisualStyleBackColor = True
+        '
+        'GroupBox2
+        '
+        Me.GroupBox2.Anchor = CType((((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Bottom) _
+                    Or System.Windows.Forms.AnchorStyles.Left) _
+                    Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
+        Me.GroupBox2.Controls.Add(Me.LinkLabel1)
+        Me.GroupBox2.Controls.Add(Me.Label12)
+        Me.GroupBox2.Controls.Add(Me.lvAlbumItems)
+        Me.GroupBox2.Location = New System.Drawing.Point(3, 144)
+        Me.GroupBox2.Name = "GroupBox2"
+        Me.GroupBox2.Size = New System.Drawing.Size(477, 351)
+        Me.GroupBox2.TabIndex = 0
+        Me.GroupBox2.TabStop = False
+        Me.GroupBox2.Text = "Album Items"
+        '
+        'LinkLabel1
+        '
+        Me.LinkLabel1.Anchor = CType((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
+        Me.LinkLabel1.AutoSize = True
+        Me.LinkLabel1.Location = New System.Drawing.Point(409, 12)
+        Me.LinkLabel1.Name = "LinkLabel1"
+        Me.LinkLabel1.Size = New System.Drawing.Size(62, 13)
+        Me.LinkLabel1.TabIndex = 1
+        Me.LinkLabel1.TabStop = True
+        Me.LinkLabel1.Text = "Clear Items"
+        '
+        'Label12
+        '
+        Me.Label12.Anchor = CType((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
+        Me.Label12.AutoSize = True
+        Me.Label12.Font = New System.Drawing.Font("Tahoma", 6.75!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.Label12.Location = New System.Drawing.Point(6, 14)
+        Me.Label12.Name = "Label12"
+        Me.Label12.Size = New System.Drawing.Size(199, 11)
+        Me.Label12.TabIndex = 9
+        Me.Label12.Text = "Songs will play in the order they appear below"
+        '
+        'lvAlbumItems
+        '
+        Me.lvAlbumItems.AllowDrop = True
+        Me.lvAlbumItems.AllowReorder = True
+        Me.lvAlbumItems.Anchor = CType((((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Bottom) _
+                    Or System.Windows.Forms.AnchorStyles.Left) _
+                    Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
+        Me.lvAlbumItems.Columns.AddRange(New System.Windows.Forms.ColumnHeader() {Me.lvAlbumItemsFileName, Me.lvAlbumItemsTrackNum, Me.lvAlbumItemsTitle, Me.lvAlbumItemsArtist, Me.lvAlbumItemsYear, Me.lvAlbumItemsGenre, Me.lvAlbumItemsSize})
+        Me.lvAlbumItems.FullRowSelect = True
+        Me.lvAlbumItems.GridLines = True
+        Me.lvAlbumItems.HideSelection = False
+        Me.lvAlbumItems.LabelWrap = False
+        Me.lvAlbumItems.LineColor = System.Drawing.Color.Red
+        Me.lvAlbumItems.Location = New System.Drawing.Point(6, 28)
+        Me.lvAlbumItems.Name = "lvAlbumItems"
+        Me.lvAlbumItems.ShowGroups = False
+        Me.lvAlbumItems.ShowItemToolTips = True
+        Me.lvAlbumItems.Size = New System.Drawing.Size(465, 317)
+        Me.lvAlbumItems.TabIndex = 0
+        Me.ToolTip1.SetToolTip(Me.lvAlbumItems, "Drag songs to here")
+        Me.lvAlbumItems.UseCompatibleStateImageBehavior = False
+        Me.lvAlbumItems.View = System.Windows.Forms.View.Details
+        '
+        'lvAlbumItemsFileName
+        '
+        Me.lvAlbumItemsFileName.Text = "File Name"
+        Me.lvAlbumItemsFileName.Width = 224
+        '
+        'lvAlbumItemsTrackNum
+        '
+        Me.lvAlbumItemsTrackNum.Text = "Track"
+        Me.lvAlbumItemsTrackNum.TextAlign = System.Windows.Forms.HorizontalAlignment.Center
+        Me.lvAlbumItemsTrackNum.Width = 31
+        '
+        'lvAlbumItemsTitle
+        '
+        Me.lvAlbumItemsTitle.Text = "Title"
+        Me.lvAlbumItemsTitle.Width = 208
+        '
+        'lvAlbumItemsArtist
+        '
+        Me.lvAlbumItemsArtist.Text = "Artist"
+        Me.lvAlbumItemsArtist.Width = 130
+        '
+        'lvAlbumItemsYear
+        '
+        Me.lvAlbumItemsYear.Text = "Year"
+        Me.lvAlbumItemsYear.TextAlign = System.Windows.Forms.HorizontalAlignment.Center
+        Me.lvAlbumItemsYear.Width = 47
+        '
+        'lvAlbumItemsGenre
+        '
+        Me.lvAlbumItemsGenre.Text = "Genre"
+        Me.lvAlbumItemsGenre.Width = 121
+        '
+        'lvAlbumItemsSize
+        '
+        Me.lvAlbumItemsSize.Text = "Size"
+        Me.lvAlbumItemsSize.Width = 80
+        '
+        'GroupBox1
+        '
+        Me.GroupBox1.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Left) _
+                    Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
+        Me.GroupBox1.Controls.Add(Me.lblAlbumNumberOfTracks)
+        Me.GroupBox1.Controls.Add(Me.lblAlbumTotalSize)
+        Me.GroupBox1.Controls.Add(Me.txtAlbumYear)
+        Me.GroupBox1.Controls.Add(Me.txtAlbumGenre)
+        Me.GroupBox1.Controls.Add(Me.txtAlbumArtist)
+        Me.GroupBox1.Controls.Add(Me.txtAlbumTitle)
+        Me.GroupBox1.Controls.Add(Me.GroupBox3)
+        Me.GroupBox1.Controls.Add(Me.Label15)
+        Me.GroupBox1.Controls.Add(Me.Label11)
+        Me.GroupBox1.Controls.Add(Me.Label13)
+        Me.GroupBox1.Controls.Add(Me.Label10)
+        Me.GroupBox1.Controls.Add(Me.Label9)
+        Me.GroupBox1.Controls.Add(Me.Label8)
+        Me.GroupBox1.Controls.Add(Me.lblAlbumArtFileSize)
+        Me.GroupBox1.Controls.Add(Me.lblAlbumArtDimensions)
+        Me.GroupBox1.Location = New System.Drawing.Point(44, 3)
+        Me.GroupBox1.Name = "GroupBox1"
+        Me.GroupBox1.Size = New System.Drawing.Size(434, 135)
+        Me.GroupBox1.TabIndex = 0
+        Me.GroupBox1.TabStop = False
+        Me.GroupBox1.Text = "Album Information"
+        '
+        'lblAlbumNumberOfTracks
+        '
+        Me.lblAlbumNumberOfTracks.AutoSize = True
+        Me.lblAlbumNumberOfTracks.Location = New System.Drawing.Point(115, 112)
+        Me.lblAlbumNumberOfTracks.Name = "lblAlbumNumberOfTracks"
+        Me.lblAlbumNumberOfTracks.Size = New System.Drawing.Size(19, 13)
+        Me.lblAlbumNumberOfTracks.TabIndex = 9
+        Me.lblAlbumNumberOfTracks.Text = "00"
+        '
+        'lblAlbumTotalSize
+        '
+        Me.lblAlbumTotalSize.Anchor = CType((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
+        Me.lblAlbumTotalSize.AutoSize = True
+        Me.lblAlbumTotalSize.Location = New System.Drawing.Point(277, 112)
+        Me.lblAlbumTotalSize.Name = "lblAlbumTotalSize"
+        Me.lblAlbumTotalSize.Size = New System.Drawing.Size(30, 13)
+        Me.lblAlbumTotalSize.TabIndex = 9
+        Me.lblAlbumTotalSize.Text = "0 MB"
+        '
+        'txtAlbumYear
+        '
+        Me.txtAlbumYear.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Left) _
+                    Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
+        Me.txtAlbumYear.Location = New System.Drawing.Point(56, 84)
+        Me.txtAlbumYear.Name = "txtAlbumYear"
+        Me.txtAlbumYear.Size = New System.Drawing.Size(266, 21)
+        Me.txtAlbumYear.TabIndex = 7
+        '
+        'txtAlbumGenre
+        '
+        Me.txtAlbumGenre.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Left) _
+                    Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
+        Me.txtAlbumGenre.Location = New System.Drawing.Point(56, 61)
+        Me.txtAlbumGenre.Name = "txtAlbumGenre"
+        Me.txtAlbumGenre.Size = New System.Drawing.Size(266, 21)
+        Me.txtAlbumGenre.TabIndex = 7
+        '
+        'txtAlbumArtist
+        '
+        Me.txtAlbumArtist.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Left) _
+                    Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
+        Me.txtAlbumArtist.Location = New System.Drawing.Point(56, 39)
+        Me.txtAlbumArtist.Name = "txtAlbumArtist"
+        Me.txtAlbumArtist.Size = New System.Drawing.Size(266, 21)
+        Me.txtAlbumArtist.TabIndex = 7
+        '
+        'txtAlbumTitle
+        '
+        Me.txtAlbumTitle.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Left) _
+                    Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
+        Me.txtAlbumTitle.Location = New System.Drawing.Point(56, 16)
+        Me.txtAlbumTitle.Name = "txtAlbumTitle"
+        Me.txtAlbumTitle.Size = New System.Drawing.Size(266, 21)
+        Me.txtAlbumTitle.TabIndex = 7
+        '
+        'GroupBox3
+        '
+        Me.GroupBox3.Anchor = CType((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
+        Me.GroupBox3.Controls.Add(Me.pbAlbumArt)
+        Me.GroupBox3.Location = New System.Drawing.Point(328, 9)
+        Me.GroupBox3.Name = "GroupBox3"
+        Me.GroupBox3.Size = New System.Drawing.Size(100, 100)
+        Me.GroupBox3.TabIndex = 0
+        Me.GroupBox3.TabStop = False
+        '
+        'Label15
+        '
+        Me.Label15.AutoSize = True
+        Me.Label15.Font = New System.Drawing.Font("Tahoma", 8.25!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.Label15.Location = New System.Drawing.Point(5, 112)
+        Me.Label15.Name = "Label15"
+        Me.Label15.Size = New System.Drawing.Size(109, 13)
+        Me.Label15.TabIndex = 6
+        Me.Label15.Text = "Number of Tracks:"
+        '
+        'Label11
+        '
+        Me.Label11.AutoSize = True
+        Me.Label11.Font = New System.Drawing.Font("Tahoma", 8.25!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.Label11.Location = New System.Drawing.Point(6, 64)
+        Me.Label11.Name = "Label11"
+        Me.Label11.Size = New System.Drawing.Size(44, 13)
+        Me.Label11.TabIndex = 6
+        Me.Label11.Text = "Genre:"
+        '
+        'Label13
+        '
+        Me.Label13.Anchor = CType((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
+        Me.Label13.AutoSize = True
+        Me.Label13.Font = New System.Drawing.Font("Tahoma", 8.25!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.Label13.Location = New System.Drawing.Point(167, 112)
+        Me.Label13.Name = "Label13"
+        Me.Label13.Size = New System.Drawing.Size(104, 13)
+        Me.Label13.TabIndex = 6
+        Me.Label13.Text = "Total Album Size:"
+        '
+        'Label10
+        '
+        Me.Label10.AutoSize = True
+        Me.Label10.Font = New System.Drawing.Font("Tahoma", 8.25!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.Label10.Location = New System.Drawing.Point(6, 87)
+        Me.Label10.Name = "Label10"
+        Me.Label10.Size = New System.Drawing.Size(36, 13)
+        Me.Label10.TabIndex = 6
+        Me.Label10.Text = "Year:"
+        '
+        'Label9
+        '
+        Me.Label9.AutoSize = True
+        Me.Label9.Font = New System.Drawing.Font("Tahoma", 8.25!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.Label9.Location = New System.Drawing.Point(6, 42)
+        Me.Label9.Name = "Label9"
+        Me.Label9.Size = New System.Drawing.Size(42, 13)
+        Me.Label9.TabIndex = 6
+        Me.Label9.Text = "Artist:"
+        '
+        'Label8
+        '
+        Me.Label8.AutoSize = True
+        Me.Label8.Font = New System.Drawing.Font("Tahoma", 8.25!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.Label8.Location = New System.Drawing.Point(6, 19)
+        Me.Label8.Name = "Label8"
+        Me.Label8.Size = New System.Drawing.Size(35, 13)
+        Me.Label8.TabIndex = 6
+        Me.Label8.Text = "Title:"
+        '
+        'lblAlbumArtFileSize
+        '
+        Me.lblAlbumArtFileSize.Anchor = CType((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
+        Me.lblAlbumArtFileSize.AutoSize = True
+        Me.lblAlbumArtFileSize.Font = New System.Drawing.Font("Tahoma", 6.75!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.lblAlbumArtFileSize.Location = New System.Drawing.Point(357, 121)
+        Me.lblAlbumArtFileSize.Name = "lblAlbumArtFileSize"
+        Me.lblAlbumArtFileSize.Size = New System.Drawing.Size(25, 11)
+        Me.lblAlbumArtFileSize.TabIndex = 8
+        Me.lblAlbumArtFileSize.Text = "0 KB"
+        Me.lblAlbumArtFileSize.TextAlign = System.Drawing.ContentAlignment.TopCenter
+        '
+        'lblAlbumArtDimensions
+        '
+        Me.lblAlbumArtDimensions.Anchor = CType((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
+        Me.lblAlbumArtDimensions.AutoSize = True
+        Me.lblAlbumArtDimensions.Font = New System.Drawing.Font("Tahoma", 6.75!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.lblAlbumArtDimensions.Location = New System.Drawing.Point(357, 110)
+        Me.lblAlbumArtDimensions.Name = "lblAlbumArtDimensions"
+        Me.lblAlbumArtDimensions.Size = New System.Drawing.Size(25, 11)
+        Me.lblAlbumArtDimensions.TabIndex = 8
+        Me.lblAlbumArtDimensions.Text = "0 x 0"
+        Me.lblAlbumArtDimensions.TextAlign = System.Drawing.ContentAlignment.TopCenter
+        '
+        'Label6
+        '
+        Me.Label6.AutoSize = True
+        Me.Label6.Font = New System.Drawing.Font("Tahoma", 8.25!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.Label6.Location = New System.Drawing.Point(323, 167)
+        Me.Label6.Name = "Label6"
+        Me.Label6.Size = New System.Drawing.Size(106, 13)
+        Me.Label6.TabIndex = 8
+        Me.Label6.Text = "Not yet implemented"
+        '
         'tabpagePlaylists
         '
         Me.tabpagePlaylists.Controls.Add(Me.SplitContainer1)
@@ -315,6 +755,17 @@ Partial Class Main
         Me.SplitContainer1.SplitterDistance = 364
         Me.SplitContainer1.SplitterWidth = 2
         Me.SplitContainer1.TabIndex = 0
+        '
+        'tvPlaylistsFilesOnDevice
+        '
+        Me.tvPlaylistsFilesOnDevice.Anchor = CType((((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Bottom) _
+                    Or System.Windows.Forms.AnchorStyles.Left) _
+                    Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
+        Me.tvPlaylistsFilesOnDevice.Location = New System.Drawing.Point(-3, 16)
+        Me.tvPlaylistsFilesOnDevice.Name = "tvPlaylistsFilesOnDevice"
+        Me.tvPlaylistsFilesOnDevice.SelectedNodes = CType(resources.GetObject("tvPlaylistsFilesOnDevice.SelectedNodes"), System.Collections.Generic.List(Of System.Windows.Forms.TreeNode))
+        Me.tvPlaylistsFilesOnDevice.Size = New System.Drawing.Size(365, 481)
+        Me.tvPlaylistsFilesOnDevice.TabIndex = 0
         '
         'Label4
         '
@@ -438,350 +889,6 @@ Partial Class Main
         '
         Me.ColumnHeader5.Text = "Year"
         '
-        'tabpageAlbums
-        '
-        Me.tabpageAlbums.Controls.Add(Me.SplitContainer3)
-        Me.tabpageAlbums.Controls.Add(Me.Label6)
-        Me.tabpageAlbums.ImageKey = "Albums"
-        Me.tabpageAlbums.Location = New System.Drawing.Point(4, 23)
-        Me.tabpageAlbums.Name = "tabpageAlbums"
-        Me.tabpageAlbums.Size = New System.Drawing.Size(906, 500)
-        Me.tabpageAlbums.TabIndex = 3
-        Me.tabpageAlbums.Text = "Albums"
-        Me.tabpageAlbums.UseVisualStyleBackColor = True
-        '
-        'SplitContainer3
-        '
-        Me.SplitContainer3.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D
-        Me.SplitContainer3.Dock = System.Windows.Forms.DockStyle.Fill
-        Me.SplitContainer3.Location = New System.Drawing.Point(0, 0)
-        Me.SplitContainer3.Name = "SplitContainer3"
-        '
-        'SplitContainer3.Panel1
-        '
-        Me.SplitContainer3.Panel1.Controls.Add(Me.cmbAlbumListGroupBy)
-        Me.SplitContainer3.Panel1.Controls.Add(Me.btnClearAllAlbums)
-        Me.SplitContainer3.Panel1.Controls.Add(Me.Label14)
-        Me.SplitContainer3.Panel1.Controls.Add(Me.Label7)
-        Me.SplitContainer3.Panel1.Controls.Add(Me.lvAlbumsList)
-        Me.SplitContainer3.Panel1.Controls.Add(Me.CheckBox1)
-        '
-        'SplitContainer3.Panel2
-        '
-        Me.SplitContainer3.Panel2.Controls.Add(Me.btnDeleteAlbum)
-        Me.SplitContainer3.Panel2.Controls.Add(Me.btnAddNewAlbum)
-        Me.SplitContainer3.Panel2.Controls.Add(Me.GroupBox2)
-        Me.SplitContainer3.Panel2.Controls.Add(Me.GroupBox1)
-        Me.SplitContainer3.Size = New System.Drawing.Size(906, 500)
-        Me.SplitContainer3.SplitterDistance = 419
-        Me.SplitContainer3.SplitterWidth = 2
-        Me.SplitContainer3.TabIndex = 9
-        '
-        'cmbAlbumListGroupBy
-        '
-        Me.cmbAlbumListGroupBy.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList
-        Me.cmbAlbumListGroupBy.Font = New System.Drawing.Font("Tahoma", 6.75!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.cmbAlbumListGroupBy.FormattingEnabled = True
-        Me.cmbAlbumListGroupBy.Items.AddRange(New Object() {"Artist", "Year", "Genre"})
-        Me.cmbAlbumListGroupBy.Location = New System.Drawing.Point(119, 2)
-        Me.cmbAlbumListGroupBy.Name = "cmbAlbumListGroupBy"
-        Me.cmbAlbumListGroupBy.Size = New System.Drawing.Size(121, 19)
-        Me.cmbAlbumListGroupBy.TabIndex = 10
-        '
-        'btnClearAllAlbums
-        '
-        Me.btnClearAllAlbums.Anchor = CType((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
-        Me.btnClearAllAlbums.AutoSize = True
-        Me.btnClearAllAlbums.Location = New System.Drawing.Point(334, 7)
-        Me.btnClearAllAlbums.Name = "btnClearAllAlbums"
-        Me.btnClearAllAlbums.Size = New System.Drawing.Size(83, 13)
-        Me.btnClearAllAlbums.TabIndex = 1
-        Me.btnClearAllAlbums.TabStop = True
-        Me.btnClearAllAlbums.Text = "Clear All Albums"
-        '
-        'Label14
-        '
-        Me.Label14.AutoSize = True
-        Me.Label14.Font = New System.Drawing.Font("Tahoma", 6.75!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.Label14.Location = New System.Drawing.Point(65, 5)
-        Me.Label14.Name = "Label14"
-        Me.Label14.Size = New System.Drawing.Size(48, 11)
-        Me.Label14.TabIndex = 8
-        Me.Label14.Text = "Group By:"
-        '
-        'Label7
-        '
-        Me.Label7.AutoSize = True
-        Me.Label7.Font = New System.Drawing.Font("Tahoma", 8.25!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.Label7.Location = New System.Drawing.Point(1, 3)
-        Me.Label7.Name = "Label7"
-        Me.Label7.Size = New System.Drawing.Size(45, 13)
-        Me.Label7.TabIndex = 8
-        Me.Label7.Text = "Albums:"
-        '
-        'CheckBox1
-        '
-        Me.CheckBox1.Anchor = CType((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
-        Me.CheckBox1.AutoSize = True
-        Me.CheckBox1.Font = New System.Drawing.Font("Tahoma", 6.75!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.CheckBox1.Location = New System.Drawing.Point(246, -2)
-        Me.CheckBox1.Name = "CheckBox1"
-        Me.CheckBox1.Size = New System.Drawing.Size(92, 26)
-        Me.CheckBox1.TabIndex = 9
-        Me.CheckBox1.Text = "Delete songs" & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "on Album delete"
-        Me.CheckBox1.UseVisualStyleBackColor = True
-        '
-        'btnDeleteAlbum
-        '
-        Me.btnDeleteAlbum.Location = New System.Drawing.Point(9, 43)
-        Me.btnDeleteAlbum.Name = "btnDeleteAlbum"
-        Me.btnDeleteAlbum.Size = New System.Drawing.Size(25, 25)
-        Me.btnDeleteAlbum.TabIndex = 1
-        Me.ToolTip1.SetToolTip(Me.btnDeleteAlbum, "Delete this album")
-        Me.btnDeleteAlbum.UseVisualStyleBackColor = True
-        '
-        'btnAddNewAlbum
-        '
-        Me.btnAddNewAlbum.Location = New System.Drawing.Point(9, 12)
-        Me.btnAddNewAlbum.Name = "btnAddNewAlbum"
-        Me.btnAddNewAlbum.Size = New System.Drawing.Size(25, 25)
-        Me.btnAddNewAlbum.TabIndex = 1
-        Me.ToolTip1.SetToolTip(Me.btnAddNewAlbum, "Create a new blank album")
-        Me.btnAddNewAlbum.UseVisualStyleBackColor = True
-        '
-        'GroupBox2
-        '
-        Me.GroupBox2.Anchor = CType((((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Bottom) _
-                    Or System.Windows.Forms.AnchorStyles.Left) _
-                    Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
-        Me.GroupBox2.Controls.Add(Me.LinkLabel1)
-        Me.GroupBox2.Controls.Add(Me.Label12)
-        Me.GroupBox2.Controls.Add(Me.lvAlbumItems)
-        Me.GroupBox2.Location = New System.Drawing.Point(3, 144)
-        Me.GroupBox2.Name = "GroupBox2"
-        Me.GroupBox2.Size = New System.Drawing.Size(477, 351)
-        Me.GroupBox2.TabIndex = 0
-        Me.GroupBox2.TabStop = False
-        Me.GroupBox2.Text = "Album Items"
-        '
-        'LinkLabel1
-        '
-        Me.LinkLabel1.Anchor = CType((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
-        Me.LinkLabel1.AutoSize = True
-        Me.LinkLabel1.Location = New System.Drawing.Point(409, 12)
-        Me.LinkLabel1.Name = "LinkLabel1"
-        Me.LinkLabel1.Size = New System.Drawing.Size(62, 13)
-        Me.LinkLabel1.TabIndex = 1
-        Me.LinkLabel1.TabStop = True
-        Me.LinkLabel1.Text = "Clear Items"
-        '
-        'Label12
-        '
-        Me.Label12.Anchor = CType((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
-        Me.Label12.AutoSize = True
-        Me.Label12.Font = New System.Drawing.Font("Tahoma", 6.75!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.Label12.Location = New System.Drawing.Point(6, 14)
-        Me.Label12.Name = "Label12"
-        Me.Label12.Size = New System.Drawing.Size(199, 11)
-        Me.Label12.TabIndex = 9
-        Me.Label12.Text = "Songs will play in the order they appear below"
-        '
-        'GroupBox1
-        '
-        Me.GroupBox1.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Left) _
-                    Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
-        Me.GroupBox1.Controls.Add(Me.lblAlbumNumberOfTracks)
-        Me.GroupBox1.Controls.Add(Me.lblAlbumTotalSize)
-        Me.GroupBox1.Controls.Add(Me.txtAlbumYear)
-        Me.GroupBox1.Controls.Add(Me.txtAlbumGenre)
-        Me.GroupBox1.Controls.Add(Me.txtAlbumArtist)
-        Me.GroupBox1.Controls.Add(Me.txtAlbumTitle)
-        Me.GroupBox1.Controls.Add(Me.GroupBox3)
-        Me.GroupBox1.Controls.Add(Me.Label15)
-        Me.GroupBox1.Controls.Add(Me.Label11)
-        Me.GroupBox1.Controls.Add(Me.Label13)
-        Me.GroupBox1.Controls.Add(Me.Label10)
-        Me.GroupBox1.Controls.Add(Me.Label9)
-        Me.GroupBox1.Controls.Add(Me.Label8)
-        Me.GroupBox1.Controls.Add(Me.lblAlbumArtFileSize)
-        Me.GroupBox1.Controls.Add(Me.lblAlbumArtDimensions)
-        Me.GroupBox1.Location = New System.Drawing.Point(44, 3)
-        Me.GroupBox1.Name = "GroupBox1"
-        Me.GroupBox1.Size = New System.Drawing.Size(434, 135)
-        Me.GroupBox1.TabIndex = 0
-        Me.GroupBox1.TabStop = False
-        Me.GroupBox1.Text = "Album Information"
-        '
-        'lblAlbumNumberOfTracks
-        '
-        Me.lblAlbumNumberOfTracks.AutoSize = True
-        Me.lblAlbumNumberOfTracks.Location = New System.Drawing.Point(115, 112)
-        Me.lblAlbumNumberOfTracks.Name = "lblAlbumNumberOfTracks"
-        Me.lblAlbumNumberOfTracks.Size = New System.Drawing.Size(19, 13)
-        Me.lblAlbumNumberOfTracks.TabIndex = 9
-        Me.lblAlbumNumberOfTracks.Text = "00"
-        '
-        'lblAlbumTotalSize
-        '
-        Me.lblAlbumTotalSize.Anchor = CType((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
-        Me.lblAlbumTotalSize.AutoSize = True
-        Me.lblAlbumTotalSize.Location = New System.Drawing.Point(277, 112)
-        Me.lblAlbumTotalSize.Name = "lblAlbumTotalSize"
-        Me.lblAlbumTotalSize.Size = New System.Drawing.Size(30, 13)
-        Me.lblAlbumTotalSize.TabIndex = 9
-        Me.lblAlbumTotalSize.Text = "0 MB"
-        '
-        'txtAlbumYear
-        '
-        Me.txtAlbumYear.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Left) _
-                    Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
-        Me.txtAlbumYear.Location = New System.Drawing.Point(56, 84)
-        Me.txtAlbumYear.Name = "txtAlbumYear"
-        Me.txtAlbumYear.Size = New System.Drawing.Size(266, 21)
-        Me.txtAlbumYear.TabIndex = 7
-        '
-        'txtAlbumGenre
-        '
-        Me.txtAlbumGenre.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Left) _
-                    Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
-        Me.txtAlbumGenre.Location = New System.Drawing.Point(56, 61)
-        Me.txtAlbumGenre.Name = "txtAlbumGenre"
-        Me.txtAlbumGenre.Size = New System.Drawing.Size(266, 21)
-        Me.txtAlbumGenre.TabIndex = 7
-        '
-        'txtAlbumArtist
-        '
-        Me.txtAlbumArtist.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Left) _
-                    Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
-        Me.txtAlbumArtist.Location = New System.Drawing.Point(56, 39)
-        Me.txtAlbumArtist.Name = "txtAlbumArtist"
-        Me.txtAlbumArtist.Size = New System.Drawing.Size(266, 21)
-        Me.txtAlbumArtist.TabIndex = 7
-        '
-        'txtAlbumTitle
-        '
-        Me.txtAlbumTitle.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Left) _
-                    Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
-        Me.txtAlbumTitle.Location = New System.Drawing.Point(56, 16)
-        Me.txtAlbumTitle.Name = "txtAlbumTitle"
-        Me.txtAlbumTitle.Size = New System.Drawing.Size(266, 21)
-        Me.txtAlbumTitle.TabIndex = 7
-        '
-        'GroupBox3
-        '
-        Me.GroupBox3.Anchor = CType((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
-        Me.GroupBox3.Controls.Add(Me.pbAlbumArt)
-        Me.GroupBox3.Location = New System.Drawing.Point(328, 9)
-        Me.GroupBox3.Name = "GroupBox3"
-        Me.GroupBox3.Size = New System.Drawing.Size(100, 100)
-        Me.GroupBox3.TabIndex = 0
-        Me.GroupBox3.TabStop = False
-        '
-        'pbAlbumArt
-        '
-        Me.pbAlbumArt.Location = New System.Drawing.Point(4, 10)
-        Me.pbAlbumArt.Name = "pbAlbumArt"
-        Me.pbAlbumArt.Size = New System.Drawing.Size(91, 85)
-        Me.pbAlbumArt.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom
-        Me.pbAlbumArt.TabIndex = 0
-        Me.pbAlbumArt.TabStop = False
-        Me.ToolTip1.SetToolTip(Me.pbAlbumArt, "Drag new album cover to here")
-        '
-        'Label15
-        '
-        Me.Label15.AutoSize = True
-        Me.Label15.Font = New System.Drawing.Font("Tahoma", 8.25!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.Label15.Location = New System.Drawing.Point(5, 112)
-        Me.Label15.Name = "Label15"
-        Me.Label15.Size = New System.Drawing.Size(109, 13)
-        Me.Label15.TabIndex = 6
-        Me.Label15.Text = "Number of Tracks:"
-        '
-        'Label11
-        '
-        Me.Label11.AutoSize = True
-        Me.Label11.Font = New System.Drawing.Font("Tahoma", 8.25!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.Label11.Location = New System.Drawing.Point(6, 64)
-        Me.Label11.Name = "Label11"
-        Me.Label11.Size = New System.Drawing.Size(44, 13)
-        Me.Label11.TabIndex = 6
-        Me.Label11.Text = "Genre:"
-        '
-        'Label13
-        '
-        Me.Label13.Anchor = CType((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
-        Me.Label13.AutoSize = True
-        Me.Label13.Font = New System.Drawing.Font("Tahoma", 8.25!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.Label13.Location = New System.Drawing.Point(167, 112)
-        Me.Label13.Name = "Label13"
-        Me.Label13.Size = New System.Drawing.Size(104, 13)
-        Me.Label13.TabIndex = 6
-        Me.Label13.Text = "Total Album Size:"
-        '
-        'Label10
-        '
-        Me.Label10.AutoSize = True
-        Me.Label10.Font = New System.Drawing.Font("Tahoma", 8.25!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.Label10.Location = New System.Drawing.Point(6, 87)
-        Me.Label10.Name = "Label10"
-        Me.Label10.Size = New System.Drawing.Size(36, 13)
-        Me.Label10.TabIndex = 6
-        Me.Label10.Text = "Year:"
-        '
-        'Label9
-        '
-        Me.Label9.AutoSize = True
-        Me.Label9.Font = New System.Drawing.Font("Tahoma", 8.25!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.Label9.Location = New System.Drawing.Point(6, 42)
-        Me.Label9.Name = "Label9"
-        Me.Label9.Size = New System.Drawing.Size(42, 13)
-        Me.Label9.TabIndex = 6
-        Me.Label9.Text = "Artist:"
-        '
-        'Label8
-        '
-        Me.Label8.AutoSize = True
-        Me.Label8.Font = New System.Drawing.Font("Tahoma", 8.25!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.Label8.Location = New System.Drawing.Point(6, 19)
-        Me.Label8.Name = "Label8"
-        Me.Label8.Size = New System.Drawing.Size(35, 13)
-        Me.Label8.TabIndex = 6
-        Me.Label8.Text = "Title:"
-        '
-        'lblAlbumArtFileSize
-        '
-        Me.lblAlbumArtFileSize.Anchor = CType((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
-        Me.lblAlbumArtFileSize.AutoSize = True
-        Me.lblAlbumArtFileSize.Font = New System.Drawing.Font("Tahoma", 6.75!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.lblAlbumArtFileSize.Location = New System.Drawing.Point(357, 121)
-        Me.lblAlbumArtFileSize.Name = "lblAlbumArtFileSize"
-        Me.lblAlbumArtFileSize.Size = New System.Drawing.Size(25, 11)
-        Me.lblAlbumArtFileSize.TabIndex = 8
-        Me.lblAlbumArtFileSize.Text = "0 KB"
-        Me.lblAlbumArtFileSize.TextAlign = System.Drawing.ContentAlignment.TopCenter
-        '
-        'lblAlbumArtDimensions
-        '
-        Me.lblAlbumArtDimensions.Anchor = CType((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
-        Me.lblAlbumArtDimensions.AutoSize = True
-        Me.lblAlbumArtDimensions.Font = New System.Drawing.Font("Tahoma", 6.75!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.lblAlbumArtDimensions.Location = New System.Drawing.Point(357, 110)
-        Me.lblAlbumArtDimensions.Name = "lblAlbumArtDimensions"
-        Me.lblAlbumArtDimensions.Size = New System.Drawing.Size(25, 11)
-        Me.lblAlbumArtDimensions.TabIndex = 8
-        Me.lblAlbumArtDimensions.Text = "0 x 0"
-        Me.lblAlbumArtDimensions.TextAlign = System.Drawing.ContentAlignment.TopCenter
-        '
-        'Label6
-        '
-        Me.Label6.AutoSize = True
-        Me.Label6.Font = New System.Drawing.Font("Tahoma", 8.25!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.Label6.Location = New System.Drawing.Point(323, 167)
-        Me.Label6.Name = "Label6"
-        Me.Label6.Size = New System.Drawing.Size(106, 13)
-        Me.Label6.TabIndex = 8
-        Me.Label6.Text = "Not yet implemented"
-        '
         'tabpageFileManagement
         '
         Me.tabpageFileManagement.Controls.Add(Me.SplitContainer2)
@@ -848,6 +955,71 @@ Partial Class Main
         Me.tvFileManagementDeviceFolders.ShowNodeToolTips = True
         Me.tvFileManagementDeviceFolders.Size = New System.Drawing.Size(356, 480)
         Me.tvFileManagementDeviceFolders.TabIndex = 0
+        '
+        'lvFileManagementDeviceFilesInFolder
+        '
+        Me.lvFileManagementDeviceFilesInFolder.AllowDrop = True
+        Me.lvFileManagementDeviceFilesInFolder.AllowReorder = True
+        Me.lvFileManagementDeviceFilesInFolder.Anchor = CType((((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Bottom) _
+                    Or System.Windows.Forms.AnchorStyles.Left) _
+                    Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
+        Me.lvFileManagementDeviceFilesInFolder.Columns.AddRange(New System.Windows.Forms.ColumnHeader() {Me.fileName, Me.Size, Me.Title, Me.Artist, Me.Album, Me.year, Me.trackNum, Me.genre})
+        Me.lvFileManagementDeviceFilesInFolder.FullRowSelect = True
+        Me.lvFileManagementDeviceFilesInFolder.HideSelection = False
+        Me.lvFileManagementDeviceFilesInFolder.LineColor = System.Drawing.Color.Red
+        Me.lvFileManagementDeviceFilesInFolder.Location = New System.Drawing.Point(0, 16)
+        Me.lvFileManagementDeviceFilesInFolder.Name = "lvFileManagementDeviceFilesInFolder"
+        Me.lvFileManagementDeviceFilesInFolder.ShowItemToolTips = True
+        Me.lvFileManagementDeviceFilesInFolder.Size = New System.Drawing.Size(540, 480)
+        Me.lvFileManagementDeviceFilesInFolder.TabIndex = 0
+        Me.ToolTip1.SetToolTip(Me.lvFileManagementDeviceFilesInFolder, "Drag files/folders to here")
+        Me.lvFileManagementDeviceFilesInFolder.UseCompatibleStateImageBehavior = False
+        Me.lvFileManagementDeviceFilesInFolder.View = System.Windows.Forms.View.Details
+        '
+        'fileName
+        '
+        Me.fileName.Text = "File Name"
+        Me.fileName.Width = 247
+        '
+        'Size
+        '
+        Me.Size.Text = "Size"
+        Me.Size.TextAlign = System.Windows.Forms.HorizontalAlignment.Right
+        Me.Size.Width = 85
+        '
+        'Title
+        '
+        Me.Title.Text = "Title"
+        Me.Title.Width = 120
+        '
+        'Artist
+        '
+        Me.Artist.Text = "Artist"
+        Me.Artist.Width = 100
+        '
+        'Album
+        '
+        Me.Album.Text = "Album"
+        Me.Album.Width = 100
+        '
+        'year
+        '
+        Me.year.DisplayIndex = 7
+        Me.year.Text = "Year"
+        Me.year.TextAlign = System.Windows.Forms.HorizontalAlignment.Center
+        '
+        'trackNum
+        '
+        Me.trackNum.DisplayIndex = 5
+        Me.trackNum.Text = "Track#"
+        Me.trackNum.TextAlign = System.Windows.Forms.HorizontalAlignment.Center
+        Me.trackNum.Width = 30
+        '
+        'genre
+        '
+        Me.genre.DisplayIndex = 6
+        Me.genre.Text = "Genre"
+        Me.genre.Width = 80
         '
         'lblFileManagementSelectedFolder
         '
@@ -928,17 +1100,6 @@ Partial Class Main
         Me.gbDevIcon.Size = New System.Drawing.Size(61, 61)
         Me.gbDevIcon.TabIndex = 8
         Me.gbDevIcon.TabStop = False
-        '
-        'pboxDevIcon
-        '
-        Me.pboxDevIcon.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Center
-        Me.pboxDevIcon.Location = New System.Drawing.Point(6, 9)
-        Me.pboxDevIcon.Name = "pboxDevIcon"
-        Me.pboxDevIcon.Size = New System.Drawing.Size(48, 48)
-        Me.pboxDevIcon.SizeMode = System.Windows.Forms.PictureBoxSizeMode.CenterImage
-        Me.pboxDevIcon.TabIndex = 4
-        Me.pboxDevIcon.TabStop = False
-        Me.ToolTip1.SetToolTip(Me.pboxDevIcon, "Device logo")
         '
         'btnSync
         '
@@ -1059,187 +1220,26 @@ Partial Class Main
         Me.mnuTVFileManagementExpandChildren.Size = New System.Drawing.Size(167, 22)
         Me.mnuTVFileManagementExpandChildren.Text = "Expand Children"
         '
-        'lvAlbumsList
+        'pboxDevIcon
         '
-        Me.lvAlbumsList.Activation = System.Windows.Forms.ItemActivation.OneClick
-        Me.lvAlbumsList.AllowDrop = True
-        Me.lvAlbumsList.AllowReorder = False
-        Me.lvAlbumsList.Anchor = CType((((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Bottom) _
-                    Or System.Windows.Forms.AnchorStyles.Left) _
-                    Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
-        Me.lvAlbumsList.Columns.AddRange(New System.Windows.Forms.ColumnHeader() {Me.ColumnHeader6, Me.ColumnHeader7, Me.ColumnHeader8, Me.ColumnHeader9})
-        Me.lvAlbumsList.FullRowSelect = True
-        Me.lvAlbumsList.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.Nonclickable
-        Me.lvAlbumsList.LineColor = System.Drawing.Color.Red
-        Me.lvAlbumsList.Location = New System.Drawing.Point(-2, 23)
-        Me.lvAlbumsList.Name = "lvAlbumsList"
-        Me.lvAlbumsList.ShowItemToolTips = True
-        Me.lvAlbumsList.Size = New System.Drawing.Size(419, 475)
-        Me.lvAlbumsList.TabIndex = 0
-        Me.ToolTip1.SetToolTip(Me.lvAlbumsList, "Drag Folders to here. Each folder will be considered as a separate album")
-        Me.lvAlbumsList.UseCompatibleStateImageBehavior = False
-        Me.lvAlbumsList.View = System.Windows.Forms.View.Details
+        Me.pboxDevIcon.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Center
+        Me.pboxDevIcon.Location = New System.Drawing.Point(6, 9)
+        Me.pboxDevIcon.Name = "pboxDevIcon"
+        Me.pboxDevIcon.Size = New System.Drawing.Size(48, 48)
+        Me.pboxDevIcon.SizeMode = System.Windows.Forms.PictureBoxSizeMode.CenterImage
+        Me.pboxDevIcon.TabIndex = 4
+        Me.pboxDevIcon.TabStop = False
+        Me.ToolTip1.SetToolTip(Me.pboxDevIcon, "Device logo")
         '
-        'ColumnHeader6
+        'pbAlbumArt
         '
-        Me.ColumnHeader6.Tag = "230"
-        Me.ColumnHeader6.Text = "Title"
-        Me.ColumnHeader6.Width = 230
-        '
-        'ColumnHeader7
-        '
-        Me.ColumnHeader7.Tag = "110"
-        Me.ColumnHeader7.Text = "Artist"
-        Me.ColumnHeader7.Width = 110
-        '
-        'ColumnHeader8
-        '
-        Me.ColumnHeader8.Tag = "40"
-        Me.ColumnHeader8.Text = "Year"
-        Me.ColumnHeader8.TextAlign = System.Windows.Forms.HorizontalAlignment.Center
-        Me.ColumnHeader8.Width = 40
-        '
-        'ColumnHeader9
-        '
-        Me.ColumnHeader9.Tag = "120"
-        Me.ColumnHeader9.Text = "Genre"
-        Me.ColumnHeader9.Width = 120
-        '
-        'lvAlbumItems
-        '
-        Me.lvAlbumItems.AllowDrop = True
-        Me.lvAlbumItems.AllowReorder = True
-        Me.lvAlbumItems.Anchor = CType((((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Bottom) _
-                    Or System.Windows.Forms.AnchorStyles.Left) _
-                    Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
-        Me.lvAlbumItems.Columns.AddRange(New System.Windows.Forms.ColumnHeader() {Me.lvAlbumItemsFileName, Me.lvAlbumItemsTrackNum, Me.lvAlbumItemsTitle, Me.lvAlbumItemsArtist, Me.lvAlbumItemsYear, Me.lvAlbumItemsGenre, Me.lvAlbumItemsSize})
-        Me.lvAlbumItems.FullRowSelect = True
-        Me.lvAlbumItems.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.Nonclickable
-        Me.lvAlbumItems.HideSelection = False
-        Me.lvAlbumItems.LabelWrap = False
-        Me.lvAlbumItems.LineColor = System.Drawing.Color.Red
-        Me.lvAlbumItems.Location = New System.Drawing.Point(6, 28)
-        Me.lvAlbumItems.Name = "lvAlbumItems"
-        Me.lvAlbumItems.ShowGroups = False
-        Me.lvAlbumItems.ShowItemToolTips = True
-        Me.lvAlbumItems.Size = New System.Drawing.Size(465, 317)
-        Me.lvAlbumItems.TabIndex = 0
-        Me.ToolTip1.SetToolTip(Me.lvAlbumItems, "Drag songs to here")
-        Me.lvAlbumItems.UseCompatibleStateImageBehavior = False
-        Me.lvAlbumItems.View = System.Windows.Forms.View.Details
-        '
-        'lvAlbumItemsFileName
-        '
-        Me.lvAlbumItemsFileName.Text = "File Name"
-        Me.lvAlbumItemsFileName.Width = 224
-        '
-        'lvAlbumItemsTrackNum
-        '
-        Me.lvAlbumItemsTrackNum.Text = "Track"
-        Me.lvAlbumItemsTrackNum.TextAlign = System.Windows.Forms.HorizontalAlignment.Center
-        Me.lvAlbumItemsTrackNum.Width = 31
-        '
-        'lvAlbumItemsTitle
-        '
-        Me.lvAlbumItemsTitle.Text = "Title"
-        Me.lvAlbumItemsTitle.Width = 208
-        '
-        'lvAlbumItemsArtist
-        '
-        Me.lvAlbumItemsArtist.Text = "Artist"
-        Me.lvAlbumItemsArtist.Width = 130
-        '
-        'lvAlbumItemsYear
-        '
-        Me.lvAlbumItemsYear.Text = "Year"
-        Me.lvAlbumItemsYear.TextAlign = System.Windows.Forms.HorizontalAlignment.Center
-        Me.lvAlbumItemsYear.Width = 47
-        '
-        'lvAlbumItemsGenre
-        '
-        Me.lvAlbumItemsGenre.Text = "Genre"
-        Me.lvAlbumItemsGenre.Width = 121
-        '
-        'lvAlbumItemsSize
-        '
-        Me.lvAlbumItemsSize.Text = "Size"
-        Me.lvAlbumItemsSize.Width = 80
-        '
-        'tvPlaylistsFilesOnDevice
-        '
-        Me.tvPlaylistsFilesOnDevice.Anchor = CType((((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Bottom) _
-                    Or System.Windows.Forms.AnchorStyles.Left) _
-                    Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
-        Me.tvPlaylistsFilesOnDevice.Location = New System.Drawing.Point(-3, 16)
-        Me.tvPlaylistsFilesOnDevice.Name = "tvPlaylistsFilesOnDevice"
-        Me.tvPlaylistsFilesOnDevice.SelectedNodes = CType(resources.GetObject("tvPlaylistsFilesOnDevice.SelectedNodes"), System.Collections.Generic.List(Of System.Windows.Forms.TreeNode))
-        Me.tvPlaylistsFilesOnDevice.Size = New System.Drawing.Size(365, 481)
-        Me.tvPlaylistsFilesOnDevice.TabIndex = 0
-        '
-        'lvFileManagementDeviceFilesInFolder
-        '
-        Me.lvFileManagementDeviceFilesInFolder.AllowDrop = True
-        Me.lvFileManagementDeviceFilesInFolder.AllowReorder = True
-        Me.lvFileManagementDeviceFilesInFolder.Anchor = CType((((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Bottom) _
-                    Or System.Windows.Forms.AnchorStyles.Left) _
-                    Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
-        Me.lvFileManagementDeviceFilesInFolder.Columns.AddRange(New System.Windows.Forms.ColumnHeader() {Me.fileName, Me.Size, Me.Title, Me.Artist, Me.Album, Me.year, Me.trackNum, Me.genre})
-        Me.lvFileManagementDeviceFilesInFolder.FullRowSelect = True
-        Me.lvFileManagementDeviceFilesInFolder.HideSelection = False
-        Me.lvFileManagementDeviceFilesInFolder.LineColor = System.Drawing.Color.Red
-        Me.lvFileManagementDeviceFilesInFolder.Location = New System.Drawing.Point(0, 16)
-        Me.lvFileManagementDeviceFilesInFolder.Name = "lvFileManagementDeviceFilesInFolder"
-        Me.lvFileManagementDeviceFilesInFolder.ShowItemToolTips = True
-        Me.lvFileManagementDeviceFilesInFolder.Size = New System.Drawing.Size(540, 480)
-        Me.lvFileManagementDeviceFilesInFolder.TabIndex = 0
-        Me.ToolTip1.SetToolTip(Me.lvFileManagementDeviceFilesInFolder, "Drag files/folders to here")
-        Me.lvFileManagementDeviceFilesInFolder.UseCompatibleStateImageBehavior = False
-        Me.lvFileManagementDeviceFilesInFolder.View = System.Windows.Forms.View.Details
-        '
-        'fileName
-        '
-        Me.fileName.Text = "File Name"
-        Me.fileName.Width = 247
-        '
-        'Size
-        '
-        Me.Size.Text = "Size"
-        Me.Size.TextAlign = System.Windows.Forms.HorizontalAlignment.Right
-        Me.Size.Width = 85
-        '
-        'Title
-        '
-        Me.Title.Text = "Title"
-        Me.Title.Width = 120
-        '
-        'Artist
-        '
-        Me.Artist.Text = "Artist"
-        Me.Artist.Width = 100
-        '
-        'Album
-        '
-        Me.Album.Text = "Album"
-        Me.Album.Width = 100
-        '
-        'year
-        '
-        Me.year.DisplayIndex = 7
-        Me.year.Text = "Year"
-        Me.year.TextAlign = System.Windows.Forms.HorizontalAlignment.Center
-        '
-        'trackNum
-        '
-        Me.trackNum.DisplayIndex = 5
-        Me.trackNum.Text = "Track#"
-        Me.trackNum.TextAlign = System.Windows.Forms.HorizontalAlignment.Center
-        Me.trackNum.Width = 30
-        '
-        'genre
-        '
-        Me.genre.DisplayIndex = 6
-        Me.genre.Text = "Genre"
-        Me.genre.Width = 80
+        Me.pbAlbumArt.Location = New System.Drawing.Point(4, 10)
+        Me.pbAlbumArt.Name = "pbAlbumArt"
+        Me.pbAlbumArt.Size = New System.Drawing.Size(91, 85)
+        Me.pbAlbumArt.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom
+        Me.pbAlbumArt.TabIndex = 0
+        Me.pbAlbumArt.TabStop = False
+        Me.ToolTip1.SetToolTip(Me.pbAlbumArt, "Drag new album cover to here")
         '
         'Main
         '
@@ -1266,14 +1266,6 @@ Partial Class Main
         Me.MenuStrip1.ResumeLayout(False)
         Me.MenuStrip1.PerformLayout()
         Me.tabviewMain.ResumeLayout(False)
-        Me.tabpagePlaylists.ResumeLayout(False)
-        Me.SplitContainer1.Panel1.ResumeLayout(False)
-        Me.SplitContainer1.Panel1.PerformLayout()
-        Me.SplitContainer1.Panel2.ResumeLayout(False)
-        Me.SplitContainer1.Panel2.PerformLayout()
-        Me.SplitContainer1.ResumeLayout(False)
-        Me.tabPlaylists.ResumeLayout(False)
-        Me.TabPage4.ResumeLayout(False)
         Me.tabpageAlbums.ResumeLayout(False)
         Me.tabpageAlbums.PerformLayout()
         Me.SplitContainer3.Panel1.ResumeLayout(False)
@@ -1285,7 +1277,14 @@ Partial Class Main
         Me.GroupBox1.ResumeLayout(False)
         Me.GroupBox1.PerformLayout()
         Me.GroupBox3.ResumeLayout(False)
-        CType(Me.pbAlbumArt, System.ComponentModel.ISupportInitialize).EndInit()
+        Me.tabpagePlaylists.ResumeLayout(False)
+        Me.SplitContainer1.Panel1.ResumeLayout(False)
+        Me.SplitContainer1.Panel1.PerformLayout()
+        Me.SplitContainer1.Panel2.ResumeLayout(False)
+        Me.SplitContainer1.Panel2.PerformLayout()
+        Me.SplitContainer1.ResumeLayout(False)
+        Me.tabPlaylists.ResumeLayout(False)
+        Me.TabPage4.ResumeLayout(False)
         Me.tabpageFileManagement.ResumeLayout(False)
         Me.SplitContainer2.Panel1.ResumeLayout(False)
         Me.SplitContainer2.Panel1.PerformLayout()
@@ -1293,11 +1292,12 @@ Partial Class Main
         Me.SplitContainer2.Panel2.PerformLayout()
         Me.SplitContainer2.ResumeLayout(False)
         Me.gbDevIcon.ResumeLayout(False)
-        CType(Me.pboxDevIcon, System.ComponentModel.ISupportInitialize).EndInit()
         Me.mnuLvPlaylistContentsRightClick.ResumeLayout(False)
         Me.mnuLvFileManagementRightClick.ResumeLayout(False)
         Me.mnuTvPlaylistFilesRightClick.ResumeLayout(False)
         Me.mnuTvFileManagementRightClick.ResumeLayout(False)
+        CType(Me.pboxDevIcon, System.ComponentModel.ISupportInitialize).EndInit()
+        CType(Me.pbAlbumArt, System.ComponentModel.ISupportInitialize).EndInit()
         Me.ResumeLayout(False)
         Me.PerformLayout()
 
