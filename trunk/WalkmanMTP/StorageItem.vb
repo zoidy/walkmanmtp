@@ -14,6 +14,7 @@
     Private mID As String
     Private mParentID As String
     Private mAlbumArtPath As String
+    Private mFilePath As String
 
 
     Public Property DirectoryDepth() As Integer
@@ -143,6 +144,20 @@
             mAlbumArtPath = value
         End Set
     End Property
+    ''' <summary>
+    ''' specifies the path to the file, if available
+    ''' </summary>
+    ''' <value></value>
+    ''' <returns></returns>
+    ''' <remarks></remarks>
+    Public Property FilePath() As String
+        Get
+            FilePath = mFilePath
+        End Get
+        Set(ByVal value As String)
+            mFilePath = value
+        End Set
+    End Property
 
 
     Public Sub New()
@@ -159,5 +174,6 @@
         mFileName = ""
         mID = ""
         mAlbumArtPath = ""
+        mFilePath = ""
     End Sub
 End Class

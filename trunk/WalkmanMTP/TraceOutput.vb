@@ -72,7 +72,10 @@ Public Class TraceOutput
             Else
 
                 If Not Me.theForm.chkAutoScroll.Checked Then
-                    Me.theTextBox.AppendText(text)
+                    Try
+                        Me.theTextBox.AppendText(text)
+                    Catch ex As Exception
+                    End Try
                 End If
 
                 numLines = numLines + 1
