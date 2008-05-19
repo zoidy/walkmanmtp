@@ -114,7 +114,7 @@ Partial Class Main
         Me.mnuTvFileManagementRightClick = New System.Windows.Forms.ContextMenuStrip(Me.components)
         Me.mnuTVFileManagementCollapseChildren = New System.Windows.Forms.ToolStripMenuItem
         Me.mnuTVFileManagementExpandChildren = New System.Windows.Forms.ToolStripMenuItem
-        Me.lvAlbumsList = New WalkmanMTP.ListViewDnD.ListViewEx
+        Me.lvAlbumsList = New System.Windows.Forms.ListView
         Me.ColumnHeader6 = New System.Windows.Forms.ColumnHeader
         Me.ColumnHeader7 = New System.Windows.Forms.ColumnHeader
         Me.ColumnHeader8 = New System.Windows.Forms.ColumnHeader
@@ -1030,7 +1030,6 @@ Partial Class Main
         '
         Me.lvAlbumsList.Activation = System.Windows.Forms.ItemActivation.OneClick
         Me.lvAlbumsList.AllowDrop = True
-        Me.lvAlbumsList.AllowReorder = False
         Me.lvAlbumsList.Anchor = CType((((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Bottom) _
                     Or System.Windows.Forms.AnchorStyles.Left) _
                     Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
@@ -1039,7 +1038,6 @@ Partial Class Main
         Me.lvAlbumsList.FullRowSelect = True
         Me.lvAlbumsList.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.Nonclickable
         Me.lvAlbumsList.HideSelection = False
-        Me.lvAlbumsList.LineColor = System.Drawing.Color.Red
         Me.lvAlbumsList.Location = New System.Drawing.Point(-2, 23)
         Me.lvAlbumsList.Name = "lvAlbumsList"
         Me.lvAlbumsList.ShowItemToolTips = True
@@ -1346,7 +1344,7 @@ Partial Class Main
     Friend WithEvents lvFileManagementDeleteToolStripMenuItem As System.Windows.Forms.ToolStripMenuItem
     Friend WithEvents ToolStripSeparator4 As System.Windows.Forms.ToolStripSeparator
     Friend WithEvents SplitContainer3 As System.Windows.Forms.SplitContainer
-    Friend WithEvents lvAlbumsList As WalkmanMTP.ListViewDnD.ListViewEx
+    Friend WithEvents lvAlbumsList As System.Windows.Forms.ListView
     Friend WithEvents ColumnHeader6 As System.Windows.Forms.ColumnHeader
     Friend WithEvents ColumnHeader7 As System.Windows.Forms.ColumnHeader
     Friend WithEvents ColumnHeader8 As System.Windows.Forms.ColumnHeader
