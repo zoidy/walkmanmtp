@@ -132,7 +132,7 @@
     End Function
     Public Function enumerateDevices() As String
         'this function returns "-1" on error
-        'MTPAxe returns -1 on error, else it returns an ':' separated list
+        'MTPAxe returns -1 on error, else it returns an ';' separated list
         'of the name of each device
 
         Dim s As String
@@ -645,7 +645,9 @@
         Return strarr
     End Function
 
-    Public Function createAlbum(ByVal albumTitle As String, ByVal items As String, ByVal metadata As StorageItem, ByVal albumArtPath As String) As String
+    Public Function createAlbum(ByVal albumTitle As String, ByVal items As String, ByVal metadata As StorageItem) As String
+        'items is a : separated list of the id's of the songs in the album
+        'returns-1 on error, the ID of the album on success
         Trace.WriteLine("MTPAxe: creating album " & albumTitle)
 
         Dim s As String
@@ -656,9 +658,11 @@
 
         sOut.WriteLine(MTPAXE_M_DEVICE_CREATEALBUM)
         sOut.WriteLine(albumTitle)
+        sOut.WriteLine(items)
         sOut.WriteLine(IIf(metadata.AlbumArtist = "", "`", metadata.AlbumArtist))
         sOut.WriteLine(IIf(metadata.Genre = "", "`", metadata.Genre))
         sOut.WriteLine(IIf(metadata.Year = "", "`", metadata.Year))
+        sOut.WriteLine(IIf(metadata.AlbumArtPath = "", "`", metadata.AlbumArtPath))
 
         'now wait for the return value to be sent to the buffer
         s = sIn.ReadLine

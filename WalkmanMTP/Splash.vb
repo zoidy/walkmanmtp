@@ -1,25 +1,46 @@
 ﻿Public Class Splash
     Public Sub setText(ByVal text As String)
-        Control.CheckForIllegalCrossThreadCalls = False
-        Me.txtText.Text = text
+        Try
+            Control.CheckForIllegalCrossThreadCalls = False
+            Me.txtText.Text = text
+        Catch ex As Exception
+
+        End Try
     End Sub
     Public Sub setTitle(ByVal txt As String)
-        Form.CheckForIllegalCrossThreadCalls = False
-        Me.Text = txt
+        Try
+            Form.CheckForIllegalCrossThreadCalls = False
+            Me.Text = txt
+        Catch ex As Exception
+
+        End Try
+
     End Sub
     Public Sub initProgBar(ByVal maxVal As Integer)
-        Me.ProgressBar1.Style = ProgressBarStyle.Continuous
-        Me.ProgressBar1.Minimum = 0
-        Me.ProgressBar1.Maximum = maxVal
+        Try
+            Me.ProgressBar1.Style = ProgressBarStyle.Continuous
+            Me.ProgressBar1.Minimum = 0
+            Me.ProgressBar1.Maximum = maxVal
+        Catch ex As Exception
+
+        End Try
+
     End Sub
     Public Sub resetProgBar()
-        Me.ProgressBar1.Style = ProgressBarStyle.Marquee
+        Try
+            Me.ProgressBar1.Style = ProgressBarStyle.Marquee
+        Catch ex As Exception
+
+        End Try
+
     End Sub
     Public Sub incProgBar()
-        Me.ProgressBar1.Value += 1
+        Try
+            Me.ProgressBar1.Value += 1
+        Catch ex As Exception
+
+        End Try
+
     End Sub
 
-    Private Sub Splash_VisibleChanged(ByVal sender As Object, ByVal e As System.EventArgs) Handles Me.VisibleChanged
-        Application.DoEvents()
-    End Sub
 End Class

@@ -4,7 +4,7 @@
 #include "stdafx.h"
 #include "MTPAxe.h"
 
-#define MTPAXE_ver "MTPAxe by Dr. Zoidberg v0.3.9.3\n"
+#define MTPAXE_ver "MTPAxe by Dr. Zoidberg v0.4\n"
 
 //file for writing returnMsg output to file
 FILE *f=NULL;
@@ -62,7 +62,7 @@ int _tmain(int argc, _TCHAR* argv[])
 	wchar_t artist[100];
 	wchar_t album[300];
 	wchar_t genre[100];
-	wchar_t year[10];
+	wchar_t year[20];
 	wchar_t trackNum[4];
 	wchar_t items[MTPAXE_DEVICEENUMSTORAGE_MAXOUTPUTSTRINGSIZE];
 
@@ -80,7 +80,6 @@ int _tmain(int argc, _TCHAR* argv[])
 						enumerateDevices();
 						setCurrentDevice(L"WALKMAN");
 						deviceEnumerateStorage();
-						dumpStorageItemsArray();
 							
 						//deviceGetType();
 						//deviceGetFormatsSupport();
@@ -88,16 +87,17 @@ int _tmain(int argc, _TCHAR* argv[])
 						
 						//deviceEnumerateStorage();
 						//storageCreateFromFile(L"C:\\wmtp.mp3",L"{00000004-0000-0000-0000-000000000000}",0,L"aa bb",L"bsd s",L"1\u010Ec fsd",L"d1d sd",L"1888",L"2");
-						
-						//sprintf(s,"<1,295176,Storage Media>MUSIC");
-						//sprintf(s,"<1,17039624,Storage Media>PICTURES");
-						//storageCreateFromFile("c:\\01 - Cosmic Disturbance.m4a",s,0);
-						//storageCreateFromFile("c:\\testart.jpg",s,0);
 
 						//swprintf(buffer,MTPAXE_MAXFILENAMESIZE,L"%s",L"{00000081-0000-0000-0000-000000000000}");
 						//deviceCreatePlaylist(L"test",buffer);
 						//deviceEnumerateStorage();
 						//playlistEnumerateContents(L"{00000027-0000-0000-B1A9-2548581E0C00}");
+
+						//swprintf(buffer,MTPAXE_MAXFILENAMESIZE,L"%s",L"{00000062-0000-0000-0000-000000000000}:{00000063-0000-0000-0000-000000000000}:{00000064-0000-0000-0000-000000000000}:{00000065-0000-0000-0000-000000000000}");
+						swprintf(buffer,MTPAXE_MAXFILENAMESIZE,L"%s",L"{00000062-0000-0000-0000-000000000000}:{00000063-0000-0000-0000-000000000000}:{00000065-0000-0000-0000-000000000000}:{00000064-0000-0000-0000-000000000000}");
+						//swprintf(buffer,MTPAXE_MAXFILENAMESIZE,L"%s",L"{00000079-0000-0000-A47E-274861430C00}");
+						deviceCreateAlbum(L"Test1",buffer,L"artist",L"year",L"genre",L"c:\\testart.jpg");
+						//deviceCreatePlaylist(L"test",buffer);
 						break;}
 				case -3:
 					playlistEnumerateContents(L"playlist_name2");
@@ -127,11 +127,11 @@ int _tmain(int argc, _TCHAR* argv[])
 					break;
 						 }
 				case -101:{
-					//for trouble shooting purposes, deltes a playlist if nothing else can delete it
+					//for trouble shooting purposes, deltes a storage item if nothing else can delete it
 					wmdmAuthenticate();
-					printf("Delete playlist - Available devices:\n");
+					printf("Delete storage item - Available devices:\n");
 					enumerateDevices();
-					wchar_t name[30];
+					wchar_t name[50];
 					printf("enter the device to enumerate (case sensitive): ");
 					wscanf(L"%\n",name);
 					wscanf(L"%[^\n]",name);
@@ -204,6 +204,10 @@ int _tmain(int argc, _TCHAR* argv[])
 					wscanf(L"%[^\n]",year);
 					wscanf(L"%\n",title);//this is the album art path
 					wscanf(L"%[^\n]",title);
+					if(wcscmp(artist,L"`")==0) swprintf(artist,2,L"");
+					if(wcscmp(genre,L"`")==0) swprintf(genre,2,L"");
+					if(wcscmp(year,L"`")==0) swprintf(year,2,L"");
+					if(wcscmp(year,L"`")==0) swprintf(title,2,L"");
 					deviceCreateAlbum(buffer,items,artist,genre,year,title);
 					break;
 				case MTPAXE_M_STORAGE_DELETE:
@@ -371,7 +375,7 @@ void getDeviceCount(void)
 	
 }
 void enumerateDevices(void)
-{/*returns a ':' separated string containing the names
+{/*returns a ';' separated string containing the names
    of all connected devices.  returns "-1" if there are no devices
    or an error occured.
   */
@@ -415,9 +419,9 @@ void enumerateDevices(void)
 
 		if (strcmp(devices,"-1")==0)
 		{	//if it's the first device, overwrite the array to clear the -1
-			sprintf(devices,"%s:",ch);
+			sprintf(devices,"%s;",ch);
 		}else{
-			sprintf(ch2,"%s:",ch);
+			sprintf(ch2,"%s;",ch);
 			strcat(devices,ch2);
 		}
 
@@ -1603,17 +1607,24 @@ void createStorageReferencesContainer(unsigned long typeOfContainer,wchar_t *con
 
 	hr=pMetaData->AddItem(WMDM_TYPE_DWORD,g_wszWMDMFormatCode,(BYTE *)&typeOfContainer, sizeof(typeOfContainer));
 	if(FAILED(hr)){returnMsg("-1\n","createStorageReferencesContainer: could not add playlist or album to metadata object\n");return;}
-	hr=pMetaData->AddItem(WMDM_TYPE_STRING,g_wszWMDMTitle,(BYTE *)containerName, 2*wcslen(containerName)+2);
-	if(FAILED(hr)){returnMsg("-1\n","createStorageReferencesContainer: could not add title to playlist or album metadata object\n");return;}
 	//for albums only
 	if(typeOfContainer==WMDM_FORMATCODE_ABSTRACTAUDIOALBUM)
 	{
-		if(albumArtist!=NULL)
-		{
-			hr=pMetaData->AddItem(WMDM_TYPE_STRING,g_wszWMDMAuthor,(BYTE *)albumArtist, 2*wcslen(albumArtist)+2);
-			if(FAILED(hr)){returnMsg("-1\n","createStorageReferencesContainer: could not add title to playlist or album metadata object\n");return;}
-		}
-		if(albumArtFile!=NULL)
+		//store the genre and year in the title tag (the player doesn't seem to write all of the tags)
+		wchar_t *genreYear;
+		genreYear=(wchar_t*)CoTaskMemAlloc(2*(wcslen(albumYear)+wcslen(genre))+4);
+		swprintf(genreYear,L"%s:%s",albumYear,genre);
+		
+		hr=pMetaData->AddItem(WMDM_TYPE_STRING,g_wszWMDMTitle,(BYTE *)genreYear, 2*wcslen(genreYear)+4);
+		CoTaskMemFree(genreYear);
+		if(FAILED(hr)){returnMsg("-1\n","createStorageReferencesContainer: could not add genre and year to album metadata object\n");return;}
+
+		//store the artist in the genre tag (it's more likely to have funny characters)
+		hr=pMetaData->AddItem(WMDM_TYPE_STRING,g_wszWMDMGenre,(BYTE *)albumArtist, 2*wcslen(albumArtist)+2);
+		if(FAILED(hr)){returnMsg("-1\n","createStorageReferencesContainer: could not add artist to album metadata object\n");return;}
+
+		//add the album art if any
+		if(wcscmp(albumArtFile,L"")!=0)
 		{
 			unsigned long long size=0;
 			FILE *theFile=_wfopen(albumArtFile,L"rb");
@@ -1621,16 +1632,25 @@ void createStorageReferencesContainer(unsigned long typeOfContainer,wchar_t *con
 			{
 				fseek(theFile,0,SEEK_END);
 				size=_ftelli64(theFile);
+				fseek(theFile,0,SEEK_SET);
 				char *pCoverData = (char*)CoTaskMemAlloc((size_t)size);
-				fread((void *)pCoverData, 1, (size_t)size, theFile);
-				fclose(theFile);
+				if(pCoverData)
+				{
+					fread((void *)pCoverData, 1, (size_t)size, theFile);
+					fclose(theFile);
 
-				hr = pMetaData->AddItem(WMDM_TYPE_BINARY, g_wszWMDMAlbumCoverData, (BYTE *)pCoverData, (UINT)size);
-				CoTaskMemFree(pCoverData);
-				if(FAILED(hr)){returnMsg("-1\n","createStorageReferencesContainer: could not add cover art to album metadata object\n");return;}
+					hr = pMetaData->AddItem(WMDM_TYPE_BINARY, g_wszWMDMAlbumCoverData, (BYTE *)pCoverData, (UINT)size);
+					CoTaskMemFree(pCoverData);
+					if(FAILED(hr)){returnMsg("-1\n","createStorageReferencesContainer: could not add cover art to album metadata object\n");return;}
+				}
+				else{returnMsg("-1\n","createStorageReferencesContainer: could not add cover art to album metadata object, not enough memory\n");return;}
 			}
-			
 		}
+	}
+	else
+	{
+		hr=pMetaData->AddItem(WMDM_TYPE_STRING,g_wszWMDMTitle,(BYTE *)containerName, 2*wcslen(containerName)+2);
+		if(FAILED(hr)){returnMsg("-1\n","createStorageReferencesContainer: could not add title to playlist or album metadata object\n");return;}
 	}
 
 	IWMDMStorageControl3 *pStorCtrl;
@@ -1698,6 +1718,7 @@ void createStorageReferencesContainer(unsigned long typeOfContainer,wchar_t *con
 	pStorPlaylist->Release();
 	//pStorPlaylist4->Release(); //don't release this either, since it's now part of the ArrStorageitems array
 
+
 	returnMsg("0\n");
 
 }
@@ -1736,6 +1757,9 @@ void dumpStorageItemsArray(void)
 		printf("couldn't create dump file");
 		return;
 	}
+	
+	fwprintf(dumpFile,L"<level,type,parentName,size,title,artist,album,genre,year,tracknum,ID,parentID>filename\n\n");
+
 	arrStorageItem item;
 	for(int i=0;i<numStorageItems;i++)
 	{
