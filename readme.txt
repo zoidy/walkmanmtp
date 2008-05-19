@@ -36,8 +36,11 @@ Making albums:
  if available. 
 -For drag and drop behaviour see the section
  "Album Creation Behaviour For Files Dragged From Windows Explorer" below
--Note: some embedded album art gives trouble. i.e. the extracted file is not a valid jpg
- Using Mp3Tag along with id3v2.3 works well to avoid the problem
+-supported album art file types:BMP, GIF, EXIG, JPG, PNG and TIFF
+
+Notes: some embedded album art gives trouble. i.e. the extracted file is not a valid jpg
+       Using Mp3Tag along with id3v2.3 works well to avoid the problem
+       Any album images will be resized to optimize for storage space on the player
 
 File management:
 -Go to the file management tab and select the folder you wish to copy files to.
