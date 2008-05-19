@@ -14,6 +14,8 @@
     Private mID As String
     Private mParentID As String
     Private mAlbumArtPath As String
+    Private mAlbumArtIsFromEmbedded As Boolean
+    Private mAlbumArtIsFromPlayer As Boolean
     Private mFilePath As String
 
 
@@ -144,6 +146,23 @@
             mAlbumArtPath = value
         End Set
     End Property
+    Public Property AlbumArtIsFromEmbedded() As Boolean
+        Get
+            AlbumArtIsFromEmbedded = mAlbumArtIsFromEmbedded
+        End Get
+        Set(ByVal value As Boolean)
+            mAlbumArtIsFromEmbedded = value
+        End Set
+    End Property
+    Public Property AlbumArtIsFromPlayer() As Boolean
+        Get
+            AlbumArtIsFromPlayer = mAlbumArtIsFromPlayer
+        End Get
+        Set(ByVal value As Boolean)
+            mAlbumArtIsFromPlayer = value
+        End Set
+    End Property
+
     ''' <summary>
     ''' specifies the path to the file, if available
     ''' </summary>
@@ -174,6 +193,8 @@
         mFileName = ""
         mID = ""
         mAlbumArtPath = ""
+        mAlbumArtIsFromEmbedded = False
+        mAlbumArtIsFromPlayer = False
         mFilePath = ""
     End Sub
 End Class

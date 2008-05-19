@@ -19,6 +19,7 @@
     Private Const MTPAXE_M_STORAGE_GETSIZEINFO = 40
     Private Const MTPAXE_M_STORAGE_CREATEFROMFILE = 41
     Private Const MTPAXE_M_STORAGE_DELETE = 42
+    Private Const MTPAXE_M_STORAGE_GETALBUMARTIMAGE = 43
 
     Public Const WMDM_FILE_ATTR_FOLDER = &H8
     Public Const WMDM_FILE_ATTR_FILE = &H20
@@ -669,6 +670,29 @@
 
         If s = "-1" Then
             Trace.WriteLine("MTPAxe: creating album - " & sErr.ReadLine)
+            Return "-1"
+        End If
+
+        Return s
+    End Function
+    Public Function getAlbumArt(ByVal storageID As String) As String
+        'storageID is the persistent unique id of the storage to get the album art from
+        'returns the path of the saved album art file, -1 on error
+
+        Trace.WriteLine("MTPAxe: getting album art for " & storageID)
+
+        Dim s As String
+
+        If axe Is Nothing Then Throw New Exception("MTPAxe is not started")
+
+        sOut.WriteLine(MTPAXE_M_STORAGE_GETALBUMARTIMAGE)
+        sOut.WriteLine(storageID)
+
+        'now wait for the return value to be sent to the buffer
+        s = sIn.ReadLine
+
+        If s = "-1" Then
+            Trace.WriteLine("MTPAxe: error getting album art - " & sErr.ReadLine)
             Return "-1"
         End If
 

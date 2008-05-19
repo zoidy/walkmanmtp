@@ -28,6 +28,7 @@
 #define MTPAXE_M_STORAGE_GETSIZEINFO 40
 #define MTPAXE_M_STORAGE_CREATEFROMFILE 41
 #define MTPAXE_M_STORAGE_DELETE 42
+#define MTPAXE_M_STORAGE_GETALBUMARTIMAGE 43
 
 
 #define MTPAXE_DEVICEENUMSTORAGE_MAXOUTPUTSTRINGSIZE 4194304
@@ -51,6 +52,7 @@ void deviceCreatePlaylist(wchar_t *,wchar_t *);
 void deviceCreateAlbum(wchar_t*,wchar_t*,wchar_t*,wchar_t*,wchar_t*,wchar_t*);
 void storageDeleteStorage(wchar_t*);
 void storageGetSizeInfo(void);
+void storageGetAlbumArtImage(wchar_t*);
 void storageCreateFromFile(wchar_t*,wchar_t*,int,wchar_t*,wchar_t*,wchar_t*,wchar_t*,wchar_t*,wchar_t*);
 void playlistEnumerateContents(wchar_t*);
 void deviceGetFormatsSupport(void);

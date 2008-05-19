@@ -44,7 +44,7 @@ Partial Class Main
         Me.btnClearAllAlbums = New System.Windows.Forms.LinkLabel
         Me.Label14 = New System.Windows.Forms.Label
         Me.Label7 = New System.Windows.Forms.Label
-        Me.CheckBox1 = New System.Windows.Forms.CheckBox
+        Me.chkDeleteSongsOnAlbumDelete = New System.Windows.Forms.CheckBox
         Me.btnDeleteAlbum = New System.Windows.Forms.Button
         Me.GroupBox2 = New System.Windows.Forms.GroupBox
         Me.GroupBox1 = New System.Windows.Forms.GroupBox
@@ -212,7 +212,7 @@ Partial Class Main
         Me.mnuOptionsShowDeviceIconToolStripMenuItem.Checked = True
         Me.mnuOptionsShowDeviceIconToolStripMenuItem.CheckState = System.Windows.Forms.CheckState.Checked
         Me.mnuOptionsShowDeviceIconToolStripMenuItem.Name = "mnuOptionsShowDeviceIconToolStripMenuItem"
-        Me.mnuOptionsShowDeviceIconToolStripMenuItem.Size = New System.Drawing.Size(228, 22)
+        Me.mnuOptionsShowDeviceIconToolStripMenuItem.Size = New System.Drawing.Size(169, 22)
         Me.mnuOptionsShowDeviceIconToolStripMenuItem.Text = "Show device Icon"
         '
         'mnuOptionsShowDebugWindowToolStripMenuItem
@@ -220,8 +220,8 @@ Partial Class Main
         Me.mnuOptionsShowDebugWindowToolStripMenuItem.CheckOnClick = True
         Me.mnuOptionsShowDebugWindowToolStripMenuItem.Name = "mnuOptionsShowDebugWindowToolStripMenuItem"
         Me.mnuOptionsShowDebugWindowToolStripMenuItem.ShortcutKeys = CType((System.Windows.Forms.Keys.Control Or System.Windows.Forms.Keys.B), System.Windows.Forms.Keys)
-        Me.mnuOptionsShowDebugWindowToolStripMenuItem.Size = New System.Drawing.Size(228, 22)
-        Me.mnuOptionsShowDebugWindowToolStripMenuItem.Text = "Show Verbose Output"
+        Me.mnuOptionsShowDebugWindowToolStripMenuItem.Size = New System.Drawing.Size(169, 22)
+        Me.mnuOptionsShowDebugWindowToolStripMenuItem.Text = "Show Log"
         '
         'mnuHelpHelpToolStripMenuItem
         '
@@ -233,13 +233,13 @@ Partial Class Main
         'mnuHelpInformationToolStripMenuItem
         '
         Me.mnuHelpInformationToolStripMenuItem.Name = "mnuHelpInformationToolStripMenuItem"
-        Me.mnuHelpInformationToolStripMenuItem.Size = New System.Drawing.Size(141, 22)
+        Me.mnuHelpInformationToolStripMenuItem.Size = New System.Drawing.Size(152, 22)
         Me.mnuHelpInformationToolStripMenuItem.Text = "Information"
         '
         'mnuHelpAboutToolStripMenuItem
         '
         Me.mnuHelpAboutToolStripMenuItem.Name = "mnuHelpAboutToolStripMenuItem"
-        Me.mnuHelpAboutToolStripMenuItem.Size = New System.Drawing.Size(141, 22)
+        Me.mnuHelpAboutToolStripMenuItem.Size = New System.Drawing.Size(152, 22)
         Me.mnuHelpAboutToolStripMenuItem.Text = "&About"
         '
         'cmbDevices
@@ -302,7 +302,7 @@ Partial Class Main
         Me.SplitContainer3.Panel1.Controls.Add(Me.Label14)
         Me.SplitContainer3.Panel1.Controls.Add(Me.Label7)
         Me.SplitContainer3.Panel1.Controls.Add(Me.lvAlbumsList)
-        Me.SplitContainer3.Panel1.Controls.Add(Me.CheckBox1)
+        Me.SplitContainer3.Panel1.Controls.Add(Me.chkDeleteSongsOnAlbumDelete)
         '
         'SplitContainer3.Panel2
         '
@@ -356,18 +356,17 @@ Partial Class Main
         Me.Label7.TabIndex = 8
         Me.Label7.Text = "Albums:"
         '
-        'CheckBox1
+        'chkDeleteSongsOnAlbumDelete
         '
-        Me.CheckBox1.Anchor = CType((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
-        Me.CheckBox1.AutoSize = True
-        Me.CheckBox1.Font = New System.Drawing.Font("Tahoma", 6.75!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.CheckBox1.Location = New System.Drawing.Point(246, -2)
-        Me.CheckBox1.Name = "CheckBox1"
-        Me.CheckBox1.Size = New System.Drawing.Size(92, 26)
-        Me.CheckBox1.TabIndex = 9
-        Me.CheckBox1.Text = "Delete songs" & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "on Album delete"
-        Me.CheckBox1.UseVisualStyleBackColor = True
-        Me.CheckBox1.Visible = False
+        Me.chkDeleteSongsOnAlbumDelete.Anchor = CType((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
+        Me.chkDeleteSongsOnAlbumDelete.AutoSize = True
+        Me.chkDeleteSongsOnAlbumDelete.Font = New System.Drawing.Font("Tahoma", 6.75!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.chkDeleteSongsOnAlbumDelete.Location = New System.Drawing.Point(246, -2)
+        Me.chkDeleteSongsOnAlbumDelete.Name = "chkDeleteSongsOnAlbumDelete"
+        Me.chkDeleteSongsOnAlbumDelete.Size = New System.Drawing.Size(92, 26)
+        Me.chkDeleteSongsOnAlbumDelete.TabIndex = 9
+        Me.chkDeleteSongsOnAlbumDelete.Text = "Delete songs" & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "on Album delete"
+        Me.chkDeleteSongsOnAlbumDelete.UseVisualStyleBackColor = True
         '
         'btnDeleteAlbum
         '
@@ -1035,6 +1034,7 @@ Partial Class Main
         Me.lvAlbumsList.Anchor = CType((((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Bottom) _
                     Or System.Windows.Forms.AnchorStyles.Left) _
                     Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
+        Me.lvAlbumsList.CausesValidation = False
         Me.lvAlbumsList.Columns.AddRange(New System.Windows.Forms.ColumnHeader() {Me.ColumnHeader6, Me.ColumnHeader7, Me.ColumnHeader8, Me.ColumnHeader9})
         Me.lvAlbumsList.FullRowSelect = True
         Me.lvAlbumsList.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.Nonclickable
@@ -1351,7 +1351,7 @@ Partial Class Main
     Friend WithEvents ColumnHeader7 As System.Windows.Forms.ColumnHeader
     Friend WithEvents ColumnHeader8 As System.Windows.Forms.ColumnHeader
     Friend WithEvents ColumnHeader9 As System.Windows.Forms.ColumnHeader
-    Friend WithEvents CheckBox1 As System.Windows.Forms.CheckBox
+    Friend WithEvents chkDeleteSongsOnAlbumDelete As System.Windows.Forms.CheckBox
     Friend WithEvents Label7 As System.Windows.Forms.Label
     Friend WithEvents GroupBox2 As System.Windows.Forms.GroupBox
     Friend WithEvents lvAlbumItems As WalkmanMTP.ListViewDnD.ListViewEx

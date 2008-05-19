@@ -94,10 +94,13 @@ int _tmain(int argc, _TCHAR* argv[])
 						//playlistEnumerateContents(L"{00000027-0000-0000-B1A9-2548581E0C00}");
 
 						//swprintf(buffer,MTPAXE_MAXFILENAMESIZE,L"%s",L"{00000062-0000-0000-0000-000000000000}:{00000063-0000-0000-0000-000000000000}:{00000064-0000-0000-0000-000000000000}:{00000065-0000-0000-0000-000000000000}");
-						swprintf(buffer,MTPAXE_MAXFILENAMESIZE,L"%s",L"{00000062-0000-0000-0000-000000000000}:{00000063-0000-0000-0000-000000000000}:{00000065-0000-0000-0000-000000000000}:{00000064-0000-0000-0000-000000000000}");
+						//swprintf(buffer,MTPAXE_MAXFILENAMESIZE,L"%s",L"{00000062-0000-0000-0000-000000000000}:{00000063-0000-0000-0000-000000000000}:{00000065-0000-0000-0000-000000000000}:{00000064-0000-0000-0000-000000000000}");
 						//swprintf(buffer,MTPAXE_MAXFILENAMESIZE,L"%s",L"{00000079-0000-0000-A47E-274861430C00}");
-						deviceCreateAlbum(L"Test1",buffer,L"artist",L"year",L"genre",L"c:\\testart.jpg");
+						//deviceCreateAlbum(L"Test1",buffer,L"artist",L"year",L"genre",L"c:\\testart.jpg");
 						//deviceCreatePlaylist(L"test",buffer);
+
+						swprintf(buffer,MTPAXE_MAXFILENAMESIZE,L"%s",L"{00000026-0000-0000-4E94-30484DB50500}");
+						storageGetAlbumArtImage(buffer);
 						break;}
 				case -3:
 					playlistEnumerateContents(L"playlist_name2");
@@ -209,6 +212,11 @@ int _tmain(int argc, _TCHAR* argv[])
 					if(wcscmp(year,L"`")==0) swprintf(year,2,L"");
 					if(wcscmp(year,L"`")==0) swprintf(title,2,L"");
 					deviceCreateAlbum(buffer,items,artist,genre,year,title);
+					break;
+				case MTPAXE_M_STORAGE_GETALBUMARTIMAGE:
+					wscanf(L"%\n",buffer);	
+					wscanf(L"%[^\n]",buffer);
+					storageGetAlbumArtImage(buffer);
 					break;
 				case MTPAXE_M_STORAGE_DELETE:
 					wscanf(L"%\n",buffer);	//stupid scanf... this weird thing is so the program will read 
@@ -1399,6 +1407,54 @@ void storageCreateFromFile(wchar_t *itemPath,wchar_t *destStorageID, int type,wc
 	returnMsg(ret);
 }
 
+void storageGetAlbumArtImage(wchar_t *storageID)
+{	//gets the album art of any storage (though usually only albums will have it)
+	//returns the path where the file was saved, -1 on error
+
+	if(m_pIdvMgr==NULL){returnMsg("-1\n","storageGetAlbumArtImage: DeviceManager not initialized\n");return;}
+	if(pCurrDev==NULL){returnMsg("-1\n","storageGetAlbumArtImage: no active device is set\n");return;}
+
+	//first find the storage
+	IWMDMStorage4 *pStor=NULL;
+	pStor=findStorageFromID(storageID);
+	if(pStor==NULL){returnMsg("-1\n","storageGetAlbumArtImage: couldn't find the requested storage\n");return;}
+	
+	IWMDMMetaData *pMData;							//the metadata associated with the storage
+	LPCWSTR MDataAttribs[1];						
+	MDataAttribs[0]=g_wszWMDMAlbumCoverData;		
+
+	hr=pStor->GetSpecifiedMetadata(1,MDataAttribs,&pMData);
+	if(FAILED(hr)){returnMsg("-1\n","storageGetAlbumArtImage: no album art found\n");return;}
+
+	WMDM_TAG_DATATYPE type;							//these vars are used for the metadata QueryByName call
+	BYTE *value;									//.
+	unsigned int len;								//.
+	hr=pMData->QueryByName(g_wszWMDMAlbumCoverData,&type,&value,&len);
+	if(FAILED(hr)){returnMsg("-1\n","storageGetAlbumArtImage:no album art found\n");return;}
+
+	wchar_t *tmpFileNameNoExt=_wtempnam(NULL,L"Axe");
+	wchar_t *tmpFileName=(wchar_t*)CoTaskMemAlloc(2*wcslen(tmpFileNameNoExt)+10);
+	wsprintf(tmpFileName,L"%s.tmp",tmpFileNameNoExt);
+	free(tmpFileName);
+
+	FILE *tmpFile=_wfopen(tmpFileName,L"wb");
+	if (tmpFile==NULL){returnMsg("-1\n","storageGetAlbumArtImage:album art was found, but coulnd't write it to file\n");return;}
+	size_t bytesWritten=fwrite(value,1,len,tmpFile);
+	fclose(tmpFile);
+
+	//for some reason, the player only returns the first 64K of an image
+	if (bytesWritten!=len && bytesWritten!=65536){returnMsg("-1\n","storageGetAlbumArtImage:album art was found, but there was an error writing to the file\n");return;}
+
+	char *ret=(char*)CoTaskMemAlloc(2*wcslen(tmpFileName)+6);
+	sprintf(ret,"%S\n",tmpFileName);
+
+	returnMsg(ret);
+
+	CoTaskMemFree(tmpFileName);
+	CoTaskMemFree(value);
+	pMData->Release();
+	CoTaskMemFree(ret);
+}
 //************************************************************************************************
 //*                              Internal functions
 //************************************************************************************************
