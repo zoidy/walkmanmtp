@@ -1264,18 +1264,19 @@ Public Class Main
             album.Tag.remove()
             album.Tag = Nothing
 
+            'select a valid item
+            'If Me.lvAlbumsList.Items.Count > 0 Then
+            '    Me.lvAlbumsList.Focus()
+            '    For Each lvitem In Me.lvAlbumsList.Items
+            '        lvitem.selected = False
+            '    Next
+            '    Me.lvAlbumsList.Items(0).Selected = True
+            'End If
+
             'remove it from the listview
             album.Remove()
+            'Me.lvAlbumsList.Refresh()
             album = Nothing
-
-            'select a valid item
-            If Me.lvAlbumsList.Items.Count > 0 Then
-                Me.lvAlbumsList.Focus()
-                For Each lvitem In Me.lvAlbumsList.Items
-                    lvitem.selected = False
-                Next
-                Me.lvAlbumsList.Items(0).Selected = True
-            End If
 
         Else
             Trace.WriteLine("remove album: could not cleanly remove " & album.Text & ". The associated metadata was not found")
@@ -1472,6 +1473,8 @@ Public Class Main
         End If
     End Sub
 
+
+
     Private Sub lvAlbumsList_KeyDown(ByVal sender As Object, ByVal e As System.Windows.Forms.KeyEventArgs) Handles lvAlbumsList.KeyDown
         If e.KeyCode = Keys.Delete Then
             For Each Album As ListViewItem In Me.lvAlbumsList.SelectedItems
@@ -1479,8 +1482,118 @@ Public Class Main
             Next
         End If
     End Sub
-
     Private Sub lvAlbumsList_ItemSelectionChanged(ByVal sender As Object, ByVal e As System.Windows.Forms.ListViewItemSelectionChangedEventArgs) Handles lvAlbumsList.ItemSelectionChanged
+
+        itemSelectionComplete = False
+
+        clearAlbumDetailsView()
+
+        If Not e.IsSelected Then
+            itemSelectionComplete = True
+            Exit Sub
+        End If
+
+        If fullFileListing IsNot Nothing Then
+            Me.lvAlbumItems.SmallImageList = fullFileListing.ImageList
+        End If
+
+        'if there is only 1 item selected, show it's details
+        If Me.lvAlbumsList.SelectedItems.Count = 1 Then
+            Dim selectedItem As ListViewItem = Me.lvAlbumsList.SelectedItems(0)
+            Dim foundNode As TreeNode = selectedItem.Tag
+
+            'remember the tag of listview item in the albums list contains the reference to the
+            'associated album node. the tag of the album node contains the metadata. this avoids
+            'having to do a search for the node to update it.
+            Dim metadata As StorageItem = CType(foundNode.Tag, StorageItem)
+            If metadata IsNot Nothing Then
+
+                'once we have the album node, add all of the items to the list
+                Me.lvAlbumItems.Items.Clear()
+                Dim lvitem As ListViewItem
+                Dim songMetadata As StorageItem
+                Dim totalalbumsize As Integer = 0
+                Dim allSongsHaveTrackNumTag As Boolean = True
+                For Each node In foundNode.Nodes
+                    songMetadata = CType(node.tag, StorageItem)
+                    If songMetadata IsNot Nothing Then
+                        lvitem = New ListViewItem
+                        lvitem.Text = songMetadata.FileName
+                        lvitem.SubItems.Add(songMetadata.TrackNum)
+                        lvitem.SubItems.Add(songMetadata.Title)
+                        lvitem.SubItems.Add(songMetadata.AlbumArtist)
+                        lvitem.SubItems.Add(songMetadata.Year)
+                        lvitem.SubItems.Add(songMetadata.Genre)
+                        lvitem.SubItems.Add(Math.Ceiling(songMetadata.Size / 1024).ToString("N0") & "KB")
+
+                        totalalbumsize += songMetadata.Size
+
+                        lvitem.Tag = songMetadata
+                        lvitem.ImageKey = IO.Path.GetExtension(songMetadata.FileName)
+
+                        If Not IsNumeric(songMetadata.TrackNum) Then
+                            allSongsHaveTrackNumTag = False
+                        End If
+
+                        Me.lvAlbumItems.Items.Add(lvitem)
+                    End If
+                Next
+
+                'once all the items have been added to the list, sort them the way the player would:
+                'If all the tracks have a tracknum tag, sort asceding by tracknum, else, sort
+                'asending by title. of course this sort won't work for files where the player
+                'doesn't store the metadata, like aac files so just sort by filename in this case
+                If allSongsHaveTrackNumTag Then
+                    lvAlbumItems_ColumnClick(Me.lvAlbumItems, New ColumnClickEventArgs(1))
+                Else
+                    lvAlbumItems_ColumnClick(Me.lvAlbumItems, New ColumnClickEventArgs(0))
+                End If
+
+                'add album information
+
+                'get the album art from the player. get it here to avoid readin
+                'the album art of all the files on refresh. that way, images are only read as needed
+                'only change the albumart path if there is no currently valid albumart
+                If Not metadata.AlbumArtIsFromPlayer And Not IO.File.Exists(metadata.AlbumArtPath) Then
+                    Dim art As String = axe.getAlbumArt(metadata.ID)
+                    If art <> "-1" Then
+                        metadata.AlbumArtPath = art
+                        metadata.AlbumArtIsFromPlayer = True
+                    End If
+                End If
+
+
+                Me.txtAlbumArtist.Text = metadata.AlbumArtist
+                Me.txtAlbumGenre.Text = metadata.Genre
+                Me.txtAlbumTitle.Text = metadata.AlbumTitle
+                Me.txtAlbumYear.Text = metadata.Year
+                Me.lblAlbumNumberOfTracks.Text = Format(foundNode.Nodes.Count, "00")
+                Me.lblAlbumTotalSize.Text = metadata.Size
+                Me.lblAlbumTotalSize.Text = Math.Round(totalalbumsize / 1024 / 1024, 2).ToString("N1") & "MB"
+                Try
+                    Me.pbAlbumArt.Image = New Bitmap(metadata.AlbumArtPath)
+                    Me.lblAlbumArtFileSize.Text = Math.Round((New IO.FileInfo(metadata.AlbumArtPath)).Length / 1024, 2).ToString("N1") & " KB"
+                    Me.lblAlbumArtDimensions.Text = Me.pbAlbumArt.Image.Width.ToString & " x " & Me.pbAlbumArt.Image.Height.ToString
+                    Me.pbAlbumArt.Tag = metadata.AlbumArtPath
+                    selectedItem.ImageKey = "+"
+                Catch ex As Exception
+                    Trace.WriteLine("Album Activate: error displaying album art - " & metadata.AlbumArtPath & ". " & ex.Message & "," & ex.Source)
+                    Me.pbAlbumArt.Image = My.Resources.NoDeviceIcon
+                    Me.pbAlbumArt.Tag = ""
+                    selectedItem.ImageKey = "-"
+                End Try
+
+                'save the selected album into the tag of the album items listview for easy retrieval 
+                Me.lvAlbumItems.Tag = selectedItem
+
+            End If 'if metadata isnot nothing
+
+        End If
+
+        itemSelectionComplete = True
+    End Sub
+
+    Private Sub lvAlbumsList_ItemActivate(ByVal sender As Object, ByVal e As System.EventArgs) 'Handles lvAlbumsList.ItemActivate
         itemSelectionComplete = False
 
         clearAlbumDetailsView()
@@ -1569,7 +1682,7 @@ Public Class Main
                     Me.pbAlbumArt.Tag = metadata.AlbumArtPath
                     selectedItem.ImageKey = "+"
                 Catch ex As Exception
-                    Trace.WriteLine("lvAlbumsList_MouseClick: error displaying album art - " & metadata.AlbumArtPath & ". " & ex.Message & "," & ex.Source)
+                    Trace.WriteLine("Album Activate: error displaying album art - " & metadata.AlbumArtPath & ". " & ex.Message & "," & ex.Source)
                     Me.pbAlbumArt.Image = My.Resources.NoDeviceIcon
                     Me.pbAlbumArt.Tag = ""
                     selectedItem.ImageKey = "-"
@@ -1582,13 +1695,6 @@ Public Class Main
 
         End If
         itemSelectionComplete = True
-    End Sub
-    Private Sub lvAlbumsList_MouseClick(ByVal sender As Object, ByVal e As System.Windows.Forms.MouseEventArgs) Handles lvAlbumsList.MouseClick
-        'show the right click menu on mouse click
-        If e.Button = Windows.Forms.MouseButtons.Right Then
-            'to do: show right click menu with "delete" option
-        End If
-
     End Sub
 
     Private Sub lvAlbumsList_DragEnter(ByVal sender As Object, ByVal e As System.Windows.Forms.DragEventArgs) Handles lvAlbumsList.DragEnter
@@ -1616,7 +1722,7 @@ Public Class Main
             t.Abort()
         End If
 
-        
+
     End Sub
     Private Sub lvAlbumslist_DragDrop_helper(ByVal draggedFiles() As String)
         Dim albums As TreeView
@@ -1738,7 +1844,7 @@ Public Class Main
         End If
     End Sub
 
-    
+
     Private Sub btnDeleteAlbum_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnDeleteAlbum.Click
         Dim album As ListViewItem = Me.lvAlbumItems.Tag
         If album Is Nothing Then
@@ -2047,7 +2153,7 @@ Public Class Main
         e.Effect = e.AllowedEffect
     End Sub
 
-    
+
 
 #End Region
 
@@ -3473,7 +3579,7 @@ Public Class Main
                 Return -result
             End If
         End Function 'Compare
-    End Class 
+    End Class
 
 #End Region
 

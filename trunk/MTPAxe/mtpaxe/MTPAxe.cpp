@@ -1443,8 +1443,15 @@ void storageGetAlbumArtImage(wchar_t *storageID)
 	fclose(tmpFile);
 
 	//for some reason, the player only returns the first 64K of an image
-	if (bytesWritten!=len && bytesWritten!=65536){returnMsg("-1\n","storageGetAlbumArtImage:album art was found, but there was an error writing to the file\n");return;}
-
+	if (bytesWritten!=len && bytesWritten!=65536)
+	{
+		char *msg=(char *)CoTaskMemAlloc(200);
+		sprintf(msg,"storageGetAlbumArtImage:album art was found, but there was an error writing to the file. Bytes=%u BytesWritten=%u\n",len,bytesWritten);
+		returnMsg("-1\n",msg);
+		CoTaskMemFree(msg);
+		return;
+	}
+	
 	char *ret=(char*)CoTaskMemAlloc(2*wcslen(tmpFileName)+6);
 	sprintf(ret,"%S\n",tmpFileName);
 
