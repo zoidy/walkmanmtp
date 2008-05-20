@@ -1435,7 +1435,7 @@ void storageGetAlbumArtImage(wchar_t *storageID)
 	wchar_t *tmpFileNameNoExt=_wtempnam(NULL,L"Axe");
 	wchar_t *tmpFileName=(wchar_t*)CoTaskMemAlloc(2*wcslen(tmpFileNameNoExt)+10);
 	wsprintf(tmpFileName,L"%s.tmp",tmpFileNameNoExt);
-	free(tmpFileName);
+	free(tmpFileNameNoExt);
 
 	FILE *tmpFile=_wfopen(tmpFileName,L"wb");
 	if (tmpFile==NULL){returnMsg("-1\n","storageGetAlbumArtImage:album art was found, but coulnd't write it to file\n");return;}
