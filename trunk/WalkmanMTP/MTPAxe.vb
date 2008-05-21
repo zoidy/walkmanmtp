@@ -594,7 +594,7 @@
         If axe Is Nothing Then Throw New Exception("MTPAxe is not started")
 
         sOut.WriteLine(MTPAXE_M_DEVICE_CREATEPLAYLIST)
-        sOut.WriteLine(playlistName)
+        sOut.WriteLine(playlistName.Trim)
         sOut.WriteLine(items)
 
         'now wait for the return value to be sent to the buffer
@@ -658,12 +658,12 @@
         If metadata Is Nothing Then metadata = New StorageItem
 
         sOut.WriteLine(MTPAXE_M_DEVICE_CREATEALBUM)
-        sOut.WriteLine(albumTitle)
-        sOut.WriteLine(items)
-        sOut.WriteLine(IIf(metadata.AlbumArtist = "", "`", metadata.AlbumArtist))
-        sOut.WriteLine(IIf(metadata.Genre = "", "`", metadata.Genre))
-        sOut.WriteLine(IIf(metadata.Year = "", "`", metadata.Year))
-        sOut.WriteLine(IIf(metadata.AlbumArtPath = "", "`", metadata.AlbumArtPath))
+        sOut.WriteLine(albumTitle.Trim)
+        sOut.WriteLine(items.Trim)
+        sOut.WriteLine(IIf(metadata.AlbumArtist = "", "`", metadata.AlbumArtist).ToString.Trim)
+        sOut.WriteLine(IIf(metadata.Genre = "", "`", metadata.Genre).ToString.Trim)
+        sOut.WriteLine(IIf(metadata.Year = "", "`", metadata.Year).ToString.Trim)
+        sOut.WriteLine(IIf(metadata.AlbumArtPath = "", "`", metadata.AlbumArtPath).ToString.Trim)
 
         'now wait for the return value to be sent to the buffer
         s = sIn.ReadLine
