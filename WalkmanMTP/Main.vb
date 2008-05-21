@@ -728,7 +728,6 @@ Public Class Main
 
         'create a blacnk playlist by default
         deleteAllPlaylists()
-        createNewPlaylist("New Playlist", False)
 
         Dim plFldr As TreeNode
         plFldr = findTreeNodeByName(fullFileListing.Nodes(0), "Playlists")
@@ -737,7 +736,8 @@ Public Class Main
             Exit Sub
         End If
         If plFldr.Nodes.Count = 0 Then
-            Trace.WriteLine("Error refreshing playlists - no playlists found")
+            Trace.WriteLine("no playlists found")
+            createNewPlaylist("New Playlist", False)
             Exit Sub
         End If
 
@@ -750,6 +750,8 @@ Public Class Main
         Dim plItem As TreeNode
         Dim item As StorageItem
         Dim strIDs() As String
+        Dim nameNewPlaylist As String = "New Playlist"
+        Dim i As Integer = 0
         For Each node As TreeNode In plFldr.Nodes
             'create a new playlist tab and listview based on the playlist name and the playlist's
             'PersistentUniqueID
@@ -769,6 +771,13 @@ Public Class Main
             originalTabPage.Text = tpage.Text
             originalTabPage.Tag = tpage.Tag
             originalPlaylists.Add(originalTabPage)
+
+
+            While node.Text = nameNewPlaylist
+                nameNewPlaylist = "New Playlist " & i + 1
+                i += 1
+            End While
+
 
             strIDs = axe.getPlaylistContentsIDs(CType(node.Tag, StorageItem).ID)
             If strIDs IsNot Nothing Then
@@ -804,6 +813,10 @@ Public Class Main
             End If 'if srtIds is nothing
             strIDs = Nothing
         Next
+
+     
+        createNewPlaylist(nameNewPlaylist, False)
+
 
         t.Abort()
         Trace.WriteLine("Refreshing playlists...complete")
@@ -843,7 +856,7 @@ Public Class Main
         End If
 
         'don't allow :,<,>,/ in the name since that's what we use as a separator
-        name = name.Replace(":"c, "_").Replace("<"c, "").Replace(">"c, "").Replace("/"c, "")
+        'name = name.Replace(":"c, "_").Replace("<"c, "").Replace(">"c, "").Replace("/"c, "")
 
         Dim tpage As TabPage
         Dim lv As ListViewEx
@@ -877,7 +890,8 @@ Public Class Main
         'we need a way to differentiate them)
         tpage.Tag = Now.Ticks.ToString
         tpage.Controls.Add(lv)
-        Me.tabPlaylists.TabPages.Add(tpage)
+        Me.tabPlaylists.TabPages.Insert(0, tpage)
+        Me.tabPlaylists.SelectedTab = tpage
 
         Return tpage
     End Function
@@ -931,7 +945,7 @@ Public Class Main
         Dim albumSyncError As Boolean = False
 
         'save any changes to the current album (only if one is selected, and has a valid title)
-        If Me.lvAlbumItems.Tag IsNot Nothing And Me.txtAlbumTitle.Text <> "" Then saveAlbumMetadata()
+        If Me.lvAlbumItems.Tag IsNot Nothing And Me.txtAlbumTitle.Text <> "" Then saveAlbumMetadata(Me.lvAlbumItems.Tag)
 
         Trace.WriteLine("Syncing albums...")
 
@@ -988,103 +1002,104 @@ Public Class Main
         Trace.WriteLine("Uploading new albums")
 
         'upload any new files or update modified albums
-        For Each modifiedAlbum In modifiedAlbums.Nodes
-            Dim modifiedMetadata As StorageItem = modifiedAlbum.Tag
+        For Each modifiedAlbum As TreeNode In modifiedAlbums.Nodes
+            If isAlbumModified(modifiedAlbum) Then
+                Dim modifiedMetadata As StorageItem = modifiedAlbum.Tag
 
-            'keeps track of whether songs were uploaded (i.e. the album has been modified and we need to re-create it)
-            Dim songsUploaded As Boolean = False
-            'used to keep track of the id's of files that were uploaded so we can add them to the album
-            Dim uploadedFilesIDs As String = ""
+                'keeps track of whether songs were uploaded (i.e. the album has been modified and we need to re-create it)
+                Dim songsUploaded As Boolean = False
+                'used to keep track of the id's of files that were uploaded so we can add them to the album
+                Dim uploadedFilesIDs As String = ""
 
-            Trace.WriteLine("Uploading new albums - uploading songs for album " & modifiedMetadata.FileName)
-            For Each song As TreeNode In modifiedAlbum.Nodes
-                Dim songMetadata As StorageItem
-                songMetadata = CType(song.Tag, StorageItem)
+                Trace.WriteLine("Uploading new albums - uploading songs for album " & modifiedMetadata.FileName)
+                For Each song As TreeNode In modifiedAlbum.Nodes
+                    Dim songMetadata As StorageItem
+                    songMetadata = CType(song.Tag, StorageItem)
 
-                If songMetadata.ID = "" Then
-                    'songs with id "" are new songs(see buildAlbumsListFromPaths)
+                    If songMetadata.ID = "" Then
+                        'songs with id "" are new songs(see buildAlbumsListFromPaths)
 
-                    Dim folderToUploadToName As String
-                    Dim folderToUploadTo As TreeNode
-                    Dim ret As String
+                        Dim folderToUploadToName As String
+                        Dim folderToUploadTo As TreeNode
+                        Dim ret As String
 
-                    'try to find the folder to upload this song to
-                    folderToUploadToName = modifiedMetadata.AlbumArtist & " - [" & modifiedMetadata.Year & "] " & modifiedMetadata.AlbumTitle
-                    folderToUploadTo = findTreeNodeByName(fullFileListing.Nodes(0), folderToUploadToName)
+                        'try to find the folder to upload this song to
+                        folderToUploadToName = modifiedMetadata.AlbumArtist & " - [" & modifiedMetadata.Year & "] " & modifiedMetadata.AlbumTitle
+                        folderToUploadTo = findTreeNodeByName(fullFileListing.Nodes(0), folderToUploadToName)
 
-                    If folderToUploadTo Is Nothing Then
-                        'the folder doesn't exist, so create it
-                        folderToUploadTo = New TreeNode
-                        Dim tmp As New StorageItem
-                        folderToUploadTo.Tag = tmp
-                        Splash.setText("Creating folder " & folderToUploadToName)
-                        Trace.WriteLine("Creating folder " & folderToUploadToName)
-                        ret = axe.uploadFile(folderToUploadToName, musicFolder.Tag.id, 1)
-                        If ret = "-1" Then
-                            Trace.WriteLine("Sync album error: Couldn't create folder " & folderToUploadToName & " in folder MUSIC")
-                            albumSyncError = True
-                        Else                            
-                            tmp.ID = ret
-                            tmp.FileName = folderToUploadToName
-                            tmp.StorageType = 295176
-                            tmp.DirectoryDepth = musicFolder.Tag.directorydepth + 1
-                            tmp.ParentFileName = musicFolder.Tag.filename
-                            tmp.ParentID = musicFolder.Tag.id
+                        If folderToUploadTo Is Nothing Then
+                            'the folder doesn't exist, so create it
+                            folderToUploadTo = New TreeNode
+                            Dim tmp As New StorageItem
                             folderToUploadTo.Tag = tmp
-                            'now that the folder has been successfully created, add it to the fullFileListing tree
-                            musicFolder.Nodes.Add(folderToUploadTo)
+                            Splash.setText("Creating folder " & folderToUploadToName)
+                            Trace.WriteLine("Creating folder " & folderToUploadToName)
+                            ret = axe.uploadFile(folderToUploadToName, musicFolder.Tag.id, 1)
+                            If ret = "-1" Then
+                                Trace.WriteLine("Sync album error: Couldn't create folder " & folderToUploadToName & " in folder MUSIC")
+                                albumSyncError = True
+                            Else
+                                tmp.ID = ret
+                                tmp.FileName = folderToUploadToName
+                                tmp.StorageType = 295176
+                                tmp.DirectoryDepth = musicFolder.Tag.directorydepth + 1
+                                tmp.ParentFileName = musicFolder.Tag.filename
+                                tmp.ParentID = musicFolder.Tag.id
+                                folderToUploadTo.Tag = tmp
+                                'now that the folder has been successfully created, add it to the fullFileListing tree
+                                musicFolder.Nodes.Add(folderToUploadTo)
+                            End If
                         End If
-                    End If
 
-                    'we now have a valid folder to put the song in so now we can upload
+                        'we now have a valid folder to put the song in so now we can upload
 
-                    Trace.WriteLine("Uploading " & songMetadata.FilePath)
-                    Splash.setText("Uploading " & songMetadata.FileName)
-                    ret = axe.uploadFile(songMetadata.FilePath, folderToUploadTo.Tag.id, 0, songMetadata)
-                    If ret = "-1" Then
-                        Trace.WriteLine("error syncing album. couldn't upload file " & songMetadata.FilePath & " Out of space maybe?")
-                        albumSyncError = True
-                    Else
-                        uploadedFilesIDs = uploadedFilesIDs & ret & ":"
-                    End If
-
-                    songsUploaded = True
-                End If 'if song is new
-            Next
-            Trace.WriteLine("Uploading new albums - uploading songs for album " & modifiedMetadata.FileName & " Done")
-
-            'if the album has been modified by adding songs or changing the 
-            'album art, need to delete it and re-create it
-            If (songsUploaded Or Not modifiedMetadata.AlbumArtIsFromPlayer) And Not albumSyncError Then
-                If modifiedMetadata.ID.StartsWith("{") Then
-                    'if were here, it means songs were uploaded to an existing album
-                    'need to make a list of items already in the album so as to
-                    're-add them to the album after it has been deleted and recreated
-                    For Each song In modifiedAlbum.Nodes
-                        If song.tag.id <> "" Then
-                            're-create the list
-                            uploadedFilesIDs = uploadedFilesIDs & song.tag.id & ":"
+                        Trace.WriteLine("Uploading " & songMetadata.FilePath)
+                        Splash.setText("Uploading " & songMetadata.FileName)
+                        ret = axe.uploadFile(songMetadata.FilePath, folderToUploadTo.Tag.id, 0, songMetadata)
+                        If ret = "-1" Then
+                            Trace.WriteLine("error syncing album. couldn't upload file " & songMetadata.FilePath & " Out of space maybe?")
+                            albumSyncError = True
+                        Else
+                            uploadedFilesIDs = uploadedFilesIDs & ret & ":"
                         End If
-                    Next
 
-                    'delete the modified album
-                    Trace.WriteLine("Creating albums - deleting modified album " & modifiedMetadata.FileName)
-                    If axe.deleteFile(modifiedMetadata.ID) = "-1" Then
-                        Trace.WriteLine("Error deleting album " & modifiedMetadata.FileName)
-                        Exit Sub
+                        songsUploaded = True
+                    End If 'if song is new
+                Next
+                Trace.WriteLine("Uploading new albums - uploading songs for album " & modifiedMetadata.FileName & " Done")
+
+                'if the album has been modified by adding songs or changing the 
+                'album art, need to delete it and re-create it
+                If (songsUploaded Or Not modifiedMetadata.AlbumArtIsFromPlayer) And Not albumSyncError Then
+                    If modifiedMetadata.ID.StartsWith("{") Then
+                        'if were here, it means songs were uploaded to an existing album
+                        'need to make a list of items already in the album so as to
+                        're-add them to the album after it has been deleted and recreated
+                        For Each song In modifiedAlbum.Nodes
+                            If song.tag.id <> "" Then
+                                're-create the list
+                                uploadedFilesIDs = uploadedFilesIDs & song.tag.id & ":"
+                            End If
+                        Next
+
+                        'delete the modified album
+                        Trace.WriteLine("Creating albums - deleting modified album " & modifiedMetadata.FileName)
+                        If axe.deleteFile(modifiedMetadata.ID) = "-1" Then
+                            Trace.WriteLine("Error deleting album " & modifiedMetadata.FileName)
+                            Exit Sub
+                        End If
+                        modifiedAlbum.Remove()
+                        modifiedAlbum = Nothing
                     End If
-                    modifiedAlbum.Remove()
-                    modifiedAlbum = Nothing
+                    'chop off the final delimiter
+                    uploadedFilesIDs = Mid(uploadedFilesIDs, 1, uploadedFilesIDs.Length - 1)
+
+                    'upload the album, if it is new or has been modified
+                    Trace.WriteLine("Creating albums - creating " & modifiedMetadata.FileName)
+                    Dim ret As String = axe.createAlbum(modifiedMetadata.AlbumTitle, uploadedFilesIDs, modifiedMetadata)
+
                 End If
-                'chop off the final delimiter
-                uploadedFilesIDs = Mid(uploadedFilesIDs, 1, uploadedFilesIDs.Length - 1)
-
-                'upload the album, if it is new or has been modified
-                Trace.WriteLine("Creating albums - creating " & modifiedMetadata.FileName)
-                Dim ret As String = axe.createAlbum(modifiedMetadata.AlbumTitle, uploadedFilesIDs, modifiedMetadata)
-
-            End If
-
+            End If 'if album is modified
         Next
         Trace.WriteLine("Uploading albums Done")
 
@@ -1115,11 +1130,13 @@ Public Class Main
 
         clearAlbumDetailsView()
         removeAllAlbumsFromAlbumsList()
+        removeAllAlbumsFromAlbumsList()
         cleanUpAxeTmpFiles()
 
         'set the image list
         If Me.lvAlbumsList.SmallImageList Is Nothing Then
             Dim imglist As New ImageList
+            imglist.ColorDepth = ColorDepth.Depth32Bit
             imglist.Images.Add("+", My.Resources.Album_entryWithArt)
             imglist.Images.Add("-", My.Resources.Album_entryWithoutArt)
             Me.lvAlbumsList.SmallImageList = imglist
@@ -1173,8 +1190,8 @@ Public Class Main
                 'list that keeps track of the albums
                 originalAlbums.Nodes.Add(node)
                 'clone the node since we don't want to modify the node in the originalAlbums list
-                'the cloned node will be stored in the tag of the listview item to avoid 
-                'having to search for the node later
+                'the cloned node corresponding to the album 
+                'will be stored in the tag of the listview item to avoid  having to search for the node later
                 node = node.Clone
                 modifiedAlbums.Nodes.Add(node)
 
@@ -1182,8 +1199,6 @@ Public Class Main
                 Dim albumItem As New ListViewItem
                 If IO.Path.GetExtension(albumMetadata.FileName) = ".alb" Then
                     albumMetadata.AlbumTitle = albumMetadata.Title
-                    albumMetadata.AlbumArtist = "Unknown"
-                    albumMetadata.Year = "Unknown"
                 Else
                     'the album title is contained in the filename
                     albumMetadata.AlbumTitle = albumMetadata.FileName
@@ -1202,12 +1217,12 @@ Public Class Main
                 If albumMetadata.Year = "" Then albumMetadata.Year = "0"
                 If albumMetadata.AlbumArtist = "" Then albumMetadata.AlbumArtist = "Unknown"
                 If albumMetadata.Genre = "" Then albumMetadata.Genre = "Unknown"
+                albumMetadata.AlbumArtIsFromPlayer = True
                 albumItem.Text = albumMetadata.AlbumTitle
                 albumItem.Name = albumMetadata.AlbumTitle
                 albumItem.SubItems.Add(albumMetadata.AlbumArtist)
                 albumItem.SubItems.Add(albumMetadata.Year)
                 albumItem.SubItems.Add(albumMetadata.Genre)
-                albumMetadata.ID = albumMetadata.ID
                 albumItem.ImageKey = IIf(albumMetadata.AlbumArtPath = "", "-", "+")
                 albumItem.Tag = node
                 Me.lvAlbumsList.Items.Add(albumItem)
@@ -1249,35 +1264,16 @@ Public Class Main
 
         If item IsNot Nothing Then
             'delete the cover art image if it was temporary
-            If item.AlbumArtPath <> "" Then
-                'only delete temp files, created by this program
-                If IO.Path.GetExtension(item.AlbumArtPath) = ".tmp" Then
-                    Try
-                        IO.File.Delete(item.AlbumArtPath)
-                    Catch ex As Exception
-                        Trace.WriteLine("remove album: could not delete temp album art file '" & item.AlbumArtPath & "' for " & album.Text)
-                    End Try
-                End If
-            End If
+            deleteTmpFile(item.AlbumArtPath)
 
             'remove the album from the modified albums list
             album.Tag.remove()
             album.Tag = Nothing
 
-            'select a valid item
-            'If Me.lvAlbumsList.Items.Count > 0 Then
-            '    Me.lvAlbumsList.Focus()
-            '    For Each lvitem In Me.lvAlbumsList.Items
-            '        lvitem.selected = False
-            '    Next
-            '    Me.lvAlbumsList.Items(0).Selected = True
-            'End If
-
             'remove it from the listview
             album.Remove()
-            'Me.lvAlbumsList.Refresh()
             album = Nothing
-
+            Me.lvAlbumsList.Refresh()
         Else
             Trace.WriteLine("remove album: could not cleanly remove " & album.Text & ". The associated metadata was not found")
         End If
@@ -1330,19 +1326,11 @@ Public Class Main
 
         Dim foundAlbum As TreeNode = album.Tag
 
-        ''find the song in the modified albums list
-        'Dim foundAlbum As TreeNode = Nothing
-        'For Each node As TreeNode In modifiedAlbums.Nodes
-        '    foundAlbum = findTreeNodeByID(node, metadata.ID)
-        '    If foundAlbum IsNot Nothing Then
-        '        Exit For
-        '    End If
-        'Next
-        'If foundAlbum Is Nothing Then
-        '    MsgBox("Couldn't re-order the songs in album " & metadata.AlbumTitle & ". The album was not found in the tree")
-        '    Trace.WriteLine("Couldn't re-order the songs in album " & metadata.AlbumTitle & ". The album was not found in the tree")
-        '    Exit Sub
-        'End If
+        If foundAlbum Is Nothing Then
+            Trace.WriteLine("setNewSongOrder: no album is selected")
+            MsgBox("no album is selected")
+            Exit Sub
+        End If
 
         'we now have the node in the modified albums tree corresponding to the specified album
 
@@ -1364,69 +1352,91 @@ Public Class Main
 
         Trace.WriteLine("Setting new song order...Done. Reordered album " & metadata.AlbumTitle)
     End Sub
-    Private Sub saveAlbumMetadata()
+    Private Sub saveAlbumMetadata(ByRef album As ListViewItem)
         'saves the values in the album textboxes (title etc) to the current album if any of the values
         'changed.
         'Note a lot of this code isn't being used. see the note near the txtAlbumTitle_KeyDown sub.
+        'this sub is only being used for when the album art image changes
 
-        If Me.lvAlbumItems.Tag IsNot Nothing Then
-            If Me.txtAlbumTitle.Modified Or Me.txtAlbumArtist.Modified Or Me.txtAlbumGenre.Modified Or Me.txtAlbumYear.Modified Then
-                If Not validateAlbumTextBoxes() Then Exit Sub
+        If album IsNot Nothing Then
 
-                Trace.WriteLine("Saving album metadata...")
+            If Not validateAlbumTextBoxes() Then Exit Sub
 
-                'remember that the lvAlbumItems tag has the listview item of the currently selected
-                'album.  The tag of the listview item contains the node associated with the album
-                'and finally, the node tag contains the album metadata
-                Dim albumMetaData As StorageItem = CType(Me.lvAlbumItems.Tag.tag.tag, StorageItem)
-                If albumMetaData IsNot Nothing Then
-                    albumMetaData.AlbumTitle = Me.txtAlbumTitle.Text
-                    albumMetaData.AlbumArtist = Me.txtAlbumArtist.Text
-                    albumMetaData.Genre = Me.txtAlbumGenre.Text
-                    albumMetaData.Year = Me.txtAlbumYear.Text
-                    albumMetaData.AlbumArtPath = IIf(pbAlbumArt.Tag Is Nothing, "", pbAlbumArt.Tag)
-                    albumMetaData.AlbumArtIsFromPlayer = False
+            Trace.WriteLine("Saving album metadata...")
+
+            'remember that the lvAlbumItems tag has the listview item of the currently selected
+            'album.  The tag of the listview item contains the node associated with the album
+            'and finally, the node tag contains the album metadata
+            Dim albumMetaData As StorageItem = CType(album.Tag.tag, StorageItem)
+            If albumMetaData IsNot Nothing Then
+                albumMetaData.AlbumTitle = Me.txtAlbumTitle.Text
+                albumMetaData.AlbumArtist = Me.txtAlbumArtist.Text
+                albumMetaData.Genre = Me.txtAlbumGenre.Text
+                albumMetaData.Year = Me.txtAlbumYear.Text
+                albumMetaData.AlbumArtPath = IIf(pbAlbumArt.Tag Is Nothing, "", pbAlbumArt.Tag)
 
 
-                    'update the albums list
-                    Dim albumLVItem As ListViewItem = CType(Me.lvAlbumItems.Tag, ListViewItem)
-                    albumLVItem.Text = albumMetaData.AlbumTitle
-                    albumLVItem.SubItems(1).Text = albumMetaData.AlbumArtist
-                    albumLVItem.SubItems(2).Text = albumMetaData.Year
-                    albumLVItem.SubItems(3).Text = albumMetaData.Genre
-                    If albumMetaData.AlbumArtPath <> "" Then
-                        albumLVItem.ImageKey = "+"
-                    End If
-
-                    'update the treenode
-                    Me.lvAlbumItems.Tag.tag.tag = albumMetaData
-
-                    markAlbumChanged(albumLVItem)
-
-                    Me.txtAlbumArtist.Modified = False
-                    Me.txtAlbumGenre.Modified = False
-                    Me.txtAlbumTitle.Modified = False
-                    Me.txtAlbumYear.Modified = False
-
-                    Trace.WriteLine("Saving album metadata...Done")
+                'update the albums list
+                Dim albumLVItem As ListViewItem = album
+                albumLVItem.Text = albumMetaData.AlbumTitle
+                albumLVItem.SubItems(1).Text = albumMetaData.AlbumArtist
+                albumLVItem.SubItems(2).Text = albumMetaData.Year
+                albumLVItem.SubItems(3).Text = albumMetaData.Genre
+                If albumMetaData.AlbumArtPath <> "" Then
+                    albumLVItem.ImageKey = "+"
                 End If
+
+                'update the treenode
+                album.Tag.tag = albumMetaData
+
+                markAlbumChanged(albumLVItem)
+
+                Me.txtAlbumArtist.Modified = False
+                Me.txtAlbumGenre.Modified = False
+                Me.txtAlbumTitle.Modified = False
+                Me.txtAlbumYear.Modified = False
+
+                Trace.WriteLine("Saving album metadata...Done")
             End If
+
         Else
             Trace.WriteLine("Saving album metadata...no album selected")
         End If
     End Sub
     Private Sub markAlbumChanged(ByRef album As ListViewItem)
+        'change the state of the album list item so we can tell it's been modified
         If album Is Nothing Then
             MsgBox("Could not mark the album as changed: no album was selected", MsgBoxStyle.Critical)
             Trace.WriteLine("Could not mark the album as changed: no album was selected")
             Exit Sub
         End If
 
-        'change the album listviewitem text to reflect the fact that it's been modified
-        If Not album.Text.EndsWith("*"c) Then
-            album.Text = album.Text & "*"
+        If Not album.Checked Then
+            album.Checked = True
+
+            album.Tag.checked = True
+            'change the album listviewitem text to reflect the fact that it's been modified
+            If Not album.Text.EndsWith("*"c) Then
+                album.Text = album.Text & "*"
+            End If
         End If
     End Sub
+    Private Function isAlbumModified(ByRef album As ListViewItem) As Boolean
+        'checks whether the specified album has been modified
+        If album Is Nothing Then
+            Return False
+        End If
+
+        Return album.Checked
+    End Function
+    Private Function isAlbumModified(ByRef album As TreeNode) As Boolean
+        'checks whether the specified album has been modified
+        If album Is Nothing Then
+            Return False
+        End If
+
+        Return album.Checked
+    End Function
 
 
     Private Sub clearAlbumDetailsView()
@@ -1472,7 +1482,6 @@ Public Class Main
             GC.Collect()
         End If
     End Sub
-
 
 
     Private Sub lvAlbumsList_KeyDown(ByVal sender As Object, ByVal e As System.Windows.Forms.KeyEventArgs) Handles lvAlbumsList.KeyDown
@@ -1554,7 +1563,7 @@ Public Class Main
                 'get the album art from the player. get it here to avoid readin
                 'the album art of all the files on refresh. that way, images are only read as needed
                 'only change the albumart path if there is no currently valid albumart
-                If Not metadata.AlbumArtIsFromPlayer And Not IO.File.Exists(metadata.AlbumArtPath) Then
+                If Not IO.File.Exists(metadata.AlbumArtPath) Then
                     Dim art As String = axe.getAlbumArt(metadata.ID)
                     If art <> "-1" Then
                         metadata.AlbumArtPath = art
@@ -1590,110 +1599,10 @@ Public Class Main
 
         End If
 
-        itemSelectionComplete = True
+        'itemSelectionComplete = True
     End Sub
 
-    Private Sub lvAlbumsList_ItemActivate(ByVal sender As Object, ByVal e As System.EventArgs) 'Handles lvAlbumsList.ItemActivate
-        itemSelectionComplete = False
-
-        clearAlbumDetailsView()
-
-        If fullFileListing IsNot Nothing Then
-            Me.lvAlbumItems.SmallImageList = fullFileListing.ImageList
-        End If
-
-        'if there is only 1 item selected, show it's details
-        If Me.lvAlbumsList.SelectedItems.Count = 1 Then
-            Dim selectedItem As ListViewItem = Me.lvAlbumsList.SelectedItems(0)
-            Dim foundNode As TreeNode = selectedItem.Tag
-
-            'remember the tag of listview item in the albums list contains the reference to the
-            'associated album node. the tag of the album node contains the metadata. this avoids
-            'having to do a search for the node to update it.
-            Dim metadata As StorageItem = CType(foundNode.Tag, StorageItem)
-            If metadata IsNot Nothing Then
-
-                'once we have the album node, add all of the items to the list
-                Me.lvAlbumItems.Items.Clear()
-                Dim lvitem As ListViewItem
-                Dim songMetadata As StorageItem
-                Dim totalalbumsize As Integer = 0
-                Dim allSongsHaveTrackNumTag As Boolean = True
-                For Each node In foundNode.Nodes
-                    songMetadata = CType(node.tag, StorageItem)
-                    If songMetadata IsNot Nothing Then
-                        lvitem = New ListViewItem
-                        lvitem.Text = songMetadata.FileName
-                        lvitem.SubItems.Add(songMetadata.TrackNum)
-                        lvitem.SubItems.Add(songMetadata.Title)
-                        lvitem.SubItems.Add(songMetadata.AlbumArtist)
-                        lvitem.SubItems.Add(songMetadata.Year)
-                        lvitem.SubItems.Add(songMetadata.Genre)
-                        lvitem.SubItems.Add(Math.Ceiling(songMetadata.Size / 1024).ToString("N0") & "KB")
-
-                        totalalbumsize += songMetadata.Size
-
-                        lvitem.Tag = songMetadata
-                        lvitem.ImageKey = IO.Path.GetExtension(songMetadata.FileName)
-
-                        If Not IsNumeric(songMetadata.TrackNum) Then
-                            allSongsHaveTrackNumTag = False
-                        End If
-
-                        Me.lvAlbumItems.Items.Add(lvitem)
-                    End If
-                Next
-
-                'once all the items have been added to the list, sort them the way the player would:
-                'If all the tracks have a tracknum tag, sort asceding by tracknum, else, sort
-                'asending by title. of course this sort won't work for files where the player
-                'doesn't store the metadata, like aac files so just sort by filename in this case
-                If allSongsHaveTrackNumTag Then
-                    lvAlbumItems_ColumnClick(Me.lvAlbumItems, New ColumnClickEventArgs(1))
-                Else
-                    lvAlbumItems_ColumnClick(Me.lvAlbumItems, New ColumnClickEventArgs(0))
-                End If
-
-                'add album information
-
-                'get the album art from the player. get it here to avoid readin
-                'the album art of all the files on refresh. that way, images are only read as needed
-                'only change the albumart path if there is no currently valid albumart
-                If Not metadata.AlbumArtIsFromPlayer And Not IO.File.Exists(metadata.AlbumArtPath) Then
-                    Dim art As String = axe.getAlbumArt(metadata.ID)
-                    If art <> "-1" Then
-                        metadata.AlbumArtPath = art
-                        metadata.AlbumArtIsFromPlayer = True
-                    End If
-                End If
-
-
-                Me.txtAlbumArtist.Text = metadata.AlbumArtist
-                Me.txtAlbumGenre.Text = metadata.Genre
-                Me.txtAlbumTitle.Text = metadata.AlbumTitle
-                Me.txtAlbumYear.Text = metadata.Year
-                Me.lblAlbumNumberOfTracks.Text = Format(foundNode.Nodes.Count, "00")
-                Me.lblAlbumTotalSize.Text = metadata.Size
-                Me.lblAlbumTotalSize.Text = Math.Round(totalalbumsize / 1024 / 1024, 2).ToString("N1") & "MB"
-                Try
-                    Me.pbAlbumArt.Image = New Bitmap(metadata.AlbumArtPath)
-                    Me.lblAlbumArtFileSize.Text = Math.Round((New IO.FileInfo(metadata.AlbumArtPath)).Length / 1024, 2).ToString("N1") & " KB"
-                    Me.lblAlbumArtDimensions.Text = Me.pbAlbumArt.Image.Width.ToString & " x " & Me.pbAlbumArt.Image.Height.ToString
-                    Me.pbAlbumArt.Tag = metadata.AlbumArtPath
-                    selectedItem.ImageKey = "+"
-                Catch ex As Exception
-                    Trace.WriteLine("Album Activate: error displaying album art - " & metadata.AlbumArtPath & ". " & ex.Message & "," & ex.Source)
-                    Me.pbAlbumArt.Image = My.Resources.NoDeviceIcon
-                    Me.pbAlbumArt.Tag = ""
-                    selectedItem.ImageKey = "-"
-                End Try
-
-                'save the selected album into the tag of the album items listview for easy retrieval 
-                Me.lvAlbumItems.Tag = selectedItem
-
-            End If 'if metadata isnot nothing
-
-        End If
+    Private Sub lvAlbumsList_ItemActivate(ByVal sender As Object, ByVal e As System.EventArgs) Handles lvAlbumsList.ItemActivate
         itemSelectionComplete = True
     End Sub
 
@@ -1738,6 +1647,7 @@ Public Class Main
         'add the returned albums to the listview
         If Me.lvAlbumsList.SmallImageList Is Nothing Then
             Dim imglist As New ImageList
+            imglist.ColorDepth = ColorDepth.Depth32Bit
             imglist.Images.Add("+", My.Resources.Album_entryWithArt)
             imglist.Images.Add("-", My.Resources.Album_entryWithoutArt)
             Me.lvAlbumsList.SmallImageList = imglist
@@ -1765,7 +1675,7 @@ Public Class Main
 
                 Dim lvitem As New ListViewItem
 
-                lvitem.Text = metadata.AlbumTitle & "*" 'mark the album as modified because it's new
+                lvitem.Text = metadata.AlbumTitle
                 lvitem.Name = metadata.AlbumTitle
                 lvitem.SubItems.Add(metadata.AlbumArtist)
                 lvitem.SubItems.Add(metadata.Year)
@@ -1776,6 +1686,8 @@ Public Class Main
                 Else
                     lvitem.ImageKey = "+"
                 End If
+
+                markAlbumChanged(lvitem)
 
                 Me.lvAlbumsList.Items.Add(lvitem)
 
@@ -1793,6 +1705,7 @@ Public Class Main
         Me.cmbAlbumListGroupBy.SelectedIndex = -1 'deselect any currently selected item
         Me.cmbAlbumListGroupBy.SelectedIndex = 0
 
+        'can safely clear these nodes since we cloned them in the for loop
         albums.Nodes.Clear()
         albums = Nothing
 
@@ -1867,7 +1780,7 @@ Public Class Main
         End If
     End Sub
     Private Sub txtAlbumTitle_LostFocus(ByVal sender As Object, ByVal e As System.EventArgs) Handles txtAlbumTitle.LostFocus
-        saveAlbumMetadata()
+        saveAlbumMetadata(Me.lvAlbumItems.Tag)
     End Sub
     Private Sub txtAlbumArtist_KeyDown(ByVal sender As Object, ByVal e As System.Windows.Forms.KeyEventArgs) Handles txtAlbumArtist.KeyDown
         If e.KeyCode = Keys.Enter Then
@@ -1875,7 +1788,7 @@ Public Class Main
         End If
     End Sub
     Private Sub txtAlbumArtist_LostFocus(ByVal sender As Object, ByVal e As System.EventArgs) Handles txtAlbumArtist.LostFocus
-        saveAlbumMetadata()
+        saveAlbumMetadata(Me.lvAlbumItems.Tag)
     End Sub
     Private Sub txtAlbumGenre_KeyDown(ByVal sender As Object, ByVal e As System.Windows.Forms.KeyEventArgs) Handles txtAlbumGenre.KeyDown
         If e.KeyCode = Keys.Enter Then
@@ -1883,7 +1796,7 @@ Public Class Main
         End If
     End Sub
     Private Sub txtAlbumGenre_LostFocus(ByVal sender As Object, ByVal e As System.EventArgs) Handles txtAlbumGenre.LostFocus
-        saveAlbumMetadata()
+        saveAlbumMetadata(Me.lvAlbumItems.Tag)
     End Sub
     Private Sub txtAlbumYear_KeyDown(ByVal sender As Object, ByVal e As System.Windows.Forms.KeyEventArgs) Handles txtAlbumYear.KeyDown
         If e.KeyCode = Keys.Enter Then
@@ -1891,7 +1804,7 @@ Public Class Main
         End If
     End Sub
     Private Sub txtAlbumYear_LostFocus(ByVal sender As Object, ByVal e As System.EventArgs) Handles txtAlbumYear.LostFocus
-        saveAlbumMetadata()
+        saveAlbumMetadata(Me.lvAlbumItems.Tag)
     End Sub
     Private Sub addSongToAlbum(ByRef Album As ListViewItem, ByVal songMetadata As StorageItem)
         'adds a song to the specified album. Album is a listviewitem from the AlbumsList listview
@@ -2144,8 +2057,9 @@ Public Class Main
             End If
 
             'set a textbox to modified so savealbummetadata will save the new cover image
-            Me.txtAlbumTitle.Modified = True
-            saveAlbumMetadata()
+            Me.lvAlbumItems.Tag.tag.tag.AlbumArtIsFromPlayer = False
+            Me.lvAlbumItems.Tag.tag.tag.AlbumArtIsFromEmbedded = False
+            saveAlbumMetadata(Me.lvAlbumItems.Tag)
         End If
     End Sub
     Private Sub pbAlbumArt_DragEnter(ByVal sender As Object, ByVal e As System.Windows.Forms.DragEventArgs) Handles pbAlbumArt.DragEnter
@@ -3109,20 +3023,24 @@ Public Class Main
                                             'if the already present album has album art, check if it's from an embedded image
                                             'if it is, we can't overwrite it. if it's not, then we can overwrite it
                                             'if the nodeToMerge has album art from an embedded source
-                                            If IO.Path.GetExtension(foundAlbumMetadata.AlbumArtPath) = ".tmp" Then
-                                                'it's from an embedded source, can't touch it
+                                            If foundAlbumMetadata.AlbumArtIsFromEmbedded Then
+                                                'it's from an embedded source, can't touch it. delete the album art we're trying
+                                                'to merge
                                                 deleteTmpFile(nodeToMergeMetadata.AlbumArtPath)
+                                                nodeToMergeMetadata.AlbumArtPath = ""
                                             Else
-                                                If IO.Path.GetExtension(nodeToMergeMetadata.AlbumArtPath) = ".tmp" Then
+                                                If nodeToMergeMetadata.AlbumArtIsFromEmbedded Then
                                                     'the node to merge has embedded metadata but the original one doesn't therefore
                                                     'we must overwrite it
                                                     deleteTmpFile(foundAlbumMetadata.AlbumArtPath)
                                                     foundAlbumMetadata.AlbumArtPath = nodeToMergeMetadata.AlbumArtPath
+                                                    foundAlbumMetadata.AlbumArtIsFromEmbedded = True
                                                 End If
                                             End If
                                         Else
-                                            'if it has no album art, use the album art of the node we're trying to merge
+                                            'if it has no album art, use the album art of the node we're trying to merge (even if has none)
                                             foundAlbumMetadata.AlbumArtPath = nodeToMergeMetadata.AlbumArtPath
+                                            foundAlbumMetadata.AlbumArtIsFromEmbedded = False
                                         End If
 
                                         foundalbum.Tag = foundAlbumMetadata
@@ -3220,6 +3138,7 @@ Public Class Main
                             'if there is no album art, then for sure use the one from this file, if available
                             If albumMetadata.AlbumArtPath = "" Then
                                 albumMetadata.AlbumArtPath = convertToJpeg(getAlbumArtFromFile(path))
+                                albumMetadata.AlbumArtIsFromEmbedded = True
                             Else
                                 'if there is existing art, determine whether it was obtained from an embedded image.
 
@@ -3241,7 +3160,7 @@ Public Class Main
                         End If
 
                     Else
-                        'create the new album
+                        'album was not found so create a new album
                         albumToInsertSongInto = New TreeNode
                         albumMetadata = New StorageItem
 
@@ -3263,8 +3182,11 @@ Public Class Main
                             Array.Sort(parentDirectoryFileList)
                             For Each file In parentDirectoryFileList
                                 Dim ext As String = IO.Path.GetExtension(file)
-                                If ext = ".jpg" Or ext = ".JPG" Or ext = ".JPEG" Or ext = ".jpeg" Then
+                                'BMP, GIF, EXIG, JPG, PNG And TIFF
+                                If ext = ".jpg" Or ext = ".JPG" Or ext = ".JPEG" Or ext = ".jpeg" Or ext = ".jpe" Or ext = ".JPE" _
+                                   Or ext = ".bmp" Or ext = ".BMP" Or ext = ".png" Or ext = ".PNG" Or ext = ".tif" Or ext = ".TIF" Or ext = ".TIFF" Or ext = ".tiff" Then
                                     albumMetadata.AlbumArtPath = convertToJpeg(file)
+                                    albumMetadata.AlbumArtIsFromEmbedded = False
                                 End If
                             Next
                         Else
@@ -3297,6 +3219,7 @@ Public Class Main
         Return tv
     End Function
     Private Sub deleteTmpFile(ByVal filename As String)
+        If filename = "" Then Exit Sub
         Try
             If IO.Path.GetExtension(filename) = ".tmp" Then
                 IO.File.Delete(filename)
