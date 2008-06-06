@@ -1,3 +1,19 @@
+/*
+Copyright 2008 Dr. Zoidberg
+ 
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+	http://www.apache.org/licenses/LICENSE-2.0 
+
+Unless required by applicable law or agreed to in writing, software 
+distributed under the License is distributed on an "AS IS" 
+BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions 
+and limitations under the License. 
+*/
+
 // MTPAxe.cpp : Defines the entry point for the console application.
 //Important: need to increase the stack size in the linker system options (15mb is enough)
 
@@ -95,12 +111,12 @@ int _tmain(int argc, _TCHAR* argv[])
 
 						//swprintf(buffer,MTPAXE_MAXFILENAMESIZE,L"%s",L"{00000062-0000-0000-0000-000000000000}:{00000063-0000-0000-0000-000000000000}:{00000064-0000-0000-0000-000000000000}:{00000065-0000-0000-0000-000000000000}");
 						//swprintf(buffer,MTPAXE_MAXFILENAMESIZE,L"%s",L"{00000062-0000-0000-0000-000000000000}:{00000063-0000-0000-0000-000000000000}:{00000065-0000-0000-0000-000000000000}:{00000064-0000-0000-0000-000000000000}");
-						//swprintf(buffer,MTPAXE_MAXFILENAMESIZE,L"%s",L"{00000079-0000-0000-A47E-274861430C00}");
-						//deviceCreateAlbum(L"Test1",buffer,L"artist",L"year",L"genre",L"c:\\testart.jpg");
+						swprintf(buffer,MTPAXE_MAXFILENAMESIZE,L"%s",L"{000000B6-0000-0000-9FF0-4848BE330E00}");
+						deviceCreateAlbum(L"Test1",buffer,L"artist",L"year",L"genre",L"c:\\testart.jpg");
 						//deviceCreatePlaylist(L"test",buffer);
 
-						swprintf(buffer,MTPAXE_MAXFILENAMESIZE,L"%s",L"{00000026-0000-0000-4E94-30484DB50500}");
-						storageGetAlbumArtImage(buffer);
+						//swprintf(buffer,MTPAXE_MAXFILENAMESIZE,L"%s",L"{00000026-0000-0000-4E94-30484DB50500}");
+						//storageGetAlbumArtImage(buffer);
 						break;}
 				case -3:
 					playlistEnumerateContents(L"playlist_name2");
@@ -1442,7 +1458,9 @@ void storageGetAlbumArtImage(wchar_t *storageID)
 	size_t bytesWritten=fwrite(value,1,len,tmpFile);
 	fclose(tmpFile);
 
-	//for some reason, the player only returns the first 64K of an image
+	//for some reason, the player only returns the first 64K of an image. therefore if  the full 64k was
+	//written, there really was no error. most of the time this should be no problem since the album
+	//art images are small anyways
 	if (bytesWritten!=len && bytesWritten!=65536)
 	{
 		char *msg=(char *)CoTaskMemAlloc(200);
@@ -1689,24 +1707,30 @@ void createStorageReferencesContainer(unsigned long typeOfContainer,wchar_t *con
 		//add the album art if any
 		if(wcscmp(albumArtFile,L"")!=0)
 		{
-			unsigned long long size=0;
+			long size=0;
 			FILE *theFile=_wfopen(albumArtFile,L"rb");
 			if(theFile!=NULL)
 			{
+				fseek(theFile,0,SEEK_SET);
 				fseek(theFile,0,SEEK_END);
-				size=_ftelli64(theFile);
+				size=ftell(theFile);
 				fseek(theFile,0,SEEK_SET);
 				char *pCoverData = (char*)CoTaskMemAlloc((size_t)size);
 				if(pCoverData)
 				{
-					fread((void *)pCoverData, 1, (size_t)size, theFile);
-					fclose(theFile);
+					fread((void *)pCoverData, 1, (size_t)size, theFile);					
 
 					hr = pMetaData->AddItem(WMDM_TYPE_BINARY, g_wszWMDMAlbumCoverData, (BYTE *)pCoverData, (UINT)size);
 					CoTaskMemFree(pCoverData);
 					if(FAILED(hr)){returnMsg("-1\n","createStorageReferencesContainer: could not add cover art to album metadata object\n");return;}
+					
+					//when wmp11 is installed, need to set the image format, or else the image won't be uploaded.
+					unsigned long dw=WMDM_FORMATCODE_IMAGE_JFIF;
+					hr = pMetaData->AddItem(WMDM_TYPE_DWORD, g_wszWMDMAlbumCoverFormat, (BYTE *)&dw, sizeof(dw));
+					if(FAILED(hr)){returnMsg("-1\n","createStorageReferencesContainer: could not add cover art format to album metadata object\n");return;}
 				}
 				else{returnMsg("-1\n","createStorageReferencesContainer: could not add cover art to album metadata object, not enough memory\n");return;}
+				fclose(theFile);
 			}
 		}
 	}
@@ -1719,11 +1743,13 @@ void createStorageReferencesContainer(unsigned long typeOfContainer,wchar_t *con
 	IWMDMStorageControl3 *pStorCtrl;
 	hr = pStor->QueryInterface(IID_IWMDMStorageControl3,(void**)&pStorCtrl);
 	if(FAILED(hr)){returnMsg("-1\n","createStorageReferencesContainer: could not get storage control interface\n");return;}
+	pStor->Release();
 
 	//now have a storagecontrol3 interface
 
-	//add the playlist or album to the Playlists or Albums folder
-	IWMDMStorage *pStorPlaylist;
+	//add the playlist or album to the Playlists or Albums folder (set it to NULL first or
+	//insertion may fail for some reason)
+	IWMDMStorage *pStorPlaylist=NULL;
 
 	hr = pStorCtrl->Insert3(WMDM_MODE_BLOCK | WMDM_CONTENT_FILE,
                             0,
@@ -1734,7 +1760,6 @@ void createStorageReferencesContainer(unsigned long typeOfContainer,wchar_t *con
                             pMetaData,
                             NULL,
                             &pStorPlaylist);
-	
 	if(FAILED(hr)){returnMsg("-1\n","createStorageReferencesContainert: could not insert playlist or album\n");return;}
 
 	//insertion was successful. add it now to the storage items array
