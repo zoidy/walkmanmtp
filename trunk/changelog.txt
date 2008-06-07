@@ -1,5 +1,8 @@
 Change log <release date>:<WalkmanMTP version> - <MTPAxe version>
 
+07-jun-08: 0.4 - 0.4
+	-can now add albums with album art
+	-free space now gets updated as you add or delete files
 05-may-08: 0.3.9.3 - 0.3.9.3
 	-properly fixed a previously implemented workaround for wmp11
 	-now supports having playlists/files with the same name in the same directory
