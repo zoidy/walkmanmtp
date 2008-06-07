@@ -88,7 +88,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="copy /Y /D &quot;$(TargetPath)&quot; &quot;\WalkmanMTP\bin\Debug&quot;&#x0D;&#x0A;"
+				CommandLine="copy /Y /D &quot;$(TargetPath)&quot; &quot;E:\Documents and Settings\zoidberg\Desktop\projects\WalkmanMTP\WalkmanMTP\bin\Debug&quot;&#x0D;&#x0A;copy /Y /D &quot;$(TargetPath)&quot; &quot;E:\Documents and Settings\zoidberg\Desktop\projects\WalkmanMTP\WalkmanMTP\bin\Release&quot;&#x0D;&#x0A;"
 			/>
 		</Configuration>
 		<Configuration
@@ -169,7 +169,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="copy /Y /D &quot;$(TargetPath)&quot; &quot;\WalkmanMTP\bin\Debug&quot;&#x0D;&#x0A;"
+				CommandLine="copy /Y /D &quot;$(TargetPath)&quot; &quot;E:\Documents and Settings\zoidberg\Desktop\projects\WalkmanMTP\WalkmanMTP\bin\Debug&quot;&#x0D;&#x0A;copy /Y /D &quot;$(TargetPath)&quot; &quot;E:\Documents and Settings\zoidberg\Desktop\projects\WalkmanMTP\WalkmanMTP\bin\Release&quot;&#x0D;&#x0A;"
 			/>
 		</Configuration>
 	</Configurations>

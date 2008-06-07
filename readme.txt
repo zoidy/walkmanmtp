@@ -32,15 +32,22 @@ Making playlists:
 Making albums:
 -Drag and drop files from explorer into the Albums List (left hand panel on the albums tab)
  Files will automatically be sorted into their respective albums and album art will
- be added automatically (embedded and image in the same folder as the song is supported)
- if available. 
+ be added automatically
+-it is possible to add/replace the album art by dragging an image to the album art box
 -For drag and drop behaviour see the section
- "Album Creation Behaviour For Files Dragged From Windows Explorer" below
+ "Album Creation Behaviour" below
 -supported album art file types:BMP, GIF, EXIG, JPG, PNG and TIFF
 
+FOR THIS FEATURE TO WORK TO ITS FULL CAPACITY IT IS CRITICAL TO HAVE PROPERLY TAGGED FILES!!
 Notes: some embedded album art gives trouble. i.e. the extracted file is not a valid jpg
        Using Mp3Tag along with id3v2.3 works well to avoid the problem
        Any album images will be resized to optimize for storage space on the player
+
+-Limitations: Can't edit album metadata/song order/add or delete songs - the reason for this
+	      limitation is that the player makes its own internal list of songs and albums
+	      ignoring any user specified metadata and order.  Adding or deleting songs is not implemented
+	      for because some quirks of the player which make it too easy cause the album art
+	      not to be displayed
 
 File management:
 -Go to the file management tab and select the folder you wish to copy files to.
@@ -81,15 +88,27 @@ To Do
 
 
 ===========================================================================================
-=Album Creation Behaviour For Files Dragged From Windows Explorer
+=Album Creation Behaviour
 ==========================================================================================
 This section describes how albums will be created on the device when
 any combination of valid songs, album art in any folder structure is dragged into the
 "Albums" list (the left hand pane in the Albums tab)
 
+Summary:
+Files can be in any directory or subdirectory. The program will read the tags
+and place it into the appropriate album. This means that songs of the same album
+don't have to be in the same directory (although this is the preferred way of doing things).
+Embedded album art will be used when available, else, the first valid image file will be used
+Any album art added will be resized to compromise between quality and size
+
 Important note: If there are two separate folders, each with songs having the same album name, 
 all of the songs will be placed under a single album, and not two separate albums. This is by design.
-If you want these identical files under separate albums anyways, drag them in separately
+If this occurs under separate drag and drop operations, you will be asked to overwrite the album
+instead.
+
+
+
+Detailed cases:
 
 CASE1
 =======
@@ -105,9 +124,9 @@ title          artist     genre
 ------------------------------------------------
 AlbumTitle1    Artist1    Genre1    
 
-No album art will be added to the album unless a jpg is found in the same directory as the song.
+No album art will be added to the album unless an image is found in the same directory as the song.
 If the song contains embedded album art, then the embedded art will override any image in the directory.
-EMBEDDED ALBUM ART OVERRIDES ANY OTHER JPG IMAGES PRESENT
+EMBEDDED ALBUM ART OVERRIDES ANY OTHER IMAGES PRESENT
 
 
 

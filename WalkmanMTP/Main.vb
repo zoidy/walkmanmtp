@@ -24,11 +24,9 @@ Public Class Main
     'TODO: enable device removal detection and update this value
     Private DeviceConnected As Boolean = False
 
-    'for some reason, the ItemSelectionChange event for the lvAlbumsList doesn't
-    'finish executing before the removeAlbumFromAlbumsList method gets called
-    'whenever an item is selected then deleted. this is is only a problem if
-    'the selection and deletion are done really fast, but it's a problem nonetheless
-    Dim itemSelectionComplete As Boolean = True
+    'keeps track of the free space on the device. this is updated un updateDeviceFreeSpace
+    Private freeSpace As Double = -1
+    Private capacity As Double = -1
 
 #Region "Application Menu"
     Private Sub QuitToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles mnuFileQuitToolStripMenuItem.Click
@@ -169,6 +167,8 @@ Public Class Main
         refreshPlaylistDeviceFiles()
         refreshAlbumsList()
 
+        updateDeviceFreeSpace()
+
         t.Abort()
     End Sub
 
@@ -270,18 +270,7 @@ Public Class Main
             Me.lblManufacturer.Text = axe.getDeviceManufacturer()
 
             'get capacity
-            Trace.WriteLine("initSelectedDevice: getting device capacity")
-            Dim ret() As String
-            ret = axe.getDeviceCapacity().Split(":"c)
-            If ret(0) = "-1" Then
-                Trace.WriteLine("initSelectedDevice: error getting device capacity")
-                Exit Sub
-            End If
-            Dim freeSpace, capacity As Long
-            capacity = Long.Parse(ret(0)) / 1024 / 1024 'to MB
-            freeSpace = Long.Parse(ret(1)) / 1024 / 1024
-
-            Me.lblCapacity.Text = freeSpace & " of " & capacity & " MB"
+            Me.updateDeviceFreeSpace()
 
             'get the icon
             Trace.WriteLine("initSelectedDevice: getting device icon")
@@ -1108,6 +1097,8 @@ Public Class Main
         If albumSyncError Then
             MsgBox("There were errors syncing albums. Check the log", MsgBoxStyle.Exclamation)
         End If
+
+        updateDeviceFreeSpace()
     End Sub
 
     Private Sub refreshAlbumsList()
@@ -1177,6 +1168,9 @@ Public Class Main
                                 'add the song to the album tree (note this node is the cloned version
                                 'of the orignal album node since we don't want to modify the original
                                 node.Nodes.Add(albumSong.Clone)
+
+                                'add to the album size, the size of this song
+                                node.Tag.size += albumSong.Tag.size
                             Else
                                 Trace.WriteLine("The storage item " & strid & " referenced in album '" & albumMetadata.AlbumTitle & "' was not found")
                             End If
@@ -1237,14 +1231,9 @@ Public Class Main
         Me.cmbAlbumListGroupBy.SelectedIndex = -1
         Me.cmbAlbumListGroupBy.SelectedIndex = 0
     End Sub
-    Private Sub removeAlbumFromAlbumsList(ByRef album As ListViewItem)
+    Private Sub removeAlbumFromAlbumsList(ByRef album As ListViewItem, Optional ByVal reallyDelete As Boolean = False)
         'removes an album from the list. album is alistview item from the
         'lvAlbumList listview
-
-        If Not itemSelectionComplete Then
-            Trace.WriteLine("Could not delete album. Item selection was still in progress. Don't click so fast!")
-            Exit Sub
-        End If
 
         clearAlbumDetailsView()
 
@@ -1252,6 +1241,7 @@ Public Class Main
             Trace.WriteLine("Can't deelte album. No album selected")
             Exit Sub
         End If
+
         If album.Tag Is Nothing Then
             Trace.WriteLine("Can't delete album " & album.Text & " no node was associated with it")
             Exit Sub
@@ -1261,33 +1251,48 @@ Public Class Main
 
         'remember that the listviewitem tag has the treenode
         item = CType(album.Tag.tag, StorageItem)
-
         If item IsNot Nothing Then
             'delete the cover art image if it was temporary
             deleteTmpFile(item.AlbumArtPath)
+
+            'update the free space before we delete the tag
+            updateDeviceFreeSpace(item.Size, False)
 
             'remove the album from the modified albums list
             album.Tag.remove()
             album.Tag = Nothing
 
-            'remove it from the listview
-            album.Remove()
-            album = Nothing
-            Me.lvAlbumsList.Refresh()
+            'dont actually delete the item. it causes too many problems
+            'with the ItemSelectionChanged event
+            album.Font = New Font("Tahoma", 8, FontStyle.Strikeout)
+            'DANGER DANGER! try to avoid using this
+            If reallyDelete Then
+                album.Remove()
+                album = Nothing
+            End If
+
         Else
             Trace.WriteLine("remove album: could not cleanly remove " & album.Text & ". The associated metadata was not found")
         End If
 
     End Sub
-    Private Sub removeAllAlbumsFromAlbumsList()
+    Private Sub removeAllAlbumsFromAlbumsList(Optional ByVal clearListView As Boolean = True)
+        'remove the handler to prevent the album info being loaded when an item is deleted
+        '(the selection changes when the items is deleted)
         clearAlbumDetailsView()
         Me.lvAlbumsList.BeginUpdate()
-        Me.lvAlbumsList.Groups.Clear()
+
 
         Dim metadata As StorageItem = Nothing
         For Each Album As ListViewItem In Me.lvAlbumsList.Items
             removeAlbumFromAlbumsList(Album)
         Next
+
+        If clearListView Then
+            Me.lvAlbumsList.Groups.Clear()
+            Me.lvAlbumsList.Items.Clear()
+        End If
+
 
         Me.lvAlbumsList.EndUpdate()
     End Sub
@@ -1474,7 +1479,7 @@ Public Class Main
 
     Private Sub btnClearAllAlbums_LinkClicked(ByVal sender As System.Object, ByVal e As System.Windows.Forms.LinkLabelLinkClickedEventArgs) Handles btnClearAllAlbums.LinkClicked
         If MsgBox("Are you sure?", MsgBoxStyle.Question Or MsgBoxStyle.YesNo) = MsgBoxResult.No Then Exit Sub
-        removeAllAlbumsFromAlbumsList()
+        removeAllAlbumsFromAlbumsList(False)
     End Sub
     Private Sub cmbAlbumListGroupBy_SelectedIndexChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmbAlbumListGroupBy.SelectedIndexChanged
         If Me.cmbAlbumListGroupBy.SelectedIndex <> -1 Then
@@ -1482,7 +1487,6 @@ Public Class Main
             GC.Collect()
         End If
     End Sub
-
 
     Private Sub lvAlbumsList_KeyDown(ByVal sender As Object, ByVal e As System.Windows.Forms.KeyEventArgs) Handles lvAlbumsList.KeyDown
         If e.KeyCode = Keys.Delete Then
@@ -1493,23 +1497,17 @@ Public Class Main
     End Sub
     Private Sub lvAlbumsList_ItemSelectionChanged(ByVal sender As Object, ByVal e As System.Windows.Forms.ListViewItemSelectionChangedEventArgs) Handles lvAlbumsList.ItemSelectionChanged
 
-        itemSelectionComplete = False
-
         clearAlbumDetailsView()
-
-        If Not e.IsSelected Then
-            itemSelectionComplete = True
-            Exit Sub
-        End If
 
         If fullFileListing IsNot Nothing Then
             Me.lvAlbumItems.SmallImageList = fullFileListing.ImageList
         End If
 
         'if there is only 1 item selected, show it's details
-        If Me.lvAlbumsList.SelectedItems.Count = 1 Then
+        If Me.lvAlbumsList.SelectedItems.Count = 1 And e.IsSelected Then
             Dim selectedItem As ListViewItem = Me.lvAlbumsList.SelectedItems(0)
             Dim foundNode As TreeNode = selectedItem.Tag
+            If foundNode Is Nothing Then Exit Sub
 
             'remember the tag of listview item in the albums list contains the reference to the
             'associated album node. the tag of the album node contains the metadata. this avoids
@@ -1521,7 +1519,7 @@ Public Class Main
                 Me.lvAlbumItems.Items.Clear()
                 Dim lvitem As ListViewItem
                 Dim songMetadata As StorageItem
-                Dim totalalbumsize As Integer = 0
+                'Dim totalalbumsize As Integer = 0
                 Dim allSongsHaveTrackNumTag As Boolean = True
                 For Each node In foundNode.Nodes
                     songMetadata = CType(node.tag, StorageItem)
@@ -1535,7 +1533,7 @@ Public Class Main
                         lvitem.SubItems.Add(songMetadata.Genre)
                         lvitem.SubItems.Add(Math.Ceiling(songMetadata.Size / 1024).ToString("N0") & "KB")
 
-                        totalalbumsize += songMetadata.Size
+                        'totalalbumsize += songMetadata.Size
 
                         lvitem.Tag = songMetadata
                         lvitem.ImageKey = IO.Path.GetExtension(songMetadata.FileName)
@@ -1547,6 +1545,7 @@ Public Class Main
                         Me.lvAlbumItems.Items.Add(lvitem)
                     End If
                 Next
+                'metadata.Size = totalalbumsize
 
                 'once all the items have been added to the list, sort them the way the player would:
                 'If all the tracks have a tracknum tag, sort asceding by tracknum, else, sort
@@ -1577,8 +1576,7 @@ Public Class Main
                 Me.txtAlbumTitle.Text = metadata.AlbumTitle
                 Me.txtAlbumYear.Text = metadata.Year
                 Me.lblAlbumNumberOfTracks.Text = Format(foundNode.Nodes.Count, "00")
-                Me.lblAlbumTotalSize.Text = metadata.Size
-                Me.lblAlbumTotalSize.Text = Math.Round(totalalbumsize / 1024 / 1024, 2).ToString("N1") & "MB"
+                Me.lblAlbumTotalSize.Text = Math.Round(metadata.Size / 1024 / 1024, 2).ToString("N1") & "MB"
                 Try
                     Me.pbAlbumArt.Image = New Bitmap(metadata.AlbumArtPath)
                     Me.lblAlbumArtFileSize.Text = Math.Round((New IO.FileInfo(metadata.AlbumArtPath)).Length / 1024, 2).ToString("N1") & " KB"
@@ -1599,11 +1597,7 @@ Public Class Main
 
         End If
 
-        'itemSelectionComplete = True
-    End Sub
 
-    Private Sub lvAlbumsList_ItemActivate(ByVal sender As Object, ByVal e As System.EventArgs) Handles lvAlbumsList.ItemActivate
-        itemSelectionComplete = True
     End Sub
 
     Private Sub lvAlbumsList_DragEnter(ByVal sender As Object, ByVal e As System.Windows.Forms.DragEventArgs) Handles lvAlbumsList.DragEnter
@@ -1665,7 +1659,7 @@ Public Class Main
                        "and the device is then synced", MsgBoxStyle.Exclamation Or MsgBoxStyle.YesNo Or MsgBoxStyle.SystemModal) = MsgBoxResult.No Then
                     overwriteAlbumIfExists = False
                 Else
-                    removeAlbumFromAlbumsList(Me.lvAlbumsList.Items(metadata.AlbumTitle))
+                    removeAlbumFromAlbumsList(Me.lvAlbumsList.Items(metadata.AlbumTitle), True)
                     overwriteAlbumIfExists = True
                 End If
             End If
@@ -1695,6 +1689,13 @@ Public Class Main
                 If modifiedAlbums IsNot Nothing Then
                     modifiedAlbums.Nodes.Add(node)
                 End If
+
+                'update the free space(the free space decreases)
+                Dim songMetadata As StorageItem
+                For Each song As TreeNode In node.Nodes
+                    songMetadata = CType(song.Tag, StorageItem)
+                    updateDeviceFreeSpace(-songMetadata.Size, False)
+                Next
             End If
 
         Next
@@ -1710,51 +1711,6 @@ Public Class Main
         albums = Nothing
 
         Trace.WriteLine("Building albums list...Done")
-    End Sub
-
-    Private Sub lvAlbumItems_ColumnClick(ByVal sender As Object, ByVal e As System.Windows.Forms.ColumnClickEventArgs) Handles lvAlbumItems.ColumnClick
-        Dim lv As ListViewEx = CType(sender, ListView)
-        If e.Column <> lvAlbumItems_lastColumnClicked Then
-            lv.Sorting = SortOrder.Ascending
-            lv.Columns(e.Column).Text = lv.Columns(e.Column).Text & " ^"
-            If Not lvAlbumItems_lastColumnClicked = -1 Then
-                'clean up the title of the previously clicked column
-                lv.Columns(lvAlbumItems_lastColumnClicked).Text = lv.Columns(lvAlbumItems_lastColumnClicked).Text.Replace(" ^", "").Replace(" v", "")
-            End If
-            lvAlbumItems_lastColumnClicked = e.Column
-        Else
-            ' Determine what the last sort order was and change it.
-            If lv.Sorting = SortOrder.None Then
-                lv.Sorting = SortOrder.Ascending
-                lv.Columns(e.Column).Text = lv.Columns(e.Column).Text & " ^"
-            ElseIf lv.Sorting = SortOrder.Ascending Then
-                lv.Sorting = SortOrder.Descending
-                lv.Columns(e.Column).Text = lv.Columns(e.Column).Text.Replace(" ^", " v")
-            Else
-                lv.Sorting = SortOrder.None
-                lv.Columns(e.Column).Text = lv.Columns(e.Column).Text.Replace(" v", "")
-            End If
-
-        End If
-
-        If lv.Sorting = SortOrder.None Then
-            lv.ListViewItemSorter = Nothing
-        Else
-            lv.ListViewItemSorter = New PlaylistListViewItemComparer(e.Column, lv.Sorting)
-        End If
-
-        'save the song order **DISABLED*** player ignores song order
-        'setNewSongOrder(Me.lvAlbumItems.Tag, Me.lvAlbumItems.Items)
-    End Sub
-    Private Sub lvAlbumItems_KeyDown(ByVal sender As Object, ByVal e As System.Windows.Forms.KeyEventArgs) Handles lvAlbumItems.KeyDown
-        If e.KeyCode = Keys.Delete Then
-            For Each song As ListViewItem In Me.lvAlbumItems.SelectedItems
-                song.Remove()
-                song = Nothing
-            Next
-
-            setNewSongOrder(Me.lvAlbumItems.Tag, Me.lvAlbumItems.Items)
-        End If
     End Sub
 
 
@@ -2015,6 +1971,57 @@ Public Class Main
         lvAlbumItems_KeyDown(Nothing, New KeyEventArgs(Keys.Delete))
         Me.lvAlbumItems.EndUpdate()
     End Sub
+
+    Private Sub lvAlbumItems_ColumnClick(ByVal sender As Object, ByVal e As System.Windows.Forms.ColumnClickEventArgs) Handles lvAlbumItems.ColumnClick
+        'don't bother resorting items, the player makes it's own albums list anyways
+        Exit Sub
+
+        Dim lv As ListViewEx = CType(sender, ListView)
+        If e.Column <> lvAlbumItems_lastColumnClicked Then
+            lv.Sorting = SortOrder.Ascending
+            lv.Columns(e.Column).Text = lv.Columns(e.Column).Text & " ^"
+            If Not lvAlbumItems_lastColumnClicked = -1 Then
+                'clean up the title of the previously clicked column
+                lv.Columns(lvAlbumItems_lastColumnClicked).Text = lv.Columns(lvAlbumItems_lastColumnClicked).Text.Replace(" ^", "").Replace(" v", "")
+            End If
+            lvAlbumItems_lastColumnClicked = e.Column
+        Else
+            ' Determine what the last sort order was and change it.
+            If lv.Sorting = SortOrder.None Then
+                lv.Sorting = SortOrder.Ascending
+                lv.Columns(e.Column).Text = lv.Columns(e.Column).Text & " ^"
+            ElseIf lv.Sorting = SortOrder.Ascending Then
+                lv.Sorting = SortOrder.Descending
+                lv.Columns(e.Column).Text = lv.Columns(e.Column).Text.Replace(" ^", " v")
+            Else
+                lv.Sorting = SortOrder.None
+                lv.Columns(e.Column).Text = lv.Columns(e.Column).Text.Replace(" v", "")
+            End If
+
+        End If
+
+        If lv.Sorting = SortOrder.None Then
+            lv.ListViewItemSorter = Nothing
+        Else
+            lv.ListViewItemSorter = New PlaylistListViewItemComparer(e.Column, lv.Sorting)
+        End If
+
+        'save the song order **DISABLED*** player ignores song order
+        'setNewSongOrder(Me.lvAlbumItems.Tag, Me.lvAlbumItems.Items)
+    End Sub
+    Private Sub lvAlbumItems_KeyDown(ByVal sender As Object, ByVal e As System.Windows.Forms.KeyEventArgs) Handles lvAlbumItems.KeyDown
+        'don't bother deleting items in the album. the player makes its own list anyways
+        Exit Sub
+
+        If e.KeyCode = Keys.Delete Then
+            For Each song As ListViewItem In Me.lvAlbumItems.SelectedItems
+                song.Remove()
+                song = Nothing
+            Next
+
+            setNewSongOrder(Me.lvAlbumItems.Tag, Me.lvAlbumItems.Items)
+        End If
+    End Sub
     '*******************************************************************
 
     Private Sub pbAlbumArt_DragDrop(ByVal sender As Object, ByVal e As System.Windows.Forms.DragEventArgs) Handles pbAlbumArt.DragDrop
@@ -2110,6 +2117,8 @@ Public Class Main
         Me.tvFileManagementDeviceFolders.SelectedNode = Me.tvFileManagementDeviceFolders.Nodes(0)
 
         Me.tvFileManagementDeviceFolders.EndUpdate()
+
+        updateDeviceFreeSpace()
 
         t.Abort()
         Trace.WriteLine("Refreshing file list...Complete")
@@ -2283,7 +2292,10 @@ Public Class Main
             lvFileManagementDeviceFilesInFolder_DragDrop_helper(draggedfile, CType(Me.lvFileManagementDeviceFilesInFolder.Tag, TreeNode))
         Next
 
+        'expand any subfolders that were uploaded
         Me.lvFileManagementDeviceFilesInFolder.Tag.expandall()
+
+        updateDeviceFreeSpace()
 
         Splash.resetProgBar()
         t.Abort()
@@ -3205,6 +3217,7 @@ Public Class Main
                     Dim song As New TreeNode
                     song.Tag = fileMetadata
                     song.Text = fileMetadata.Title
+                    albumToInsertSongInto.Tag.size += fileMetadata.Size
                     albumToInsertSongInto.Nodes.Add(song)
 
 
@@ -3257,17 +3270,22 @@ Public Class Main
         Dim groups As New Collection
         For Each item As ListViewItem In itemsArr
             'if the group doesn't exist create it
-            Dim theGroup As ListViewGroup = Nothing
-            Dim metadata As StorageItem = CType(item.Tag.tag, StorageItem)
-            Try
-                theGroup = groups(item.SubItems(column).Text)
-            Catch ex As Exception
-            End Try
-            If theGroup Is Nothing Then
-                theGroup = New ListViewGroup
-                theGroup.Name = item.SubItems(column).Text
-                theGroup.Header = item.SubItems(column).Text
-                groups.Add(theGroup, theGroup.Name)
+
+            'first, check if the album hasn't been deleted from the listview
+            '(the tag will be null in this case)
+            If item.Tag IsNot Nothing Then
+                Dim theGroup As ListViewGroup = Nothing
+                Dim metadata As StorageItem = CType(item.Tag.tag, StorageItem)
+                Try
+                    theGroup = groups(item.SubItems(column).Text)
+                Catch ex As Exception
+                End Try
+                If theGroup Is Nothing Then
+                    theGroup = New ListViewGroup
+                    theGroup.Name = item.SubItems(column).Text
+                    theGroup.Header = item.SubItems(column).Text
+                    groups.Add(theGroup, theGroup.Name)
+                End If
             End If
         Next
 
@@ -3364,6 +3382,53 @@ Public Class Main
 
         Return ""
     End Function
+    Delegate Sub updateDeviceFreeSpaceCallback()
+    Private Sub updateDeviceFreeSpace(Optional ByVal sizeToAdd As Long = 0, Optional ByVal refresh As Boolean = True)
+        'update the free space and capacity from the device only the
+        'first time this function is called. for any subsequent calls
+        'the free space will be calculated internally (unless a refresh
+        'is forced)
+        '
+        'the optional parameter is a long (in bytes) representing a 
+        'file that has been added but not yet uploaded. this number will 
+        'be subtracted from the current free space. If sizeToAdd is negative
+        'the amout will be added (indicating the file was deleted)
+
+        If axe Is Nothing Then
+            Trace.WriteLine("updateDeviceFreeSpace: mtpAxe is not started")
+            Exit Sub
+        End If
+
+        If Me.lblCapacity.InvokeRequired Then
+            Dim d As New updateDeviceFreeSpaceCallback(AddressOf updateDeviceFreeSpace)
+            Try
+                Me.lblCapacity.Invoke(d)
+            Catch e As Exception
+            End Try
+        Else
+
+            If (capacity = -1 And freeSpace = -1) Or refresh Then
+                'queries mtpaxe and updates the free space and capacity
+                Trace.WriteLine("updateDeviceFreeSpace: getting device capacity")
+                Dim ret() As String
+                ret = axe.getDeviceCapacity().Split(":"c)
+                If ret(0) = "-1" Then
+                    Trace.WriteLine("updateDeviceFreeSpace: error getting device capacity")
+                    Me.lblCapacity.Text = "N/A"
+                    Exit Sub
+                End If
+
+                capacity = Double.Parse(ret(0)) / 1024 / 1024 'to MB
+                freeSpace = Double.Parse(ret(1)) / 1024 / 1024
+            Else
+                freeSpace += sizeToAdd / 1024 / 1024
+            End If
+
+            Me.lblCapacity.Text = freeSpace.ToString("N2") & " of " & capacity.ToString("N2") & " MB"
+
+        End If
+
+    End Sub
 
     'comparer for playlistitems listview sorting
     Private Class PlaylistListViewItemComparer
