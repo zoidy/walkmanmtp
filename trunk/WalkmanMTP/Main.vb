@@ -1,6 +1,23 @@
-﻿Imports WalkmanMTP.ListViewDnD
+﻿''Copyright 2008 Dr. Zoidberg
+' 
+'Licensed under the Apache License, Version 2.0 (the "License");
+'you may not use this file except in compliance with the License.
+'You may obtain a copy of the License at
+'
+'	http://www.apache.org/licenses/LICENSE-2.0 
+'
+'Unless required by applicable law or agreed to in writing, software 
+'distributed under the License is distributed on an "AS IS" 
+'BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+'See the License for the specific language governing permissions 
+'and limitations under the License. 
+
+Imports WalkmanMTP.ListViewDnD
 Public Class Main
     Public axe As MTPAxe
+
+    'application settings
+    Private theSettings As New Settings
 
     'used for keeping track of the complete file listing on the device
     Private fullFileListing As TreeView
@@ -64,6 +81,7 @@ Public Class Main
     Private Sub ShowDeviceIconToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles mnuOptionsShowDeviceIconToolStripMenuItem.Click
         mnuOptionsShowDeviceIconToolStripMenuItem.Checked = Not mnuOptionsShowDeviceIconToolStripMenuItem.Checked
         pboxDevIcon.Visible = mnuOptionsShowDeviceIconToolStripMenuItem.Checked
+        theSettings.ShowDeviceIcon = mnuOptionsShowDeviceIconToolStripMenuItem.Checked
     End Sub
 #End Region
 
@@ -79,6 +97,12 @@ Public Class Main
             End If
             axe = Nothing
         End If
+
+        'save a form attributes
+        theSettings.MainFormWindowState = Me.WindowState
+        theSettings.MainFormWindowHeight = Me.Height
+        theSettings.MainFormWindowWidth = Me.Width
+        theSettings.save()
     End Sub
  
     Private Sub Main_Load(ByVal sender As Object, ByVal e As System.EventArgs) Handles Me.Load
@@ -107,6 +131,13 @@ Public Class Main
         Me.btnDeleteAlbum.Image = My.Resources.Album_delete
         Me.pbAlbumArt.Image = My.Resources.NoDeviceIcon
         Me.pbAlbumArt.AllowDrop = True
+
+        'set the form state from the settings
+        Me.WindowState = theSettings.MainFormWindowState
+        Me.Width = theSettings.MainFormWindowWidth
+        Me.Height = theSettings.MainFormWindowHeight
+
+        Me.mnuOptionsShowDeviceIconToolStripMenuItem.Checked = theSettings.ShowDeviceIcon
     End Sub
     Private Sub Main_VisibleChanged(ByVal sender As Object, ByVal e As System.EventArgs) Handles Me.VisibleChanged
         If Me.Visible Then
@@ -223,11 +254,9 @@ Public Class Main
 
         Me.cmbDevices.Items.AddRange(devarr)
 
-        'select the walkman device automatically
-        If Me.cmbDevices.Items.Contains("WALKMAN") Then
-            Me.cmbDevices.SelectedItem = "WALKMAN"
-        ElseIf Me.cmbDevices.Items.Contains("MTP Device") Then
-            Me.cmbDevices.SelectedItem = "MTP Device"
+        'select the last selected device automatically
+        If Me.cmbDevices.Items.Contains(theSettings.SelectedDevice) Then
+            Me.cmbDevices.SelectedItem = theSettings.SelectedDevice
         End If
 
         t.Abort()
@@ -273,18 +302,19 @@ Public Class Main
             Me.updateDeviceFreeSpace()
 
             'get the icon
-            Trace.WriteLine("initSelectedDevice: getting device icon")
-            Splash.setText("Reading device icon")
-            Dim iconPath, retstr As String, mtpIcon As Icon
-            iconPath = System.IO.Path.Combine(System.IO.Path.GetTempPath, "DevIcon.fil")
-            retstr = axe.getDeviceIcon(iconPath.Replace("\"c, "\\"))
-            If Not retstr = "-1" Then
-                mtpIcon = New Icon(iconPath, New System.Drawing.Size(48, 48))
-                Me.pboxDevIcon.Image = mtpIcon.ToBitmap
-            Else
-                Trace.WriteLine("initSelectedDevice: device icon not found")
+            If theSettings.ShowDeviceIcon Then
+                Trace.WriteLine("initSelectedDevice: getting device icon")
+                Splash.setText("Reading device icon")
+                Dim iconPath, retstr As String, mtpIcon As Icon
+                iconPath = System.IO.Path.Combine(System.IO.Path.GetTempPath, "DevIcon.fil")
+                retstr = axe.getDeviceIcon(iconPath.Replace("\"c, "\\"))
+                If Not retstr = "-1" Then
+                    mtpIcon = New Icon(iconPath, New System.Drawing.Size(48, 48))
+                    Me.pboxDevIcon.Image = mtpIcon.ToBitmap
+                Else
+                    Trace.WriteLine("initSelectedDevice: device icon not found")
+                End If
             End If
-
             DeviceConnected = True
         Catch ex As Exception
             Trace.WriteLine("initSelectedDevice: Error initializing '" & devName & "'" & ":" & ex.Message & " in " & ex.Source)
@@ -304,6 +334,7 @@ Public Class Main
 
     End Sub
     Private Sub cmbDevices_SelectedIndexChanged(ByVal sender As Object, ByVal e As System.EventArgs) Handles cmbDevices.SelectedIndexChanged
+        theSettings.SelectedDevice = Me.cmbDevices.SelectedItem
         If Me.cmbDevices.SelectedIndex <> -1 Then
             Me.initSelectedDevice(Me.cmbDevices.SelectedItem.ToString)
         End If
