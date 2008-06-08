@@ -1,5 +1,8 @@
 Change log <release date>:<WalkmanMTP version> - <MTPAxe version>
 
+08-jun-08: 0.4.1 - 0.4.0
+	-program now remembers window position and the last device selected, which
+	 it automatically loads on startup
 07-jun-08: 0.4 - 0.4
 	-can now add albums with album art
 	-free space now gets updated as you add or delete files
