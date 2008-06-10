@@ -41,7 +41,7 @@ Public Class MTPAxe
 #End Region
 
     'the mtpaxe.exe
-    Private axe As Process
+    Private WithEvents axe As Process
 
     Private sIn As System.IO.StreamReader
     Private sOut As System.IO.StreamWriter
@@ -56,6 +56,7 @@ Public Class MTPAxe
         axe.StartInfo.RedirectStandardInput = True
         axe.StartInfo.RedirectStandardOutput = True
         axe.StartInfo.RedirectStandardError = True
+        axe.EnableRaisingEvents = True
 
         Try
             axe.Start()
@@ -72,7 +73,8 @@ Public Class MTPAxe
             Dim s As String
             s = sIn.ReadLine
             If Not s = "0" Then
-                Throw New Exception("MTPAxe error - " & sErr.ReadLine)
+                Trace.WriteLine("MTPAxe error - " & sErr.ReadLine)
+                Return False
             End If
         Catch ex As Exception
             Trace.WriteLine("Error initializing MTPAxe: " & ex.Message)
@@ -88,16 +90,15 @@ Public Class MTPAxe
 
         sOut.WriteLine(MTPAXE_M_QUIT)
         axe.WaitForExit(4000)
-        If axe.HasExited Then
-            sOut.Close()
-            sIn.Close()
-            sErr.Close()
+        'wait for 4sec for exit. if it has not exited by then, kill the process
+        If axe IsNot Nothing Then axe.Kill()
 
-            axe = Nothing
-            Return True
-        Else
-            Return False
-        End If
+        sOut.Close()
+        sIn.Close()
+        sErr.Close()
+
+        axe = Nothing
+        Return True
     End Function
     Public Function getMTPAxeVersion() As String
         If axe Is Nothing Then Return "N/A"
@@ -116,7 +117,11 @@ Public Class MTPAxe
 
         Dim s As String
 
-        If axe Is Nothing Then Throw New Exception("MTPAxe is not started")
+        If axe Is Nothing Then
+            Trace.WriteLine("MTPAxe is not started")
+            Return ""
+        End If
+
 
         sOut.WriteLine(MTPAXE_M_DEVICEMANAGER_GETREVISION)
         s = sIn.ReadLine
@@ -134,7 +139,10 @@ Public Class MTPAxe
 
         Dim s As String
 
-        If axe Is Nothing Then Throw New Exception("MTPAxe is not started")
+        If axe Is Nothing Then
+            Trace.WriteLine("MTPAxe is not started")
+            Return "-1"
+        End If
 
         sOut.WriteLine(MTPAXE_M_DEVICEMANAGER_GETDEVICECOUNT)
         s = sIn.ReadLine
@@ -153,7 +161,10 @@ Public Class MTPAxe
 
         Dim s As String
 
-        If axe Is Nothing Then Throw New Exception("MTPAxe is not started")
+        If axe Is Nothing Then
+            Trace.WriteLine("MTPAxe is not started")
+            Return "-1"
+        End If
 
         sOut.WriteLine(MTPAXE_M_DEVICEMANAGER_ENUMERATEDEVICES)
         s = sIn.ReadLine
@@ -172,7 +183,10 @@ Public Class MTPAxe
         'note: after setting the current device suceesfully, the device storage must be 
         'enumerated first (e.g. by calling getFullTreeView before most device related funcions will work.
 
-        If axe Is Nothing Then Throw New Exception("MTPAxe is not started")
+        If axe Is Nothing Then
+            Trace.WriteLine("MTPAxe is not started")
+            Return "-1"
+        End If
 
         sOut.WriteLine(MTPAXE_M_DEVICEMANAGER_SETCURRENTDEVICE)
         sOut.WriteLine(devName)
@@ -201,7 +215,10 @@ Public Class MTPAxe
 
         Dim s As String
 
-        If axe Is Nothing Then Throw New Exception("MTPAxe is not started")
+        If axe Is Nothing Then
+            Trace.WriteLine("MTPAxe is not started")
+            Return "-1"
+        End If
 
         sOut.WriteLine(MTPAXE_M_DEVICE_ENUMERATESTORAGE)
 
@@ -224,7 +241,10 @@ Public Class MTPAxe
 
         Dim s As String
 
-        If axe Is Nothing Then Throw New Exception("MTPAxe is not started")
+        If axe Is Nothing Then
+            Trace.WriteLine("MTPAxe is not started")
+            Return "-1"
+        End If
 
         sOut.WriteLine(MTPAXE_M_DEVICE_GETMANUFACTURER)
 
@@ -247,7 +267,10 @@ Public Class MTPAxe
 
         Dim s As String
 
-        If axe Is Nothing Then Throw New Exception("MTPAxe is not started")
+        If axe Is Nothing Then
+            Trace.WriteLine("MTPAxe is not started")
+            Return "-1"
+        End If
 
         sOut.WriteLine(MTPAXE_M_DEVICE_GETTYPE)
 
@@ -267,7 +290,10 @@ Public Class MTPAxe
 
         Dim s As String
 
-        If axe Is Nothing Then Throw New Exception("MTPAxe is not started")
+        If axe Is Nothing Then
+            Trace.WriteLine("MTPAxe is not started")
+            Return ""
+        End If
 
         sOut.WriteLine(MTPAXE_M_DEVICE_GETADDITIONALINFO)
         s = sIn.ReadLine
@@ -285,7 +311,10 @@ Public Class MTPAxe
 
         Dim s As String
 
-        If axe Is Nothing Then Throw New Exception("MTPAxe is not started")
+        If axe Is Nothing Then
+            Trace.WriteLine("MTPAxe is not started")
+            Return ""
+        End If
 
         sOut.WriteLine(MTPAXE_M_DEVICE_GETSUPPORTEDFORMATS)
         s = sIn.ReadLine
@@ -310,9 +339,12 @@ Public Class MTPAxe
         'returns the full directory structure of the device
         Trace.WriteLine("MTPAxe: building full directory tree")
 
-        If axe Is Nothing Then Throw New Exception("MTPAxe is not started")
+        If axe Is Nothing Then
+            Trace.WriteLine("MTPAxe is not started")
+            Return New TreeView
+        End If
 
-        Dim theTreeView As TreeView = Nothing
+        Dim theTreeView As TreeView = New TreeView
 
         'get the directory tree from the device
         Dim strTree As String
@@ -606,7 +638,10 @@ Public Class MTPAxe
 
         Dim s As String
 
-        If axe Is Nothing Then Throw New Exception("MTPAxe is not started")
+        If axe Is Nothing Then
+            Trace.WriteLine("MTPAxe is not started")
+            Return "-1"
+        End If
 
         sOut.WriteLine(MTPAXE_M_DEVICE_CREATEPLAYLIST)
         sOut.WriteLine(playlistName.Trim)
@@ -631,7 +666,10 @@ Public Class MTPAxe
 
         Dim s As String
 
-        If axe Is Nothing Then Throw New Exception("MTPAxe is not started")
+        If axe Is Nothing Then
+            Trace.WriteLine("MTPAxe is not started")
+            Return "-1"
+        End If
 
         sOut.WriteLine(MTPAXE_M_PLAYLIST_ENUMERATECONTENTS)
         sOut.WriteLine(ID)
@@ -668,7 +706,10 @@ Public Class MTPAxe
 
         Dim s As String
 
-        If axe Is Nothing Then Throw New Exception("MTPAxe is not started")
+        If axe Is Nothing Then
+            Trace.WriteLine("MTPAxe is not started")
+            Return "-1"
+        End If
 
         If metadata Is Nothing Then metadata = New StorageItem
 
@@ -698,7 +739,10 @@ Public Class MTPAxe
 
         Dim s As String
 
-        If axe Is Nothing Then Throw New Exception("MTPAxe is not started")
+        If axe Is Nothing Then
+            Trace.WriteLine("MTPAxe is not started")
+            Return "-1"
+        End If
 
         sOut.WriteLine(MTPAXE_M_STORAGE_GETALBUMARTIMAGE)
         sOut.WriteLine(storageID)
@@ -727,7 +771,10 @@ Public Class MTPAxe
 
         Dim s As String
 
-        If axe Is Nothing Then Throw New Exception("MTPAxe is not started")
+        If axe Is Nothing Then
+            Trace.WriteLine("MTPAxe is not started")
+            Return "-1"
+        End If
 
         If metadata Is Nothing Then metadata = New StorageItem
 
@@ -760,7 +807,10 @@ Public Class MTPAxe
 
         Dim s As String
 
-        If axe Is Nothing Then Throw New Exception("MTPAxe is not started")
+        If axe Is Nothing Then
+            Trace.WriteLine("MTPAxe is not started")
+            Return "-1"
+        End If
 
         sOut.WriteLine(MTPAXE_M_STORAGE_DELETE)
         sOut.WriteLine(storageID)
@@ -783,7 +833,10 @@ Public Class MTPAxe
 
         Dim s As String
 
-        If axe Is Nothing Then Throw New Exception("MTPAxe is not started")
+        If axe Is Nothing Then
+            Trace.WriteLine("MTPAxe is not started")
+            Return "-1"
+        End If
 
 
         sOut.WriteLine(MTPAXE_M_DEVICE_GETICON)
@@ -807,7 +860,10 @@ Public Class MTPAxe
 
         Dim s As String
 
-        If axe Is Nothing Then Throw New Exception("MTPAxe is not started")
+        If axe Is Nothing Then
+            Trace.WriteLine("MTPAxe is not started")
+            Return "-1"
+        End If
 
         sOut.WriteLine(MTPAXE_M_STORAGE_GETSIZEINFO)
 
@@ -824,4 +880,14 @@ Public Class MTPAxe
 
 #End Region
 
+    Private Sub axe_Exited(ByVal sender As Object, ByVal e As System.EventArgs) Handles axe.Exited
+        If axe.ExitCode <> 0 Then
+            axe = Nothing
+            MsgBox("MTPAxe exited unexpectedly.", MsgBoxStyle.Critical Or MsgBoxStyle.SystemModal)
+            Trace.WriteLine("MTPAxe exited unexpectedly")
+        Else
+            axe = Nothing
+            Trace.WriteLine("MTPAxe exited successfully")
+        End If
+    End Sub
 End Class

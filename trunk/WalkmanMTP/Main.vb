@@ -710,11 +710,13 @@ Public Class Main
         End If
         Splash.setText("Getting music files")
 
+        Me.tvPlaylistsFilesOnDevice.EndUpdate()
         Me.tvPlaylistsFilesOnDevice.BeginUpdate()
 
         Me.tvPlaylistsFilesOnDevice.Nodes.Clear()
 
         musicFldr = findTreeNodeByName(fullFileListing.Nodes(0), "MUSIC")
+        If musicFldr Is Nothing Then Exit Sub
 
         Me.tvPlaylistsFilesOnDevice.Nodes.Add(musicFldr.Clone)
 
@@ -1031,7 +1033,7 @@ Public Class Main
                 'used to keep track of the id's of files that were uploaded so we can add them to the album
                 Dim uploadedFilesIDs As String = ""
 
-                Trace.WriteLine("Uploading new albums - uploading songs for album " & modifiedMetadata.FileName)
+                Trace.WriteLine("Uploading new albums - uploading songs for album " & modifiedMetadata.AlbumTitle)
                 For Each song As TreeNode In modifiedAlbum.Nodes
                     Dim songMetadata As StorageItem
                     songMetadata = CType(song.Tag, StorageItem)
@@ -1086,7 +1088,7 @@ Public Class Main
                         songsUploaded = True
                     End If 'if song is new
                 Next
-                Trace.WriteLine("Uploading new albums - uploading songs for album " & modifiedMetadata.FileName & " Done")
+                Trace.WriteLine("Uploading new albums - uploading songs for album " & modifiedMetadata.AlbumTitle & " Done")
 
                 'if the album has been modified by adding songs or changing the 
                 'album art, need to delete it and re-create it
@@ -1103,9 +1105,9 @@ Public Class Main
                         Next
 
                         'delete the modified album
-                        Trace.WriteLine("Creating albums - deleting modified album " & modifiedMetadata.FileName)
+                        Trace.WriteLine("Creating albums - deleting modified album " & modifiedMetadata.AlbumTitle)
                         If axe.deleteFile(modifiedMetadata.ID) = "-1" Then
-                            Trace.WriteLine("Error deleting album " & modifiedMetadata.FileName)
+                            Trace.WriteLine("Error deleting album " & modifiedMetadata.AlbumTitle)
                             Exit Sub
                         End If
                         modifiedAlbum.Remove()
@@ -1115,7 +1117,7 @@ Public Class Main
                     uploadedFilesIDs = Mid(uploadedFilesIDs, 1, uploadedFilesIDs.Length - 1)
 
                     'upload the album, if it is new or has been modified
-                    Trace.WriteLine("Creating albums - creating " & modifiedMetadata.FileName)
+                    Trace.WriteLine("Creating albums - creating " & modifiedMetadata.AlbumTitle)
                     Dim ret As String = axe.createAlbum(modifiedMetadata.AlbumTitle, uploadedFilesIDs, modifiedMetadata)
 
                 End If
@@ -1762,35 +1764,59 @@ Public Class Main
     '*this code isn't currently being used
     '********************************************************************
     Private Sub txtAlbumTitle_KeyDown(ByVal sender As Object, ByVal e As System.Windows.Forms.KeyEventArgs) Handles txtAlbumTitle.KeyDown
+        'FUNCTION DISABLED
+        Exit Sub
+
         If e.KeyCode = Keys.Enter Then
             Me.txtAlbumArtist.Focus()
         End If
     End Sub
     Private Sub txtAlbumTitle_LostFocus(ByVal sender As Object, ByVal e As System.EventArgs) Handles txtAlbumTitle.LostFocus
+        'FUNCTION DISABLED
+        Exit Sub
+
         saveAlbumMetadata(Me.lvAlbumItems.Tag)
     End Sub
     Private Sub txtAlbumArtist_KeyDown(ByVal sender As Object, ByVal e As System.Windows.Forms.KeyEventArgs) Handles txtAlbumArtist.KeyDown
+        'FUNCTION DISABLED
+        Exit Sub
+
         If e.KeyCode = Keys.Enter Then
             Me.txtAlbumGenre.Focus()
         End If
     End Sub
     Private Sub txtAlbumArtist_LostFocus(ByVal sender As Object, ByVal e As System.EventArgs) Handles txtAlbumArtist.LostFocus
+        'FUNCTION DISABLED
+        Exit Sub
+
         saveAlbumMetadata(Me.lvAlbumItems.Tag)
     End Sub
     Private Sub txtAlbumGenre_KeyDown(ByVal sender As Object, ByVal e As System.Windows.Forms.KeyEventArgs) Handles txtAlbumGenre.KeyDown
+        'FUNCTION DISABLED
+        Exit Sub
+
         If e.KeyCode = Keys.Enter Then
             Me.txtAlbumYear.Focus()
         End If
     End Sub
     Private Sub txtAlbumGenre_LostFocus(ByVal sender As Object, ByVal e As System.EventArgs) Handles txtAlbumGenre.LostFocus
+        'FUNCTION DISABLED
+        Exit Sub
+
         saveAlbumMetadata(Me.lvAlbumItems.Tag)
     End Sub
     Private Sub txtAlbumYear_KeyDown(ByVal sender As Object, ByVal e As System.Windows.Forms.KeyEventArgs) Handles txtAlbumYear.KeyDown
+        'FUNCTION DISABLED
+        Exit Sub
+
         If e.KeyCode = Keys.Enter Then
             Me.txtAlbumTitle.Focus()
         End If
     End Sub
     Private Sub txtAlbumYear_LostFocus(ByVal sender As Object, ByVal e As System.EventArgs) Handles txtAlbumYear.LostFocus
+        'FUNCTION DISABLED
+        Exit Sub
+
         saveAlbumMetadata(Me.lvAlbumItems.Tag)
     End Sub
     Private Sub addSongToAlbum(ByRef Album As ListViewItem, ByVal songMetadata As StorageItem)
@@ -2128,6 +2154,7 @@ Public Class Main
         Splash.setText("Getting all media files")
 
         Me.tvFileManagementDeviceFolders.Nodes.Clear()
+        Me.tvFileManagementDeviceFolders.EndUpdate()
         Me.tvFileManagementDeviceFolders.BeginUpdate()
 
         'add the folders directly without the root 'storage media' node
@@ -2137,6 +2164,8 @@ Public Class Main
             End If
         Next
 
+        'if none of the folders were found, exit
+        If Me.tvFileManagementDeviceFolders.Nodes.Count = 0 Then Exit Sub
 
         'show only folders to the treeview
         For Each node As TreeNode In Me.tvFileManagementDeviceFolders.Nodes
@@ -2186,6 +2215,7 @@ Public Class Main
 
 
         If theNode IsNot Nothing Then
+            Me.lvFileManagementDeviceFilesInFolder.EndUpdate()
             Me.lvFileManagementDeviceFilesInFolder.BeginUpdate()
 
             'save the selected node into list view so we can easily get the currently displayed
@@ -2793,6 +2823,11 @@ Public Class Main
         'get the stuff on the device (keep it in a global variable
         'so we don't have to read the device whenever a folder is opened
         fullFileListing = axe.getFullTreeView
+        If fullFileListing Is Nothing Then
+            Trace.WriteLine("Refreshing full directory tree...error")
+
+        End If
+
         If fullFileListing.Nodes.Count = 0 Then
             fullFileListing.Nodes.Add("Empty Tree").Tag = New StorageItem
         End If
