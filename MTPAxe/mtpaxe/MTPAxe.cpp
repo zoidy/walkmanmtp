@@ -20,7 +20,7 @@ and limitations under the License.
 #include "stdafx.h"
 #include "MTPAxe.h"
 
-#define MTPAXE_ver "MTPAxe by Dr. Zoidberg v0.4\n"
+#define MTPAXE_ver "MTPAxe by Dr. Zoidberg v0.4.1.1\n"
 
 //file for writing returnMsg output to file
 FILE *f=NULL;
@@ -42,7 +42,7 @@ IWMDeviceManager3* m_pIdvMgr = NULL;
 //the device must exists in this array
 int numDevices;
 IWMDMDevice3 *arrDevices[10];
-IWMDMDevice3 *pCurrDev; //the currently selected device
+IWMDMDevice3 *pCurrDev=NULL; //the currently selected device
 
 //this array is filled by devicesEnumerateStorage
 //it contains all the storage items for the device 
@@ -72,7 +72,7 @@ int _tmain(int argc, _TCHAR* argv[])
 	CoInitialize(NULL);
 
 	//general purpose temp buffer
-	wchar_t buffer[MTPAXE_MAXFILENAMESIZE];
+	wchar_t buffer[MAX_PATH];
 	char type[2];
 	wchar_t title[400];
 	wchar_t artist[100];
@@ -248,7 +248,7 @@ int _tmain(int argc, _TCHAR* argv[])
 					storageGetSizeInfo();
 					break;
 				case MTPAXE_M_STORAGE_CREATEFROMFILE:{
-					wchar_t item[MTPAXE_MAXFILENAMESIZE];
+					wchar_t item[MAX_PATH];
 					wscanf(L"%\n",item);
 					wscanf(L"%[^\n]",item);
 					wscanf(L"%\n",buffer);	
@@ -287,6 +287,8 @@ int _tmain(int argc, _TCHAR* argv[])
 	if (f!=NULL) fclose(f);
 
 	CoUninitialize();
+
+	return 0;
 }
 
 //****************************************************************************
@@ -1382,24 +1384,36 @@ void storageCreateFromFile(wchar_t *itemPath,wchar_t *destStorageID, int type,wc
 	if(FAILED(hr)){returnMsg("-1\n","storageCreateFromFile: couldn't get storage4 interface of inserted item\n");return;}
 
 	arrStorageItem plItem;
-	IWMDMMetaData *pMData;							//the metadata associated with the storage
+	IWMDMMetaData *pMData=NULL;						//the metadata associated with the storage
 	LPCWSTR MDataAttribs[2];						//the metadata to retreive
 	MDataAttribs[0]=g_wszWMDMFileName;				//.
 	MDataAttribs[1]=g_wszWMDMPersistentUniqueID;	//.
-	WMDM_TAG_DATATYPE dtype;							//these vars are used for the metadata QueryByName call
+	WMDM_TAG_DATATYPE dtype;						//these vars are used for the metadata QueryByName call
 	BYTE *value;									//.
 	unsigned int len;								//.
 
 	hr=insertedStorage4->GetSpecifiedMetadata(2,MDataAttribs,&pMData);
+	if(FAILED(hr)){returnMsg("-1\n","storageCreateFromFile: couldn't get metadata of inserted item\n");return;}
+
 	hr=pMData->QueryByName(g_wszWMDMFileName,&dtype,&value,&len);
+	if(FAILED(hr)){returnMsg("-1\n","storageCreateFromFile: couldn't get filename metadata of inserted item\n");return;}
 	plItem.fileName=(wchar_t*)value;
+
 	hr=pMData->QueryByName(g_wszWMDMPersistentUniqueID,&dtype,&value,&len);
+	if(FAILED(hr)){returnMsg("-1\n","storageCreateFromFile: couldn't get ID metadata of inserted item\n");return;}
 	plItem.persistentUniqueID=(wchar_t*)value;
 	pMData->Release();
 
 	hr=pDestStor->GetSpecifiedMetadata(2,MDataAttribs,&pMData);
+	if(FAILED(hr)){returnMsg("-1\n","storageCreateFromFile: couldn't get metadata of parent of inserted item\n");return;}
+
 	hr=pMData->QueryByName(g_wszWMDMFileName,&dtype,&value,&len);
+	if(FAILED(hr)){returnMsg("-1\n","storageCreateFromFile: couldn't get filename metadata of parent of inserted item\n");return;}
 	plItem.parentFileName=(wchar_t*)value;
+	
+	hr=pMData->QueryByName(g_wszWMDMPersistentUniqueID,&dtype,&value,&len);
+	if(FAILED(hr)){returnMsg("-1\n","storageCreateFromFile: couldn't get ID metadata of parent of inserted item\n");return;}
+	plItem.parentUniqueID=(wchar_t*)value;
 	pMData->Release();
 
 	plItem.level=level+1;
