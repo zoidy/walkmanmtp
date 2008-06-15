@@ -286,6 +286,17 @@ Public Class Main
                 Exit Sub
             End If
 
+            'make sure the selected device is a playback device
+            If Not Me.checkDeviceSupported Then
+                Trace.WriteLine("Device '" & Me.cmbDevices.SelectedItem & "' is unsupported")
+                If MsgBox("Selected device doesn't seem to be a media player. Continue anyways?", MsgBoxStyle.YesNo Or MsgBoxStyle.SystemModal Or MsgBoxStyle.Exclamation, "Device not supported") = Windows.Forms.DialogResult.No Then
+                    Me.cmbDevices.SelectedIndex = -1
+                    Exit Sub
+                Else
+                    Trace.WriteLine("User decided to continue with unsupported device")
+                End If
+            End If
+
             'first refresh the file listing. the list needs to be up to date
             'so the other refresh functions can use it
             refreshFullDirectoryTree()
@@ -318,14 +329,14 @@ Public Class Main
             DeviceConnected = True
         Catch ex As Exception
             Trace.WriteLine("initSelectedDevice: Error initializing '" & devName & "'" & ":" & ex.Message & " in " & ex.Source)
-            MsgBox("Error initializing '" & devName & "'" & vbCrLf & ex.Message & " in " & ex.Source, MsgBoxStyle.Critical Or MsgBoxStyle.ApplicationModal)
+            MsgBox("Error initializing '" & devName & "'" & vbCrLf & ex.Message & " in " & ex.Source, MsgBoxStyle.Critical Or MsgBoxStyle.SystemModal)
         End Try
 
         Cursor.Current = Cursors.Default
         t.Abort()
 
         If DeviceConnected = False Then
-            If MsgBox("There was an error initializing " & devName & ". Continue at your own risk", MsgBoxStyle.Critical Or MsgBoxStyle.YesNo) = MsgBoxResult.Yes Then
+            If MsgBox("There was an error initializing " & devName & ". Continue at your own risk", MsgBoxStyle.Critical Or MsgBoxStyle.YesNo Or MsgBoxStyle.SystemModal) = MsgBoxResult.Yes Then
                 DeviceConnected = True
             Else
                 Application.Exit()
@@ -1128,7 +1139,7 @@ Public Class Main
         Trace.WriteLine("Syncing albums...done")
 
         If albumSyncError Then
-            MsgBox("There were errors syncing albums. Check the log", MsgBoxStyle.Exclamation)
+            MsgBox("There were errors syncing albums. Check the log", MsgBoxStyle.Exclamation Or MsgBoxStyle.SystemModal)
         End If
 
         updateDeviceFreeSpace()
@@ -1205,7 +1216,7 @@ Public Class Main
                                 'add to the album size, the size of this song
                                 node.Tag.size += albumSong.Tag.size
                             Else
-                                Trace.WriteLine("The storage item " & strid & " referenced in album '" & albumMetadata.AlbumTitle & "' was not found")
+                                Trace.WriteLine("The storage item " & strid & " referenced in album '" & albumMetadata.FileName & "' was not found")
                             End If
                         End If
                         albumSong = Nothing
@@ -3495,6 +3506,46 @@ Public Class Main
         End If
 
     End Sub
+    Private Function checkDeviceSupported() As Boolean
+        'checks whethre the currently selected is a supported device
+        'return true on supported device, false on unsupported device
+        '(thanks poggos)
+
+        If axe Is Nothing Then
+            Trace.WriteLine("initSelectedDevice: MTPAxe is not initialized")
+            MsgBox("initSelectedDevice: MTPAxe is not initialized", MsgBoxStyle.Critical Or MsgBoxStyle.ApplicationModal)
+            Exit Function
+        End If
+
+        Dim str As String = axe.getDeviceType
+        Dim strarr As String(), isPlayer As Boolean = False
+        If str <> "" Then
+            strarr = str.Split(":"c)
+            For i As Integer = 0 To strarr.Length - 1
+                If strarr(i) = "WMDM_DEVICE_TYPE_PLAYBACK" Then
+                    isPlayer = True
+                    Exit For
+                End If
+            Next
+            If isPlayer = False Then                
+                Me.removeAllAlbumsFromAlbumsList(True)
+                Me.deleteAllPlaylists()
+                tvPlaylistsFilesOnDevice.Nodes.Clear()
+                lvFileManagementDeviceFilesInFolder.Items.Clear()
+                tvPlaylistsFilesOnDevice.Nodes.Clear()
+                Return False
+            End If
+        Else            
+            Me.removeAllAlbumsFromAlbumsList(True)
+            Me.deleteAllPlaylists()
+            lvFileManagementDeviceFilesInFolder.Items.Clear()
+            tvPlaylistsFilesOnDevice.Nodes.Clear()
+            Return False
+        End If
+
+        Return True
+    End Function
+
 
     'comparer for playlistitems listview sorting
     Private Class PlaylistListViewItemComparer

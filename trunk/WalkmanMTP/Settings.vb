@@ -193,7 +193,12 @@ Public Class Settings
             Dim dv As DataView = DSoptions.Tables("ConfigValues").DefaultView
             dv.RowFilter = "OptionName='" & OptionName & "'"
             If dv.Count > 0 Then
-                Return CStr(dv.Item(0).Item(1))
+                Try
+                    Return CStr(dv.Item(0).Item(1))
+                Catch ex As Exception
+                    Trace.WriteLine("Error reading setting '" & OptionName & "' - " & ex.Message)
+                    Return ""
+                End Try
             Else
                 Return ""
             End If
