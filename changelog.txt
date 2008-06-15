@@ -1,5 +1,11 @@
 Change log <release date>:<WalkmanMTP version> - <MTPAxe version>
 
+15-jun-08: 0.4.1.2 - 0.4.1.2
+	-changed some minor functionality in WalkmanMTP
+	-fixed a crash in MTPAxe in Vista
+10-jun-08: 0.4.1.1 - 0.4.1.1
+	-albums would sometimes be marked as changed even when they weren't
+	-small internal changes
 08-jun-08: 0.4.1 - 0.4.0
 	-program now remembers window position and the last device selected, which
 	 it automatically loads on startup

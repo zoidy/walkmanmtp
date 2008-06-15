@@ -20,7 +20,7 @@ and limitations under the License.
 #include "stdafx.h"
 #include "MTPAxe.h"
 
-#define MTPAXE_ver "MTPAxe by Dr. Zoidberg v0.4.1.1\n"
+#define MTPAXE_ver "MTPAxe by Dr. Zoidberg v0.4.1.2\n"
 
 //file for writing returnMsg output to file
 FILE *f=NULL;
@@ -102,8 +102,9 @@ int _tmain(int argc, _TCHAR* argv[])
 						//deviceGetAdditionalInfo();
 						
 						//deviceEnumerateStorage();
-						//storageCreateFromFile(L"C:\\wmtp.mp3",L"{00000004-0000-0000-0000-000000000000}",0,L"aa bb",L"bsd s",L"1\u010Ec fsd",L"d1d sd",L"1888",L"2");
-
+						storageCreateFromFile(L"C:\\test.wma",L"{00000004-0000-0000-0000-000000000000}",0,L"aa bb",L"bsd s",L"1\u010Ec fsd",L"d1d sd",L"1888",L"2");
+						storageCreateFromFile(L"C:\\test1.wma",L"{00000004-0000-0000-0000-000000000000}",0,L"234 23",L"423 3",L"1fds",L"vvs",L"2000",L"1");
+						deviceEnumerateStorage();
 						//swprintf(buffer,MTPAXE_MAXFILENAMESIZE,L"%s",L"{00000081-0000-0000-0000-000000000000}");
 						//deviceCreatePlaylist(L"test",buffer);
 						//deviceEnumerateStorage();
@@ -111,8 +112,8 @@ int _tmain(int argc, _TCHAR* argv[])
 
 						//swprintf(buffer,MTPAXE_MAXFILENAMESIZE,L"%s",L"{00000062-0000-0000-0000-000000000000}:{00000063-0000-0000-0000-000000000000}:{00000064-0000-0000-0000-000000000000}:{00000065-0000-0000-0000-000000000000}");
 						//swprintf(buffer,MTPAXE_MAXFILENAMESIZE,L"%s",L"{00000062-0000-0000-0000-000000000000}:{00000063-0000-0000-0000-000000000000}:{00000065-0000-0000-0000-000000000000}:{00000064-0000-0000-0000-000000000000}");
-						swprintf(buffer,MTPAXE_MAXFILENAMESIZE,L"%s",L"{000000B6-0000-0000-9FF0-4848BE330E00}");
-						deviceCreateAlbum(L"Test1",buffer,L"artist",L"year",L"genre",L"c:\\testart.jpg");
+						//swprintf(buffer,MTPAXE_MAXFILENAMESIZE,L"%s",L"{000000B6-0000-0000-9FF0-4848BE330E00}");
+						//deviceCreateAlbum(L"Test1",buffer,L"artist",L"year",L"genre",L"c:\\testart.jpg");
 						//deviceCreatePlaylist(L"test",buffer);
 
 						//swprintf(buffer,MTPAXE_MAXFILENAMESIZE,L"%s",L"{00000026-0000-0000-4E94-30484DB50500}");
@@ -407,6 +408,8 @@ void enumerateDevices(void)
   */
 
 	if(m_pIdvMgr==NULL){returnMsg("-1\n","enumerateDevices: DeviceManager not initialized\n");return;}
+
+	m_pIdvMgr->Reinitialize();
 
 	char devices[2048];				//the return array
 	IWMDMEnumDevice *pIEnumDev;		//the device enumerator
@@ -756,19 +759,6 @@ int deviceEnumerateStorage(void)
 	when called internally, it returns -1 on error, 0 for operation completed
 	
 	the adderess of the arrStorageItems array and the number of items are returned
-
-	the format of the returned string is like the following example:
-
-	ROOT
-		FOLDER1
-			file1
-		file2
-
-	would be returned as
-	<0/Folder/NULL/0>ROOT:<1/Folder/ROOT/0>FOLDER1:<2/File/FOLDER1/123>file1:<1/File/ROOT/456>file2
-
-	the <#> specifies the level in the heirarchy, the type of node, the parent, the size in bytes.
-	Each object is separated by a :
 	*/
 
 	if(m_pIdvMgr==NULL){returnMsg("-1\n","deviceEnumerateStorage: DeviceManager not initialized\n");return -1;}
@@ -1049,7 +1039,7 @@ void deviceGetIcon(wchar_t *iconSavePath )
 	if(pCurrDev==NULL){returnMsg("-1\n","getDeviceIcon: no active device is set\n");return;}
 	
 	IWMDMStorage3 *pStor=NULL;		//pointer to the icon file (if found)
-	IWMDMStorageControl3 *pStorCtrl;//pointer to the storagecontrol for the icon file
+	IWMDMStorageControl3 *pStorCtrl=NULL;//pointer to the storagecontrol for the icon file
 
 	//storage for the current device must have been previously enumerated for this to work.
 	//don't enumerate here since it will slow down the app with unecessary enumerations
@@ -1347,7 +1337,7 @@ void storageCreateFromFile(wchar_t *itemPath,wchar_t *destStorageID, int type,wc
 
 		hr = pMData->AddItem(WMDM_TYPE_DWORD, g_wszWMDMFormatCode, (BYTE *)&formatCode, sizeof(formatCode)); //the format code is important, without it, player will only recognize mp4 files
 		//if(FAILED(hr)){returnMsg("-1\n","storageCreateFromFile: could not add the format code to MetaData\n");return;}
-		hr = pMData->AddItem(WMDM_TYPE_QWORD, g_wszWMDMFileSize, (BYTE *)size, sizeof(size));				 //also important
+		hr = pMData->AddItem(WMDM_TYPE_QWORD, g_wszWMDMFileSize, (BYTE *)&size, sizeof(size));				 //also important
 		//if(FAILED(hr)){returnMsg("-1\n","storageCreateFromFile: could not add the file size to MetaData\n");return;}
 		hr = pMData->AddItem(WMDM_TYPE_STRING, g_wszWMDMTitle, (BYTE *)title, 2*wcslen(title)+2);		
 		//if(FAILED(hr)){returnMsg("-1\n","storageCreateFromFile: could not add the track title to MetaData\n");return;}
@@ -1449,7 +1439,7 @@ void storageGetAlbumArtImage(wchar_t *storageID)
 	pStor=findStorageFromID(storageID);
 	if(pStor==NULL){returnMsg("-1\n","storageGetAlbumArtImage: couldn't find the requested storage\n");return;}
 	
-	IWMDMMetaData *pMData;							//the metadata associated with the storage
+	IWMDMMetaData *pMData=NULL;							//the metadata associated with the storage
 	LPCWSTR MDataAttribs[1];						
 	MDataAttribs[0]=g_wszWMDMAlbumCoverData;		
 
@@ -1457,7 +1447,7 @@ void storageGetAlbumArtImage(wchar_t *storageID)
 	if(FAILED(hr)){returnMsg("-1\n","storageGetAlbumArtImage: no album art found\n");return;}
 
 	WMDM_TAG_DATATYPE type;							//these vars are used for the metadata QueryByName call
-	BYTE *value;									//.
+	BYTE *value=NULL;									//.
 	unsigned int len;								//.
 	hr=pMData->QueryByName(g_wszWMDMAlbumCoverData,&type,&value,&len);
 	if(FAILED(hr)){returnMsg("-1\n","storageGetAlbumArtImage:no album art found\n");return;}
@@ -1852,6 +1842,19 @@ void itemsListToStorageArray(wchar_t *items,unsigned long *pFoundItemsCount,IWMD
 }
 void dumpStorageItemsArray(void)
 {
+	/*	the format of the returned string is like the following example:
+
+	ROOT
+		FOLDER1
+			file1
+		file2
+
+	would be returned as
+	<0/Folder/NULL/0>ROOT:<1/Folder/ROOT/0>FOLDER1:<2/File/FOLDER1/123>file1:<1/File/ROOT/456>file2
+
+	the <#> specifies the level in the heirarchy, the type of node, the parent, the size in bytes.
+	Each object is separated by a :*/
+
 	FILE *dumpFile;
 	dumpFile=fopen("MTPAxe_dump_items.txt", "w, ccs=UNICODE");
 	if(dumpFile==NULL)

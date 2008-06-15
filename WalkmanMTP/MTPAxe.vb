@@ -261,7 +261,7 @@ Public Class MTPAxe
     Public Function getDeviceType() As String
         'gets the attributes of the current device
         'this function returns "-1" on error
-        'MTPAxe returns -1 on error, ';' separated list otherwise
+        'MTPAxe returns -1 on error, ':' separated list otherwise
 
         Trace.WriteLine("MTPAxe: getting device type")
 
