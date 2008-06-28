@@ -47,6 +47,8 @@ Public Class MTPAxe
     Private sOut As System.IO.StreamWriter
     Private sErr As System.IO.StreamReader
 
+    Private currentDevice As String
+
     Public Function startAxe() As Boolean
         'create the MTPaxe process for communication
         axe = New Process
@@ -179,6 +181,7 @@ Public Class MTPAxe
     Public Function setCurrentDevice(ByVal devName As String) As String
         'sets the currently active device. this is the device that all related
         'device functions will function on. 0 on succeess -1 on error
+        'enumerateDevices must be called at least once previous to calling this funciton
         '
         'note: after setting the current device suceesfully, the device storage must be 
         'enumerated first (e.g. by calling getFullTreeView before most device related funcions will work.
@@ -198,6 +201,7 @@ Public Class MTPAxe
             Return "-1"
         End If
 
+        Me.currentDevice = devName
         Return "0"
     End Function
 #End Region
@@ -212,6 +216,19 @@ Public Class MTPAxe
         'MTPAxe returns -1 on error, otherwise, returns a pointer to array of arrStorageItem 
         'structures and total array length.
         Trace.WriteLine("MTPAxe: enumerating storage")
+
+
+        'hack: this fixes some crashes probably related to memory deallocation
+        'in mtpaxe
+        If stopAxe() Then
+            If Not startAxe() Then
+                axe = Nothing
+            Else
+                If Me.enumerateDevices() <> "" Then
+                    Me.setCurrentDevice(currentDevice)
+                End If
+                End If
+        End If
 
         Dim s As String
 
@@ -360,7 +377,6 @@ Public Class MTPAxe
 
         Return theTreeView
     End Function
-
     Private Function findTreeNodeByID(ByRef root As TreeNode, ByVal ID As String) As TreeNode
         'searches for the first matching treenode with the given PersistentUniqueID
         Dim ret As TreeNode = Nothing
@@ -407,10 +423,10 @@ Public Class MTPAxe
         shinfo.szTypeName = New String(Chr(0), 80)
         Dim item As StorageItem
 
-        Dim memreader As New MemoryReader.ProcessMemoryReader
+        Dim memreader As New ProcessMemoryReaderWriterLib.ProcessMemoryReaderWriter
         Dim buffer() As Byte
         Dim bytesRead As Integer
-        memreader.ReadProcess = axe
+        memreader.ReadWriteProcess = axe
         memreader.OpenProcess()
 
         'keeps track of the minimum and maximum directory level
@@ -604,30 +620,7 @@ Public Class MTPAxe
 
         Return treeview1
     End Function
-    Private Function readWideCharFromPointer(ByVal memreader As MemoryReader.ProcessMemoryReader, ByVal ptrToWcharStr As IntPtr) As String
-        'reads a wchar from memory and returns it in a .net string
-
-        Dim buffer() As Byte
-        Dim bytesRead As Integer
-        Dim retstr As String = ""
-
-        'read 2 bytes at a time until the string terminator is found
-        Do
-            buffer = memreader.ReadProcessMemory(ptrToWcharStr, 2, bytesRead)
-            If bytesRead <> 2 Then
-                buffer(0) = 0
-                buffer(1) = 0
-            Else
-                If Not (buffer(0) = 0 And buffer(1) = 0) Then
-                    retstr = retstr & BitConverter.ToChar(buffer, 0)
-                    'move to the next 2 bytes
-                    ptrToWcharStr = New IntPtr(ptrToWcharStr.ToInt32 + 2)
-                End If
-            End If
-        Loop Until (buffer(0) = 0 And buffer(1) = 0)
-
-        Return retstr
-    End Function
+    
 
     Public Function createPlaylist(ByVal playlistName As String, ByVal items As String) As String
         'creates a playlist. items are a ":" separated list of PersistentUniqeID's
@@ -644,8 +637,8 @@ Public Class MTPAxe
         End If
 
         sOut.WriteLine(MTPAXE_M_DEVICE_CREATEPLAYLIST)
-        sOut.WriteLine(playlistName.Trim)
-        sOut.WriteLine(items)
+        sOut.WriteLine(writeWideCharToPointer(playlistName.Trim))
+        sOut.WriteLine(writeWideCharToPointer(items))
 
         'now wait for the return value to be sent to the buffer
         s = sIn.ReadLine
@@ -714,12 +707,12 @@ Public Class MTPAxe
         If metadata Is Nothing Then metadata = New StorageItem
 
         sOut.WriteLine(MTPAXE_M_DEVICE_CREATEALBUM)
-        sOut.WriteLine(albumTitle.Trim)
-        sOut.WriteLine(items.Trim)
-        sOut.WriteLine(IIf(metadata.AlbumArtist = "", "`", metadata.AlbumArtist).ToString.Trim)
-        sOut.WriteLine(IIf(metadata.Genre = "", "`", metadata.Genre).ToString.Trim)
-        sOut.WriteLine(IIf(metadata.Year = "", "`", metadata.Year).ToString.Trim)
-        sOut.WriteLine(IIf(metadata.AlbumArtPath = "", "`", metadata.AlbumArtPath).ToString.Trim)
+        sOut.WriteLine(writeWideCharToPointer(albumTitle.Trim))
+        sOut.WriteLine(writeWideCharToPointer(items.Trim))
+        sOut.WriteLine(writeWideCharToPointer(IIf(metadata.AlbumArtist = "", "`", metadata.AlbumArtist).ToString.Trim))
+        sOut.WriteLine(writeWideCharToPointer(IIf(metadata.Genre = "", "`", metadata.Genre).ToString.Trim))
+        sOut.WriteLine(writeWideCharToPointer(IIf(metadata.Year = "", "`", metadata.Year).ToString.Trim))
+        sOut.WriteLine(writeWideCharToPointer(IIf(metadata.AlbumArtPath = "", "`", metadata.AlbumArtPath).ToString.Trim))
 
         'now wait for the return value to be sent to the buffer
         s = sIn.ReadLine
@@ -779,15 +772,16 @@ Public Class MTPAxe
         If metadata Is Nothing Then metadata = New StorageItem
 
         sOut.WriteLine(MTPAXE_M_STORAGE_CREATEFROMFILE)
-        sOut.WriteLine(path.Replace("\"c, "\\"))
-        sOut.WriteLine(destinationID)
-        sOut.WriteLine(type)
-        sOut.WriteLine(IIf(metadata.Title = "", "`", metadata.Title))
-        sOut.WriteLine(IIf(metadata.AlbumArtist = "", "`", metadata.AlbumArtist))
-        sOut.WriteLine(IIf(metadata.AlbumTitle = "", "`", metadata.AlbumTitle))
-        sOut.WriteLine(IIf(metadata.Genre = "", "`", metadata.Genre))
-        sOut.WriteLine(IIf(metadata.Year = "", "`", metadata.Year))
-        sOut.WriteLine(IIf(metadata.TrackNum = "", "`", metadata.TrackNum))
+
+        sOut.WriteLine(writeWideCharToPointer(path.Replace("\"c, "\\")))
+        sOut.WriteLine(writeWideCharToPointer(destinationID))
+        sOut.WriteLine(writeWideCharToPointer(type))
+        sOut.WriteLine(writeWideCharToPointer(IIf(metadata.Title = "", "`", metadata.Title)))
+        sOut.WriteLine(writeWideCharToPointer(IIf(metadata.AlbumArtist = "", "`", metadata.AlbumArtist)))
+        sOut.WriteLine(writeWideCharToPointer(IIf(metadata.AlbumTitle = "", "`", metadata.AlbumTitle)))
+        sOut.WriteLine(writeWideCharToPointer(IIf(metadata.Genre = "", "`", metadata.Genre)))
+        sOut.WriteLine(writeWideCharToPointer(IIf(metadata.Year = "", "`", metadata.Year)))
+        sOut.WriteLine(writeWideCharToPointer(IIf(metadata.TrackNum = "", "`", metadata.TrackNum)))
 
         'now wait for the return value to be sent to the buffer
         s = sIn.ReadLine
@@ -890,4 +884,56 @@ Public Class MTPAxe
             Trace.WriteLine("MTPAxe exited successfully")
         End If
     End Sub
+    Private Function readWideCharFromPointer(ByVal memreader As ProcessMemoryReaderWriterLib.ProcessMemoryReaderWriter, ByVal ptrToWcharStr As IntPtr) As String
+        'reads a wchar from memory and returns it in a .net string
+        'used for getting data directly from mtpaxe memory
+
+        Dim buffer() As Byte
+        Dim bytesRead As Integer
+        Dim retstr As String = ""
+
+        'read 2 bytes at a time until the string terminator is found
+        Do
+            buffer = memreader.ReadProcessMemory(ptrToWcharStr, 2, bytesRead)
+            If bytesRead <> 2 Then
+                buffer(0) = 0
+                buffer(1) = 0
+            Else
+                If Not (buffer(0) = 0 And buffer(1) = 0) Then
+                    retstr = retstr & BitConverter.ToChar(buffer, 0)
+                    'move to the next 2 bytes
+                    ptrToWcharStr = New IntPtr(ptrToWcharStr.ToInt32 + 2)
+                End If
+            End If
+        Loop Until (buffer(0) = 0 And buffer(1) = 0)
+
+        Return retstr
+    End Function
+    Private Function writeWideCharToPointer(ByVal str As String) As String
+        'allocates memory in mtpaxe's memory space and writes the string str to it.
+        'returns the pointer to the allocated string. it is the responsibility of mtpaxe
+        'to free the memory allocated by this function. use this funciton
+        'to send unicode strings or any other circumstance where sending data via stdout
+        'won't work.
+        'returns 0 on error
+
+        Dim enc As New System.Text.UnicodeEncoding
+        Dim bytearr() = enc.GetBytes(str)
+
+        Dim memwriter As New ProcessMemoryReaderWriterLib.ProcessMemoryReaderWriter
+        memwriter.ReadWriteProcess = axe
+        memwriter.OpenProcess()
+        Dim loc As IntPtr = memwriter.AllocateAndWriteData(bytearr)
+
+        Dim ret As String
+        If loc.ToInt32 = 0 Then
+            Trace.WriteLine("allocate and write failed")
+            ret = "0"
+        Else
+            ret = loc.ToString
+        End If
+
+        memwriter.CloseHandle()
+        Return ret
+    End Function
 End Class

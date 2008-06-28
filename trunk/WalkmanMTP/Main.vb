@@ -469,7 +469,7 @@ Public Class Main
         End If
 
         Dim newname As String
-        newname = InputBox("Enter new name: ", "Rename Playlist")
+        newname = InputBox("Enter new name: ", "Rename Playlist", Me.tabPlaylists.SelectedTab.Text.Replace("*", ""))
         renameActivePlaylist(newname)
     End Sub
     Private Sub btnAddPlaylist_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnAddPlaylist.Click
