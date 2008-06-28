@@ -82,3 +82,5 @@ void createStorageReferencesContainer(unsigned long,wchar_t*,wchar_t*,wchar_t* =
 void itemsListToStorageArray(wchar_t*,unsigned long*,IWMDMStorage**);
 void deviceEnumerateStorage_helper(IWMDMEnumStorage*,IWMDMStorage4*,int);
 void dumpStorageItemsArray(void);
+void freePointerFromString(wchar_t *);
+wchar_t * readWideCharFromPointer(wchar_t *);

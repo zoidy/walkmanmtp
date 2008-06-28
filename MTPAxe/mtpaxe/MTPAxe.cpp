@@ -20,7 +20,7 @@ and limitations under the License.
 #include "stdafx.h"
 #include "MTPAxe.h"
 
-#define MTPAXE_ver "MTPAxe by Dr. Zoidberg v0.4.1.2\n"
+#define MTPAXE_ver "MTPAxe by Dr. Zoidberg v0.4.1.3\n"
 
 //file for writing returnMsg output to file
 FILE *f=NULL;
@@ -73,14 +73,23 @@ int _tmain(int argc, _TCHAR* argv[])
 
 	//general purpose temp buffer
 	wchar_t buffer[MAX_PATH];
-	char type[2];
-	wchar_t title[400];
-	wchar_t artist[100];
-	wchar_t album[300];
-	wchar_t genre[100];
-	wchar_t year[20];
-	wchar_t trackNum[4];
-	wchar_t items[MTPAXE_DEVICEENUMSTORAGE_MAXOUTPUTSTRINGSIZE];
+
+	//string that stores the address of strings send by walkmanmtp
+	//this is used when we want to send unicode strings from walkmanmtp
+	//first walkmanmtp allocates memory in mtpaxe's memory space
+	//and then sends the address via stdin.
+	wchar_t strAddr[20];
+
+	//pointers to the metadata strings sent by walkmanmtp. see the strAddr coment
+	//above
+	wchar_t *items=NULL;
+	wchar_t *type=NULL;
+	wchar_t *title=NULL;
+	wchar_t *artist=NULL;
+	wchar_t *album=NULL;
+	wchar_t *genre=NULL;
+	wchar_t *year=NULL;
+	wchar_t *trackNum=NULL;
 
 	//start the message loop
 	int msg=99;	
@@ -97,18 +106,6 @@ int _tmain(int argc, _TCHAR* argv[])
 						setCurrentDevice(L"WALKMAN");
 						deviceEnumerateStorage();
 							
-						//deviceGetType();
-						//deviceGetFormatsSupport();
-						//deviceGetAdditionalInfo();
-						
-						//deviceEnumerateStorage();
-						storageCreateFromFile(L"C:\\test.wma",L"{00000004-0000-0000-0000-000000000000}",0,L"aa bb",L"bsd s",L"1\u010Ec fsd",L"d1d sd",L"1888",L"2");
-						storageCreateFromFile(L"C:\\test1.wma",L"{00000004-0000-0000-0000-000000000000}",0,L"234 23",L"423 3",L"1fds",L"vvs",L"2000",L"1");
-						deviceEnumerateStorage();
-						//swprintf(buffer,MTPAXE_MAXFILENAMESIZE,L"%s",L"{00000081-0000-0000-0000-000000000000}");
-						//deviceCreatePlaylist(L"test",buffer);
-						//deviceEnumerateStorage();
-						//playlistEnumerateContents(L"{00000027-0000-0000-B1A9-2548581E0C00}");
 
 						//swprintf(buffer,MTPAXE_MAXFILENAMESIZE,L"%s",L"{00000062-0000-0000-0000-000000000000}:{00000063-0000-0000-0000-000000000000}:{00000064-0000-0000-0000-000000000000}:{00000065-0000-0000-0000-000000000000}");
 						//swprintf(buffer,MTPAXE_MAXFILENAMESIZE,L"%s",L"{00000062-0000-0000-0000-000000000000}:{00000063-0000-0000-0000-000000000000}:{00000065-0000-0000-0000-000000000000}:{00000064-0000-0000-0000-000000000000}");
@@ -205,31 +202,71 @@ int _tmain(int argc, _TCHAR* argv[])
 					deviceGetFormatsSupport();
 					break;
 				case MTPAXE_M_DEVICE_CREATEPLAYLIST:
-					wscanf(L"%\n",buffer);	//stupid scanf... this weird thing is so the program will read 
-					wscanf(L"%[^\n]",buffer); //an entire line (incl. whitespace) but wait until a newline is encountered, instead of reading the stream immediately
-					wscanf(L"%\n",items);
-					wscanf(L"%[^\n]",items);
-					deviceCreatePlaylist(buffer,items);
+					{
+					//walkmanmtp will send the playlist name as the address of the string, not the actual strings
+					//therefore, the string must be read from memory.
+					wchar_t *playlistName=NULL;
+
+					wscanf(L"%\n",strAddr);	//stupid scanf... this weird thing is so the program will read 
+					wscanf(L"%[^\n]",strAddr); //an entire line (incl. whitespace) but wait until a newline is encountered, instead of reading the stream immediately
+					playlistName=readWideCharFromPointer(strAddr);
+
+					wscanf(L"%\n",strAddr);
+					wscanf(L"%[^\n]",strAddr);
+					items=readWideCharFromPointer(strAddr);
+
+					deviceCreatePlaylist(playlistName,items);
+
+					//now that we're done, free the memory allocated by walkmanMTP
+					freePointerFromString(playlistName);
+					freePointerFromString(items);
 					break;
+					}
 				case MTPAXE_M_DEVICE_CREATEALBUM:
-					wscanf(L"%\n",buffer);	
-					wscanf(L"%[^\n]",buffer);
-					wscanf(L"%\n",items);
-					wscanf(L"%[^\n]",items);
-					wscanf(L"%\n",artist);
-					wscanf(L"%[^\n]",artist);
-					wscanf(L"%\n",genre);
-					wscanf(L"%[^\n]",genre);
-					wscanf(L"%\n",year);
-					wscanf(L"%[^\n]",year);
-					wscanf(L"%\n",title);//this is the album art path
-					wscanf(L"%[^\n]",title);
+					{
+					wchar_t *albumTitle=NULL;
+					wchar_t *albumArtPath=NULL;
+
+					wscanf(L"%\n",strAddr);	
+					wscanf(L"%[^\n]",strAddr);
+					albumTitle=readWideCharFromPointer(strAddr);
+
+					wscanf(L"%\n",strAddr);
+					wscanf(L"%[^\n]",strAddr);
+					items=readWideCharFromPointer(strAddr);
+
+					wscanf(L"%\n",strAddr);
+					wscanf(L"%[^\n]",strAddr);
+					artist=readWideCharFromPointer(strAddr);
+
+					wscanf(L"%\n",strAddr);
+					wscanf(L"%[^\n]",strAddr);
+					genre=readWideCharFromPointer(strAddr);
+
+					wscanf(L"%\n",strAddr);
+					wscanf(L"%[^\n]",strAddr);
+					year=readWideCharFromPointer(strAddr);
+
+					wscanf(L"%\n",strAddr);
+					wscanf(L"%[^\n]",strAddr);
+					albumArtPath=readWideCharFromPointer(strAddr);
+
 					if(wcscmp(artist,L"`")==0) swprintf(artist,2,L"");
 					if(wcscmp(genre,L"`")==0) swprintf(genre,2,L"");
 					if(wcscmp(year,L"`")==0) swprintf(year,2,L"");
-					if(wcscmp(year,L"`")==0) swprintf(title,2,L"");
-					deviceCreateAlbum(buffer,items,artist,genre,year,title);
+					if(wcscmp(title,L"`")==0) swprintf(title,2,L"");
+					deviceCreateAlbum(albumTitle,items,artist,genre,year,albumArtPath);
+
+					//now that we're done, free the memory allocated by walkmanMTP
+					freePointerFromString(albumTitle);
+					freePointerFromString(items);
+					freePointerFromString(artist);
+					freePointerFromString(genre);
+					freePointerFromString(year);
+					freePointerFromString(albumArtPath);
+
 					break;
+					}
 				case MTPAXE_M_STORAGE_GETALBUMARTIMAGE:
 					wscanf(L"%\n",buffer);	
 					wscanf(L"%[^\n]",buffer);
@@ -248,34 +285,70 @@ int _tmain(int argc, _TCHAR* argv[])
 				case MTPAXE_M_STORAGE_GETSIZEINFO:
 					storageGetSizeInfo();
 					break;
-				case MTPAXE_M_STORAGE_CREATEFROMFILE:{
-					wchar_t item[MAX_PATH];
-					wscanf(L"%\n",item);
-					wscanf(L"%[^\n]",item);
-					wscanf(L"%\n",buffer);	
-					wscanf(L"%[^\n]",buffer);
-					scanf("%\n",type);	
-					scanf("%[^\n]",type);
-					wscanf(L"%\n",title);
-					wscanf(L"%[^\n]",title);
-					wscanf(L"%\n",artist);
-					wscanf(L"%[^\n]",artist);
-					wscanf(L"%\n",album);
-					wscanf(L"%[^\n]",album);
-					wscanf(L"%\n",genre);
-					wscanf(L"%[^\n]",genre);
-					wscanf(L"%\n",year);
-					wscanf(L"%[^\n]",year);
-					wscanf(L"%\n",trackNum);
-					wscanf(L"%[^\n]",trackNum);
+				case MTPAXE_M_STORAGE_CREATEFROMFILE:
+					{
+					//walkmanmtp will send the addresses of the strings, not the actual strings
+					//therefore, the strings must be read from memory.					
+					wchar_t *filePath;
+					wchar_t *destID;
+
+					wscanf(L"%\n",strAddr);//file path
+					wscanf(L"%[^\n]",strAddr);
+					filePath=readWideCharFromPointer(strAddr);
+
+					wscanf(L"%\n",strAddr);	//destination storage ID
+					wscanf(L"%[^\n]",strAddr);
+					destID=readWideCharFromPointer(strAddr);
+
+					wscanf(L"%\n",strAddr);	//type (file or folder)
+					wscanf(L"%[^\n]",strAddr);
+					type=readWideCharFromPointer(strAddr);
+
+					wscanf(L"%\n",strAddr);	//title metadata
+					wscanf(L"%[^\n]",strAddr);
+					title=readWideCharFromPointer(strAddr);
+
+					wscanf(L"%\n",strAddr);	//artist metadata
+					wscanf(L"%[^\n]",strAddr);
+					artist=readWideCharFromPointer(strAddr);
+
+					wscanf(L"%\n",strAddr);	//album
+					wscanf(L"%[^\n]",strAddr);
+					album=readWideCharFromPointer(strAddr);
+
+					wscanf(L"%\n",strAddr);//genre
+					wscanf(L"%[^\n]",strAddr);
+					genre=readWideCharFromPointer(strAddr);
+
+					wscanf(L"%\n",strAddr);
+					wscanf(L"%[^\n]",strAddr);
+					year=readWideCharFromPointer(strAddr);
+
+					wscanf(L"%\n",strAddr);
+					wscanf(L"%[^\n]",strAddr);
+					trackNum=readWideCharFromPointer(strAddr);
+
 					if(wcscmp(title,L"`")==0) swprintf(title,2,L"");
 					if(wcscmp(artist,L"`")==0) swprintf(artist,2,L"");
 					if(wcscmp(album,L"`")==0) swprintf(album,2,L"");
 					if(wcscmp(genre,L"`")==0) swprintf(genre,2,L"");
 					if(wcscmp(year,L"`")==0) swprintf(year,2,L"");
 					if(wcscmp(trackNum,L"`")==0) swprintf(trackNum,2,L"");
-					storageCreateFromFile(item,buffer,atoi(type),title,artist,album,genre,year,trackNum);
-					break;}
+					storageCreateFromFile(filePath,destID,_wtoi(type),title,artist,album,genre,year,trackNum);
+
+					//now that we're done, free the memory (since the memory for the strings was allocated by walkmanMTP
+					freePointerFromString(filePath);
+					freePointerFromString(destID);
+					freePointerFromString(type);
+					freePointerFromString(title);
+					freePointerFromString(artist);
+					freePointerFromString(album);
+					freePointerFromString(genre);
+					freePointerFromString(year);
+					freePointerFromString(trackNum);
+
+					break;
+					}
 
 				default: {MTPAxe_version();break;}
 
@@ -1242,6 +1315,31 @@ void storageDeleteStorage(wchar_t *storageID)
 	pStorCtrl->Release();
 	pStor->Release();
 
+	//mark as deleted in the storageItems array. to actually delete it, it would be necessary
+	//to shift everything down, which is too much work. it is markes as deleted by clearing
+	//some attributes so that the search funtions will not find it.if this were a linked list, it would be easy...
+	for(int i=0;i<numStorageItems;i++)
+		{
+			if(wcscmp(arrStorageItems[i].persistentUniqueID,storageID)==0)
+			{
+				//free the memory. don't free the IWMDMStorage, type, level and persistentUniqueID
+				//since this is what the search functions use. just change them to somthign else (except for IWMDMStorage
+				//which must remain accessible
+				CoTaskMemFree(arrStorageItems[i].albumArtist);
+				CoTaskMemFree(arrStorageItems[i].albumTitle);
+				CoTaskMemFree(arrStorageItems[i].parentUniqueID);
+				CoTaskMemFree(arrStorageItems[i].fileName);
+				CoTaskMemFree(arrStorageItems[i].genre);
+				CoTaskMemFree(arrStorageItems[i].title);
+				CoTaskMemFree(arrStorageItems[i].year);
+				CoTaskMemFree(arrStorageItems[i].parentFileName);
+				arrStorageItems[i].type=-1;
+				arrStorageItems[i].level=-1;
+				wsprintf(arrStorageItems[i].persistentUniqueID,L"0");
+			}
+
+		}
+
 	returnMsg("0\n");
 
 }
@@ -1410,10 +1508,10 @@ void storageCreateFromFile(wchar_t *itemPath,wchar_t *destStorageID, int type,wc
 	plItem.pStorage=insertedStorage4;
 	plItem.pStorageParent=pDestStor;
 	plItem.size=size;
-	plItem.albumArtist=albumArtist;
-	plItem.albumTitle=albumTitle;
-	plItem.genre=genre;
-	plItem.year=year;
+	//plItem.albumArtist=albumArtist;
+	//plItem.albumTitle=albumTitle;
+	//plItem.genre=genre;
+	//plItem.year=year;
 	if(type==0){plItem.type=WMDM_FILE_ATTR_FILE;}else{plItem.type=WMDM_FILE_ATTR_FOLDER;}
 	arrStorageItems[numStorageItems]=plItem;
 	numStorageItems++;
@@ -1875,4 +1973,59 @@ void dumpStorageItemsArray(void)
 	}
 
 	fclose(dumpFile);
+}
+wchar_t * readWideCharFromPointer(wchar_t *ptr)
+{
+	/*reads a wide char string from the pointer represented by the string 'ptr' 
+	the memory pointed to by ptr will have been previously allocated using VirtualAllocEx
+	The function retruns the pointer to the wide char string of the memory represented by ptr
+	or, if ptr was not valid, it retruns the pointer to a new empty string.
+	the returned pointer to wide char should be deallocated by the caller (whether an error occured or not)*/
+
+	wchar_t *retbuf=NULL;
+
+	//first check to see if ptr is not null
+	if(ptr==NULL)
+	{
+		//return an empty string
+		retbuf=(wchar_t*)CoTaskMemAlloc(2);
+		retbuf[0]=0;
+		retbuf[1]=0;
+		return retbuf;
+	}
+
+	//try to convert the string into a pointer
+	unsigned long addr=wcstoul(ptr,NULL,10);
+	if(addr==0)
+	{
+		//return an empty string
+		retbuf=(wchar_t*)CoTaskMemAlloc(2);
+		retbuf[0]=0;
+		retbuf[1]=0;
+		return retbuf;
+	}
+
+	//return the pointer to the wide string at adress 'addr'
+	return (wchar_t *)addr;
+
+}
+void freePointerFromString(wchar_t *str)
+{
+	/*frees the memory occupied by the string 'str'.  this
+	memory must have been previously allocated with VirtualAllocEx by this program or an external program
+	*/
+
+	if(str!=NULL)
+	{
+
+		if(VirtualFreeEx(GetCurrentProcess(),(void*)str,0,MEM_RELEASE)==0)
+		{
+			//debug code
+			//wchar_t buf[50];
+			//wsprintf(buf,L"VirtualFreeEx error code: %lu",GetLastError());
+			//MessageBox(0,buf,L",",0);
+		}
+	}
+
+	
 }
