@@ -712,7 +712,7 @@ Public Class MTPAxe
         sOut.WriteLine(writeWideCharToPointer(IIf(metadata.AlbumArtist = "", "`", metadata.AlbumArtist).ToString.Trim))
         sOut.WriteLine(writeWideCharToPointer(IIf(metadata.Genre = "", "`", metadata.Genre).ToString.Trim))
         sOut.WriteLine(writeWideCharToPointer(IIf(metadata.Year = "", "`", metadata.Year).ToString.Trim))
-        sOut.WriteLine(writeWideCharToPointer(IIf(metadata.AlbumArtPath = "", "`", metadata.AlbumArtPath).ToString.Trim))
+        sOut.WriteLine(writeWideCharToPointer(IIf(metadata.AlbumArtPath = "", "`", metadata.AlbumArtPath).ToString.Replace("\"c, "\\").Trim))
 
         'now wait for the return value to be sent to the buffer
         s = sIn.ReadLine

@@ -1,4 +1,21 @@
-﻿Imports System
+﻿''Copyright 2008 Dr. Zoidberg
+' 
+'Licensed under the Apache License, Version 2.0 (the "License");
+'you may not use this file except in compliance with the License.
+'You may obtain a copy of the License at
+'
+'	http://www.apache.org/licenses/LICENSE-2.0 
+'
+'Unless required by applicable law or agreed to in writing, software 
+'distributed under the License is distributed on an "AS IS" 
+'BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+'See the License for the specific language governing permissions 
+'and limitations under the License. 
+'
+'Original code by arik poznanski www.codeproject.com/kb/trace/minememoryreader.aspx
+'modified by dr. zoidberg to add memory writing capability
+
+Imports System
 Imports System.Diagnostics
 Imports System.Runtime.InteropServices
 
@@ -82,7 +99,6 @@ ByVal buffer As Byte(), ByVal size As UInt32, ByRef lpNumberOfBytesRead As IntPt
             m_hProcess = ProcessMemoryReaderWriterApi.OpenProcess(ProcessMemoryReaderWriterApi.PROCESS_VM_READ Or ProcessMemoryReaderWriterApi.PROCESS_VM_WRITE Or ProcessMemoryReaderWriterApi.PROCESS_VM_OPERATION _
                                                                   , 1, CInt(m_ReadProcess.Id))
         End Sub
-
         Public Sub CloseHandle()
             Dim iRetValue As Integer
             iRetValue = ProcessMemoryReaderWriterApi.CloseHandle(m_hProcess)
@@ -95,7 +111,9 @@ ByVal buffer As Byte(), ByVal size As UInt32, ByRef lpNumberOfBytesRead As IntPt
             Dim buffer As Byte() = New Byte(bytesToRead - 1) {}
 
             Dim ptrBytesReaded As IntPtr
-            ProcessMemoryReaderWriterApi.ReadProcessMemory(m_hProcess, MemoryAddress, buffer, bytesToRead, ptrBytesReaded)
+            If ProcessMemoryReaderWriterApi.ReadProcessMemory(m_hProcess, MemoryAddress, buffer, bytesToRead, ptrBytesReaded) = 0 Then
+                Trace.WriteLine("ReadProcessMemory: " & New ComponentModel.Win32Exception().Message)
+            End If
 
             bytesReaded = ptrBytesReaded.ToInt32()
 
@@ -113,14 +131,14 @@ ByVal buffer As Byte(), ByVal size As UInt32, ByRef lpNumberOfBytesRead As IntPt
             Dim retPtr As New IntPtr(0)
 
             retPtr = ProcessMemoryReaderWriterApi.VirtualAllocEx(m_hProcess, New IntPtr(0), datablock.Length, &H1000I Or &H2000I, &H4I)
-            If Err.LastDllError <> 0 Then
-                Trace.WriteLine(New ComponentModel.Win32Exception().Message)
-            End If
 
             If retPtr.ToInt32 <> 0 Then
                 If ProcessMemoryReaderWriterApi.WriteProcessMemory(m_hProcess, retPtr, datablock, datablock.Length, New IntPtr(0)) = 0 Then
                     retPtr = New IntPtr(0)
+                    Trace.WriteLine("WriteProcessMemory: " & New ComponentModel.Win32Exception().Message)
                 End If
+            Else
+                Trace.WriteLine("VirtualAllocEx: " & New ComponentModel.Win32Exception().Message)
             End If
 
             Return retPtr
@@ -129,7 +147,7 @@ ByVal buffer As Byte(), ByVal size As UInt32, ByRef lpNumberOfBytesRead As IntPt
         Public Function DeallocateBlock(ByVal blockAddr As IntPtr) As Boolean
             'deallocates a block previously allocated with VirtualAllocEx
             If ProcessMemoryReaderWriterApi.VirtualFreeEx(m_hProcess, blockAddr, 0, &H8000I) = 0 Then
-                Trace.WriteLine("VirtualFreeEx error code: " & Err.LastDllError)
+                Trace.WriteLine("VirtualFreeEx: " & New ComponentModel.Win32Exception().Message)
                 Return False
             End If
             Return True
