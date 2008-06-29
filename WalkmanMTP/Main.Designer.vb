@@ -185,19 +185,19 @@ Partial Class Main
         '
         Me.mnuFileSyncDeviceToolStripMenuItem.Name = "mnuFileSyncDeviceToolStripMenuItem"
         Me.mnuFileSyncDeviceToolStripMenuItem.ShortcutKeys = CType((System.Windows.Forms.Keys.Control Or System.Windows.Forms.Keys.S), System.Windows.Forms.Keys)
-        Me.mnuFileSyncDeviceToolStripMenuItem.Size = New System.Drawing.Size(181, 22)
+        Me.mnuFileSyncDeviceToolStripMenuItem.Size = New System.Drawing.Size(170, 22)
         Me.mnuFileSyncDeviceToolStripMenuItem.Text = "Sync Device"
         '
         'ToolStripSeparator1
         '
         Me.ToolStripSeparator1.Name = "ToolStripSeparator1"
-        Me.ToolStripSeparator1.Size = New System.Drawing.Size(178, 6)
+        Me.ToolStripSeparator1.Size = New System.Drawing.Size(167, 6)
         '
         'mnuFileQuitToolStripMenuItem
         '
         Me.mnuFileQuitToolStripMenuItem.Name = "mnuFileQuitToolStripMenuItem"
         Me.mnuFileQuitToolStripMenuItem.ShortcutKeys = CType((System.Windows.Forms.Keys.Alt Or System.Windows.Forms.Keys.F4), System.Windows.Forms.Keys)
-        Me.mnuFileQuitToolStripMenuItem.Size = New System.Drawing.Size(181, 22)
+        Me.mnuFileQuitToolStripMenuItem.Size = New System.Drawing.Size(170, 22)
         Me.mnuFileQuitToolStripMenuItem.Text = "&Quit"
         '
         'OptionsStripMenuItem
@@ -212,7 +212,7 @@ Partial Class Main
         Me.mnuOptionsShowDeviceIconToolStripMenuItem.Checked = True
         Me.mnuOptionsShowDeviceIconToolStripMenuItem.CheckState = System.Windows.Forms.CheckState.Checked
         Me.mnuOptionsShowDeviceIconToolStripMenuItem.Name = "mnuOptionsShowDeviceIconToolStripMenuItem"
-        Me.mnuOptionsShowDeviceIconToolStripMenuItem.Size = New System.Drawing.Size(169, 22)
+        Me.mnuOptionsShowDeviceIconToolStripMenuItem.Size = New System.Drawing.Size(158, 22)
         Me.mnuOptionsShowDeviceIconToolStripMenuItem.Text = "Show device Icon"
         '
         'mnuOptionsShowDebugWindowToolStripMenuItem
@@ -220,7 +220,7 @@ Partial Class Main
         Me.mnuOptionsShowDebugWindowToolStripMenuItem.CheckOnClick = True
         Me.mnuOptionsShowDebugWindowToolStripMenuItem.Name = "mnuOptionsShowDebugWindowToolStripMenuItem"
         Me.mnuOptionsShowDebugWindowToolStripMenuItem.ShortcutKeys = CType((System.Windows.Forms.Keys.Control Or System.Windows.Forms.Keys.B), System.Windows.Forms.Keys)
-        Me.mnuOptionsShowDebugWindowToolStripMenuItem.Size = New System.Drawing.Size(169, 22)
+        Me.mnuOptionsShowDebugWindowToolStripMenuItem.Size = New System.Drawing.Size(158, 22)
         Me.mnuOptionsShowDebugWindowToolStripMenuItem.Text = "Show Log"
         '
         'mnuHelpHelpToolStripMenuItem
@@ -233,13 +233,13 @@ Partial Class Main
         'mnuHelpInformationToolStripMenuItem
         '
         Me.mnuHelpInformationToolStripMenuItem.Name = "mnuHelpInformationToolStripMenuItem"
-        Me.mnuHelpInformationToolStripMenuItem.Size = New System.Drawing.Size(141, 22)
+        Me.mnuHelpInformationToolStripMenuItem.Size = New System.Drawing.Size(130, 22)
         Me.mnuHelpInformationToolStripMenuItem.Text = "Information"
         '
         'mnuHelpAboutToolStripMenuItem
         '
         Me.mnuHelpAboutToolStripMenuItem.Name = "mnuHelpAboutToolStripMenuItem"
-        Me.mnuHelpAboutToolStripMenuItem.Size = New System.Drawing.Size(141, 22)
+        Me.mnuHelpAboutToolStripMenuItem.Size = New System.Drawing.Size(130, 22)
         Me.mnuHelpAboutToolStripMenuItem.Text = "&About"
         '
         'cmbDevices
@@ -1116,97 +1116,97 @@ Partial Class Main
         '
         Me.mnuLvPlaylistContentsRightClick.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.lvPlaylistContentsSelctionSortAscendingToolStripMenuItem, Me.lvPlaylistContentsSelectionSortDescendingToolStripMenuItem, Me.ToolStripSeparator4, Me.lvPlaylistContentsDeleteToolStripMenuItem})
         Me.mnuLvPlaylistContentsRightClick.Name = "mnuLvPlaylistContents"
-        Me.mnuLvPlaylistContentsRightClick.Size = New System.Drawing.Size(212, 76)
+        Me.mnuLvPlaylistContentsRightClick.Size = New System.Drawing.Size(201, 76)
         '
         'lvPlaylistContentsSelctionSortAscendingToolStripMenuItem
         '
         Me.lvPlaylistContentsSelctionSortAscendingToolStripMenuItem.Name = "lvPlaylistContentsSelctionSortAscendingToolStripMenuItem"
-        Me.lvPlaylistContentsSelctionSortAscendingToolStripMenuItem.Size = New System.Drawing.Size(211, 22)
+        Me.lvPlaylistContentsSelctionSortAscendingToolStripMenuItem.Size = New System.Drawing.Size(200, 22)
         Me.lvPlaylistContentsSelctionSortAscendingToolStripMenuItem.Text = "Sort Selected: Ascending"
         '
         'lvPlaylistContentsSelectionSortDescendingToolStripMenuItem
         '
         Me.lvPlaylistContentsSelectionSortDescendingToolStripMenuItem.Name = "lvPlaylistContentsSelectionSortDescendingToolStripMenuItem"
-        Me.lvPlaylistContentsSelectionSortDescendingToolStripMenuItem.Size = New System.Drawing.Size(211, 22)
+        Me.lvPlaylistContentsSelectionSortDescendingToolStripMenuItem.Size = New System.Drawing.Size(200, 22)
         Me.lvPlaylistContentsSelectionSortDescendingToolStripMenuItem.Text = "Sort Selected: Descending"
         '
         'ToolStripSeparator4
         '
         Me.ToolStripSeparator4.Name = "ToolStripSeparator4"
-        Me.ToolStripSeparator4.Size = New System.Drawing.Size(208, 6)
+        Me.ToolStripSeparator4.Size = New System.Drawing.Size(197, 6)
         '
         'lvPlaylistContentsDeleteToolStripMenuItem
         '
         Me.lvPlaylistContentsDeleteToolStripMenuItem.Name = "lvPlaylistContentsDeleteToolStripMenuItem"
         Me.lvPlaylistContentsDeleteToolStripMenuItem.ShortcutKeyDisplayString = ""
         Me.lvPlaylistContentsDeleteToolStripMenuItem.ShortcutKeys = System.Windows.Forms.Keys.Delete
-        Me.lvPlaylistContentsDeleteToolStripMenuItem.Size = New System.Drawing.Size(211, 22)
+        Me.lvPlaylistContentsDeleteToolStripMenuItem.Size = New System.Drawing.Size(200, 22)
         Me.lvPlaylistContentsDeleteToolStripMenuItem.Text = "Delete"
         '
         'mnuLvFileManagementRightClick
         '
         Me.mnuLvFileManagementRightClick.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.mnulvFileManagementSortAscendingToolStripMenuItem, Me.mnulvFileManagementSortDescendingToolStripMenuItem, Me.ToolStripSeparator3, Me.lvFileManagementDeleteToolStripMenuItem})
         Me.mnuLvFileManagementRightClick.Name = "mnuLvFileManagementRightClick"
-        Me.mnuLvFileManagementRightClick.Size = New System.Drawing.Size(212, 76)
+        Me.mnuLvFileManagementRightClick.Size = New System.Drawing.Size(201, 76)
         '
         'mnulvFileManagementSortAscendingToolStripMenuItem
         '
         Me.mnulvFileManagementSortAscendingToolStripMenuItem.Name = "mnulvFileManagementSortAscendingToolStripMenuItem"
-        Me.mnulvFileManagementSortAscendingToolStripMenuItem.Size = New System.Drawing.Size(211, 22)
+        Me.mnulvFileManagementSortAscendingToolStripMenuItem.Size = New System.Drawing.Size(200, 22)
         Me.mnulvFileManagementSortAscendingToolStripMenuItem.Text = "Sort Selected: Ascending"
         '
         'mnulvFileManagementSortDescendingToolStripMenuItem
         '
         Me.mnulvFileManagementSortDescendingToolStripMenuItem.Name = "mnulvFileManagementSortDescendingToolStripMenuItem"
-        Me.mnulvFileManagementSortDescendingToolStripMenuItem.Size = New System.Drawing.Size(211, 22)
+        Me.mnulvFileManagementSortDescendingToolStripMenuItem.Size = New System.Drawing.Size(200, 22)
         Me.mnulvFileManagementSortDescendingToolStripMenuItem.Text = "Sort Selected: Descending"
         '
         'ToolStripSeparator3
         '
         Me.ToolStripSeparator3.Name = "ToolStripSeparator3"
-        Me.ToolStripSeparator3.Size = New System.Drawing.Size(208, 6)
+        Me.ToolStripSeparator3.Size = New System.Drawing.Size(197, 6)
         '
         'lvFileManagementDeleteToolStripMenuItem
         '
         Me.lvFileManagementDeleteToolStripMenuItem.Name = "lvFileManagementDeleteToolStripMenuItem"
         Me.lvFileManagementDeleteToolStripMenuItem.ShortcutKeys = System.Windows.Forms.Keys.Delete
-        Me.lvFileManagementDeleteToolStripMenuItem.Size = New System.Drawing.Size(211, 22)
+        Me.lvFileManagementDeleteToolStripMenuItem.Size = New System.Drawing.Size(200, 22)
         Me.lvFileManagementDeleteToolStripMenuItem.Text = "Delete"
         '
         'mnuTvPlaylistFilesRightClick
         '
         Me.mnuTvPlaylistFilesRightClick.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.mnutvPlaylistFilesCollapseChildrenToolStripMenuItem, Me.mnutvPlaylistFilesExpandChildrenToolStripMenuItem})
         Me.mnuTvPlaylistFilesRightClick.Name = "mnuTvPlaylistFilesRightClick"
-        Me.mnuTvPlaylistFilesRightClick.Size = New System.Drawing.Size(168, 48)
+        Me.mnuTvPlaylistFilesRightClick.Size = New System.Drawing.Size(157, 48)
         '
         'mnutvPlaylistFilesCollapseChildrenToolStripMenuItem
         '
         Me.mnutvPlaylistFilesCollapseChildrenToolStripMenuItem.Name = "mnutvPlaylistFilesCollapseChildrenToolStripMenuItem"
-        Me.mnutvPlaylistFilesCollapseChildrenToolStripMenuItem.Size = New System.Drawing.Size(167, 22)
+        Me.mnutvPlaylistFilesCollapseChildrenToolStripMenuItem.Size = New System.Drawing.Size(156, 22)
         Me.mnutvPlaylistFilesCollapseChildrenToolStripMenuItem.Text = "Collapse Children"
         '
         'mnutvPlaylistFilesExpandChildrenToolStripMenuItem
         '
         Me.mnutvPlaylistFilesExpandChildrenToolStripMenuItem.Name = "mnutvPlaylistFilesExpandChildrenToolStripMenuItem"
-        Me.mnutvPlaylistFilesExpandChildrenToolStripMenuItem.Size = New System.Drawing.Size(167, 22)
+        Me.mnutvPlaylistFilesExpandChildrenToolStripMenuItem.Size = New System.Drawing.Size(156, 22)
         Me.mnutvPlaylistFilesExpandChildrenToolStripMenuItem.Text = "Expand Children"
         '
         'mnuTvFileManagementRightClick
         '
         Me.mnuTvFileManagementRightClick.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.mnuTVFileManagementCollapseChildren, Me.mnuTVFileManagementExpandChildren})
         Me.mnuTvFileManagementRightClick.Name = "mnuTvFileManagementRightClick"
-        Me.mnuTvFileManagementRightClick.Size = New System.Drawing.Size(168, 48)
+        Me.mnuTvFileManagementRightClick.Size = New System.Drawing.Size(157, 48)
         '
         'mnuTVFileManagementCollapseChildren
         '
         Me.mnuTVFileManagementCollapseChildren.Name = "mnuTVFileManagementCollapseChildren"
-        Me.mnuTVFileManagementCollapseChildren.Size = New System.Drawing.Size(167, 22)
+        Me.mnuTVFileManagementCollapseChildren.Size = New System.Drawing.Size(156, 22)
         Me.mnuTVFileManagementCollapseChildren.Text = "Collapse Children"
         '
         'mnuTVFileManagementExpandChildren
         '
         Me.mnuTVFileManagementExpandChildren.Name = "mnuTVFileManagementExpandChildren"
-        Me.mnuTVFileManagementExpandChildren.Size = New System.Drawing.Size(167, 22)
+        Me.mnuTVFileManagementExpandChildren.Size = New System.Drawing.Size(156, 22)
         Me.mnuTVFileManagementExpandChildren.Text = "Expand Children"
         '
         'Main

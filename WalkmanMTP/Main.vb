@@ -1526,6 +1526,9 @@ Public Class Main
         If MsgBox("Are you sure?", MsgBoxStyle.Question Or MsgBoxStyle.YesNo) = MsgBoxResult.No Then Exit Sub
         removeAllAlbumsFromAlbumsList(False)
     End Sub
+    Private Sub chkDeleteSongsOnAlbumDelete_CheckedChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles chkDeleteSongsOnAlbumDelete.CheckedChanged
+        Me.theSettings.DeleteAlbumSongsOnAlbumDelete = Me.chkDeleteSongsOnAlbumDelete.Checked
+    End Sub
     Private Sub cmbAlbumListGroupBy_SelectedIndexChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmbAlbumListGroupBy.SelectedIndexChanged
         If Me.cmbAlbumListGroupBy.SelectedIndex <> -1 Then
             createGroupsFromColumn(Me.lvAlbumsList, Me.cmbAlbumListGroupBy.SelectedIndex + 1)
