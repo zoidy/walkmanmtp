@@ -20,7 +20,7 @@ and limitations under the License.
 #include "stdafx.h"
 #include "MTPAxe.h"
 
-#define MTPAXE_ver "MTPAxe by Dr. Zoidberg v0.4.1.3\n"
+#define MTPAXE_ver "MTPAxe by Dr. Zoidberg v0.4.1.4\n"
 
 //file for writing returnMsg output to file
 FILE *f=NULL;
@@ -254,7 +254,8 @@ int _tmain(int argc, _TCHAR* argv[])
 					if(wcscmp(artist,L"`")==0) swprintf(artist,2,L"");
 					if(wcscmp(genre,L"`")==0) swprintf(genre,2,L"");
 					if(wcscmp(year,L"`")==0) swprintf(year,2,L"");
-					if(wcscmp(title,L"`")==0) swprintf(title,2,L"");
+					if(wcscmp(albumArtPath,L"`")==0) swprintf(albumArtPath,2,L"");
+
 					deviceCreateAlbum(albumTitle,items,artist,genre,year,albumArtPath);
 
 					//now that we're done, free the memory allocated by walkmanMTP
@@ -840,7 +841,7 @@ int deviceEnumerateStorage(void)
 	
 	//we now have a reference to a dvevice
 
-	char buffer[MTPAXE_DEVICEENUMSTORAGE_MAXOUTPUTSTRINGSIZE];				//the return string
+	char buffer[20];				//the return string
 	sprintf(buffer,"-1");
 
 	DWORD tempDW;
@@ -1291,7 +1292,6 @@ void storageDeleteStorage(wchar_t *storageID)
 	if(m_pIdvMgr==NULL){returnMsg("-1\n","storageDeleteStorage: DeviceManager not initialized\n");return;}
 	if(pCurrDev==NULL){returnMsg("-1\n","storageDeleteStorage: no active device is set\n");return;}
 
-
 	//find the desired storage
 	IWMDMStorage3 *theStorage=NULL;
 	theStorage=findStorageFromID(storageID);
@@ -1325,14 +1325,14 @@ void storageDeleteStorage(wchar_t *storageID)
 				//free the memory. don't free the IWMDMStorage, type, level and persistentUniqueID
 				//since this is what the search functions use. just change them to somthign else (except for IWMDMStorage
 				//which must remain accessible
-				CoTaskMemFree(arrStorageItems[i].albumArtist);
-				CoTaskMemFree(arrStorageItems[i].albumTitle);
-				CoTaskMemFree(arrStorageItems[i].parentUniqueID);
-				CoTaskMemFree(arrStorageItems[i].fileName);
-				CoTaskMemFree(arrStorageItems[i].genre);
-				CoTaskMemFree(arrStorageItems[i].title);
-				CoTaskMemFree(arrStorageItems[i].year);
-				CoTaskMemFree(arrStorageItems[i].parentFileName);
+				//CoTaskMemFree(arrStorageItems[i].albumArtist);
+				//CoTaskMemFree(arrStorageItems[i].albumTitle);
+				//CoTaskMemFree(arrStorageItems[i].parentUniqueID);
+				//CoTaskMemFree(arrStorageItems[i].fileName);
+				//CoTaskMemFree(arrStorageItems[i].genre);
+				//CoTaskMemFree(arrStorageItems[i].title);
+				//CoTaskMemFree(arrStorageItems[i].year);
+				//CoTaskMemFree(arrStorageItems[i].parentFileName);
 				arrStorageItems[i].type=-1;
 				arrStorageItems[i].level=-1;
 				wsprintf(arrStorageItems[i].persistentUniqueID,L"0");
@@ -1891,7 +1891,7 @@ void createStorageReferencesContainer(unsigned long typeOfContainer,wchar_t *con
 	plItem.type=WMDM_FILE_ATTR_FILE;
 	arrStorageItems[numStorageItems]=plItem;
 	numStorageItems++;
-	
+
 	//now have a Storage4 interface so we can set the references
 
 	//get the storage items to set the references to
@@ -1907,7 +1907,6 @@ void createStorageReferencesContainer(unsigned long typeOfContainer,wchar_t *con
 	getPlaylistStor->Release();
 	pStorPlaylist->Release();
 	//pStorPlaylist4->Release(); //don't release this either, since it's now part of the ArrStorageitems array
-
 
 	returnMsg("0\n");
 
