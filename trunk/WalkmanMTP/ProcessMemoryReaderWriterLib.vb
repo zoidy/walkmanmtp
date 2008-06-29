@@ -37,7 +37,7 @@ Namespace ProcessMemoryReaderWriterLib
         '			SIZE_T nSize,                 // number of bytes to read
         '			SIZE_T * lpNumberOfBytesRead  // number of bytes read
         '			);
-        <DllImport("kernel32.dll")> _
+        <DllImport("kernel32.dll", setlasterror:=True)> _
         Public Shared Function ReadProcessMemory(ByVal hProcess As IntPtr, ByVal lpBaseAddress As IntPtr, <[In](), Out()> _
 ByVal buffer As Byte(), ByVal size As UInt32, ByRef lpNumberOfBytesRead As IntPtr) As Int32
         End Function
@@ -47,7 +47,7 @@ ByVal buffer As Byte(), ByVal size As UInt32, ByRef lpNumberOfBytesRead As IntPt
                                               ByVal flAllocationType As UInteger, ByVal flProtect As UInteger) As IntPtr
         End Function
 
-        <DllImport("kernel32.dll")> _
+        <DllImport("kernel32.dll", setlasterror:=True)> _
         Public Shared Function WriteProcessMemory(ByVal hProcess As IntPtr, ByVal lpBaseAddress As IntPtr, ByVal lpBuffer As Byte(), _
                                                   ByVal nSize As UIntPtr, <Out()> ByRef lpNumberOfBytesWritten As IntPtr) As Boolean
         End Function
@@ -113,9 +113,10 @@ ByVal buffer As Byte(), ByVal size As UInt32, ByRef lpNumberOfBytesRead As IntPt
             Dim retPtr As New IntPtr(0)
 
             retPtr = ProcessMemoryReaderWriterApi.VirtualAllocEx(m_hProcess, New IntPtr(0), datablock.Length, &H1000I Or &H2000I, &H4I)
-            If Err.LastDllError = 5 Then
-                Trace.WriteLine("Error calling VirtualAllocEx: access denied")
+            If Err.LastDllError <> 0 Then
+                Trace.WriteLine(New ComponentModel.Win32Exception().Message)
             End If
+
             If retPtr.ToInt32 <> 0 Then
                 If ProcessMemoryReaderWriterApi.WriteProcessMemory(m_hProcess, retPtr, datablock, datablock.Length, New IntPtr(0)) = 0 Then
                     retPtr = New IntPtr(0)

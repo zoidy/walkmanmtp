@@ -138,6 +138,7 @@ Public Class Main
         Me.Height = theSettings.MainFormWindowHeight
 
         Me.mnuOptionsShowDeviceIconToolStripMenuItem.Checked = theSettings.ShowDeviceIcon
+        Me.chkDeleteSongsOnAlbumDelete.Checked = theSettings.DeleteAlbumSongsOnAlbumDelete
     End Sub
     Private Sub Main_VisibleChanged(ByVal sender As Object, ByVal e As System.EventArgs) Handles Me.VisibleChanged
         If Me.Visible Then

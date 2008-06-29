@@ -1391,7 +1391,7 @@ void storageCreateFromFile(wchar_t *itemPath,wchar_t *destStorageID, int type,wc
 		insertMetaData=false;
 
 	IWMDMStorage *insertedStorage=NULL;
-	IWMDMStorageControl3 *pDestStorCtrl;
+	IWMDMStorageControl3 *pDestStorCtrl=NULL;
 	unsigned long long size=0;		//the size of the storage. will need this for inserting metadata and for inserting into the arrStorItems array
 	if(insertMetaData==false)
 	{	
@@ -1520,7 +1520,7 @@ void storageCreateFromFile(wchar_t *itemPath,wchar_t *destStorageID, int type,wc
 
 	_tochar cID(plItem.persistentUniqueID);
 	char *t=cID;
-	char ret[50];
+	char ret[60];
 	sprintf(ret,"%s\n",t);
 	returnMsg(ret);
 }
