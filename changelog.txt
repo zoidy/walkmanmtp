@@ -5,6 +5,9 @@ Change log <release date>:<WalkmanMTP version> - <MTPAxe version>
 	-fixed a bug where updating a playlist after a song had been deleted 
 	 but the program had not been refreshed would give an error and result 
 	 in the playlist being cleared
+	-reduced memory usage
+	-improved Windows Vista support
+	-packaged and compressed WalkmanMTP and taglib-sharp into a single .exe
 	-minor ui changes
 15-jun-08: 0.4.1.2 - 0.4.1.2
 	-changed some minor functionality in WalkmanMTP

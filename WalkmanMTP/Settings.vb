@@ -15,6 +15,20 @@
 Imports System.IO
 Public Class Settings
 
+
+    'the class to manage writing/reading settings
+    Private theSettings As New ConfigOpt
+
+    Public Sub New()
+        'the settings are loaded when a new instance of this class is created
+        theSettings.Initialize(Path.Combine(Application.StartupPath, "settings.config"))
+    End Sub
+    Public Sub save()
+        theSettings.Store()
+    End Sub
+
+#Region "setings"
+
     Public Property MainFormWindowState() As FormWindowState
         Get
             Dim str As String = theSettings.GetOption("MainFormWindowState")
@@ -98,21 +112,29 @@ Public Class Settings
             theSettings.SetOption("ShowDeviceIcon", value)
         End Set
     End Property
+    ''' <summary>
+    ''' used for setting the checkbox of the same name
+    ''' </summary>
+    ''' <value></value>
+    ''' <returns></returns>
+    ''' <remarks></remarks>
+    Public Property DeleteAlbumSongsOnAlbumDelete() As Boolean
+        Get
+            Dim str As String = theSettings.GetOption("DeleteAlbumSongsOnAlbumDelete")
 
+            If str = "" Then
+                DeleteAlbumSongsOnAlbumDelete = True
+            Else
+                ShowDeviceIcon = str
+            End If
+        End Get
+        Set(ByVal value As Boolean)
+            theSettings.SetOption("DeleteAlbumSongsOnAlbumDelete", value)
+        End Set
+    End Property
 
+#End Region
 
-
-
-    'the class to manage writing/reading settings
-    Private theSettings As New ConfigOpt
-
-    Public Sub New()
-        'the settings are loaded when a new instance of this class is created
-        theSettings.Initialize(Path.Combine(Application.StartupPath, "settings.config"))
-    End Sub
-    Public Sub save()
-        theSettings.Store()
-    End Sub
 
 
 

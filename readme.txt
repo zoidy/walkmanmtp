@@ -81,9 +81,6 @@ folder by mistake, it will delete the whole folder with no warnings.
 Running this program from a network share may cause unpredictable results. Copy it to the local
 drive instead
 
-To Do
-=====
--better international filename support
 
 
 
