@@ -1,5 +1,14 @@
 Change log <release date>:<WalkmanMTP version> - <MTPAxe version>
 
+20-jul-08: 0.4.2.0 - 0.4.1.4
+	-fix a bug where if there was an error uploading an album, all subsequent albums
+         wouldn't be created
+	-fix a bug where if an album title ended in "." creating the album would fail
+	-fix a display bug where the album size would be displayed incorrectly if the folder
+	 containing the album was dragged in (instead of just the songs)
+	-fixed small bug where the settings in the "delete songs on album delete"
+	 wouldn't be saved
+	-panel widths now saved
 29-jun-08: 0.4.1.4 - 0.4.1.4
 	-fix bug introduced in 0.4.1.3 when changing the album art of an existing album
 28-jun-08: 0.4.1.3 - 0.4.1.3

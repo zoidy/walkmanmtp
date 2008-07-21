@@ -102,6 +102,9 @@ Public Class Main
         theSettings.MainFormWindowState = Me.WindowState
         theSettings.MainFormWindowHeight = Me.Height
         theSettings.MainFormWindowWidth = Me.Width
+        theSettings.AlbumPanelSplitterDistance = Me.SplitContainer3.SplitterDistance
+        theSettings.PlaylistsPanelSplitterDistance = Me.SplitContainer1.SplitterDistance
+        theSettings.FileManagementPanelSplitterDistance = Me.SplitContainer2.SplitterDistance
         theSettings.save()
     End Sub
  
@@ -133,12 +136,22 @@ Public Class Main
         Me.pbAlbumArt.AllowDrop = True
 
         'set the form state from the settings
-        Me.WindowState = theSettings.MainFormWindowState
-        Me.Width = theSettings.MainFormWindowWidth
-        Me.Height = theSettings.MainFormWindowHeight
+        Try
+            Me.WindowState = theSettings.MainFormWindowState
+            Me.Width = theSettings.MainFormWindowWidth
+            Me.Height = theSettings.MainFormWindowHeight
+            Me.SplitContainer3.SplitterDistance = theSettings.AlbumPanelSplitterDistance
+            Me.SplitContainer1.SplitterDistance = theSettings.PlaylistsPanelSplitterDistance
+            Me.SplitContainer2.SplitterDistance = theSettings.FileManagementPanelSplitterDistance
 
-        Me.mnuOptionsShowDeviceIconToolStripMenuItem.Checked = theSettings.ShowDeviceIcon
-        Me.chkDeleteSongsOnAlbumDelete.Checked = theSettings.DeleteAlbumSongsOnAlbumDelete
+            Me.mnuOptionsShowDeviceIconToolStripMenuItem.Checked = theSettings.ShowDeviceIcon
+            Me.chkDeleteSongsOnAlbumDelete.Checked = theSettings.DeleteAlbumSongsOnAlbumDelete
+        Catch ex As Exception
+        End Try
+    End Sub
+
+    Private Sub Main_Shown(ByVal sender As Object, ByVal e As System.EventArgs) ' Handles Me.Shown
+
     End Sub
     Private Sub Main_VisibleChanged(ByVal sender As Object, ByVal e As System.EventArgs) Handles Me.VisibleChanged
         If Me.Visible Then
@@ -976,7 +989,11 @@ Public Class Main
 
 #Region "Albums"
     Private Sub syncAlbums()
+        'keeps track of whether an error occured for a given album
         Dim albumSyncError As Boolean = False
+        'keeps track of whether an error occured for ANY album (so we can show the
+        'warning dialog at the end)
+        Dim albumSyncErrorOccurred As Boolean = False
 
         'save any changes to the current album (only if one is selected, and has a valid title)
         If Me.lvAlbumItems.Tag IsNot Nothing And Me.txtAlbumTitle.Text <> "" Then saveAlbumMetadata(Me.lvAlbumItems.Tag)
@@ -1072,6 +1089,7 @@ Public Class Main
                             If ret = "-1" Then
                                 Trace.WriteLine("Sync album error: Couldn't create folder " & folderToUploadToName & " in folder MUSIC")
                                 albumSyncError = True
+                                folderToUploadTo = Nothing
                             Else
                                 tmp.ID = ret
                                 tmp.FileName = folderToUploadToName
@@ -1085,19 +1103,22 @@ Public Class Main
                             End If
                         End If
 
-                        'we now have a valid folder to put the song in so now we can upload
+                        If folderToUploadTo IsNot Nothing Then
+                            'we now have a valid folder to put the song in so now we can upload
 
-                        Trace.WriteLine("Uploading " & songMetadata.FilePath)
-                        Splash.setText("Uploading " & songMetadata.FileName)
-                        ret = axe.uploadFile(songMetadata.FilePath, folderToUploadTo.Tag.id, 0, songMetadata)
-                        If ret = "-1" Then
-                            Trace.WriteLine("error syncing album. couldn't upload file " & songMetadata.FilePath & " Out of space maybe?")
-                            albumSyncError = True
-                        Else
-                            uploadedFilesIDs = uploadedFilesIDs & ret & ":"
+                            Trace.WriteLine("Uploading " & songMetadata.FilePath)
+                            Splash.setText("Uploading " & songMetadata.FileName)
+                            ret = axe.uploadFile(songMetadata.FilePath, folderToUploadTo.Tag.id, 0, songMetadata)
+                            If ret = "-1" Then
+                                Trace.WriteLine("error syncing album. couldn't upload file " & songMetadata.FilePath & " Out of space maybe?")
+                                albumSyncError = True
+                            Else
+                                uploadedFilesIDs = uploadedFilesIDs & ret & ":"
+                            End If
+
+                            songsUploaded = True
                         End If
 
-                        songsUploaded = True
                     End If 'if song is new
                 Next
                 Trace.WriteLine("Uploading new albums - uploading songs for album " & modifiedMetadata.AlbumTitle & " Done")
@@ -1131,15 +1152,23 @@ Public Class Main
                     'upload the album, if it is new or has been modified
                     Trace.WriteLine("Creating albums - creating " & modifiedMetadata.AlbumTitle)
                     Dim ret As String = axe.createAlbum(modifiedMetadata.AlbumTitle, uploadedFilesIDs, modifiedMetadata)
+                    If ret = "-1" Then
+                        albumSyncError = True
+                    End If
 
                 End If
             End If 'if album is modified
+
+            If albumSyncError Then
+                albumSyncErrorOccurred = True
+            End If
+            albumSyncError = False
         Next
         Trace.WriteLine("Uploading albums Done")
 
         Trace.WriteLine("Syncing albums...done")
 
-        If albumSyncError Then
+        If albumSyncErrorOccurred Then
             MsgBox("There were errors syncing albums. Check the log", MsgBoxStyle.Exclamation Or MsgBoxStyle.SystemModal)
         End If
 
@@ -2899,175 +2928,7 @@ Public Class Main
         'subnodes which are the files themselves.  The treeview will have a directory depth of 1 (starting
         'from 0 for the root). empty directories will not be added
 
-        'this commented code is not currently used (it's another method of creating the albums list
-        'where each album is considered a subdirectory with only song file (and no subdirectories).
-        'all other files in other directories are ignored)
-        'Dim tv As TreeView = New TreeView
-        'Try
-        '    For Each Dir As String In fileSystemEntries
-        '        'first check to see if dir is really a directory. if it isn't ignore it
-        '        If IO.Directory.Exists(Dir) Then
-        '            'if it is a directory, check to see if it is a leaf
-        '            Dim subDirs() As String = IO.Directory.GetDirectories(Dir)
-        '            If subDirs.Length = 0 Then
-        '                'Dir is a leaf so count it as an album
-        '                Dim albumMetadata As New StorageItem
-        '                Dim album As New TreeNode
-
-        '                'get files in the directory
-        '                Dim files() As String = IO.Directory.GetFiles(Dir)
-        '                Array.Sort(files)
-
-        '                Dim firstFileFound As Boolean = False  'use the first valid file in the directory to set the album metadata
-        '                Dim albumArtFound As Boolean = False 'use the first jpg in the directory for the album art
-        '                For Each file In files
-        '                    Try
-        '                        Dim fileMetadata As New StorageItem
-        '                        Dim song As New TreeNode
-
-        '                        'the first thing to do, is check for album art. the first jpg file will be taken
-        '                        'as the cover.
-        '                        If Not albumArtFound Then
-        '                            If IO.Path.GetExtension(file) = ".jpg" Or IO.Path.GetExtension(file) = ".jpeg" Then
-        '                                albumMetadata.AlbumArtPath = file
-        '                                albumArtFound = True
-        '                            End If
-        '                        End If
-        '                        'note the file extension must be correct or taglib won't properly recognize the file
-        '                        Dim tagReader As TagLib.File = TagLib.File.Create(file)
-        '                        fileMetadata.Title = tagReader.Tag.Title
-        '                        fileMetadata.AlbumTitle = tagReader.Tag.Album
-        '                        fileMetadata.AlbumArtist = tagReader.Tag.FirstArtist
-        '                        If fileMetadata.AlbumArtist = "" Then
-        '                            fileMetadata.AlbumArtist = tagReader.Tag.FirstAlbumArtist
-        '                            If fileMetadata.AlbumArtist = "" Then
-        '                                fileMetadata.AlbumArtist = tagReader.Tag.FirstPerformer
-        '                                If fileMetadata.AlbumArtist = "" Then
-        '                                    fileMetadata.AlbumArtist = tagReader.Tag.FirstComposer
-        '                                End If
-        '                            End If
-        '                        End If
-        '                        fileMetadata.FileName = IO.Path.GetFileName(file)
-        '                        fileMetadata.Genre = tagReader.Tag.FirstGenre
-        '                        fileMetadata.TrackNum = tagReader.Tag.Track
-        '                        fileMetadata.Year = tagReader.Tag.Year
-        '                        fileMetadata.Size = (New IO.FileInfo(file)).Length
-
-        '                        tagReader = Nothing
-
-        '                        'if we haven't yet found a file to use for the album metadata, try using this one
-        '                        'note this metadata is for display purposes only, since the walkman doesn't save
-        '                        'any metadata for albums (even if it is explicitly saved. only title and genre are saved for some reason)
-        '                        'use the first file found that has valid album title and artist(presumably, it will have a genre and year too)
-        '                        If Not firstFileFound Then
-        '                            If fileMetadata.AlbumTitle <> "" And fileMetadata.AlbumArtist <> "" Then
-        '                                'don't overwrite the tag if it's already determined to be Various
-        '                                If Not albumMetadata.AlbumArtist = "Various" Then albumMetadata.AlbumArtist = fileMetadata.AlbumArtist
-        '                                If Not albumMetadata.Genre = "Various" Then albumMetadata.Genre = fileMetadata.Genre
-        '                                If Not albumMetadata.Year = "Various" Then albumMetadata.Year = fileMetadata.Year
-        '                                albumMetadata.AlbumTitle = fileMetadata.AlbumTitle
-        '                                firstFileFound = True
-        '                            End If
-        '                        End If
-
-        '                        'if the current song's metadata is different than the first (or any other) file's metadata
-        '                        'we have a mixed value tag. use Various as the album tag
-        '                        If album.Nodes.Count > 0 Then
-        '                            Dim metadata As StorageItem = CType(album.Nodes(0).Tag, StorageItem)
-        '                            If metadata IsNot Nothing Then
-        '                                If metadata.AlbumArtist <> fileMetadata.AlbumArtist Then
-        '                                    albumMetadata.AlbumArtist = "Various"
-        '                                End If
-        '                                If metadata.Genre <> fileMetadata.Genre Then
-        '                                    albumMetadata.Genre = "Various"
-        '                                End If
-        '                                If metadata.Year <> fileMetadata.Year Then
-        '                                    albumMetadata.Year = "Various"
-        '                                End If
-        '                            ElseIf fileMetadata IsNot Nothing Then
-        '                                'the first node's metadata was nothing and this song's metatadata was something
-        '                                'therfore they are different
-        '                                albumMetadata.Genre = "Various"
-        '                                albumMetadata.AlbumArtist = "Various"
-        '                                albumMetadata.Year = "Various"
-        '                                'dont set the album title to various, since it doesn't make sense to have an album
-        '                                'with various album titles. this means the user has improperly sorted/tagged
-        '                                'the songs in the album's folder. just keep using the album title of the first file in this case
-        '                                firstFileFound = True
-        '                            End If
-        '                        End If
-
-        '                        song.Tag = fileMetadata
-        '                        song.Text = fileMetadata.Title
-
-        '                        'add the song to the album
-        '                        album.Nodes.Add(song)
-        '                    Catch ex As Exception
-        '                        Trace.WriteLine("buildAlbumsListFromPaths: " & ex.Message & " for file=" & file)
-        '                    End Try
-        '                Next
-
-        '                'if there was no albuum art found in the directory, check for embedded album art.
-        '                If Not albumArtFound Then
-        '                    If files.Length > 0 Then
-        '                        Dim tmpfile As String = ""
-        '                        Dim tagreader As TagLib.File = Nothing
-        '                        Try
-        '                            tagreader = TagLib.File.Create(files(0))
-        '                        Catch ex As Exception
-        '                            Trace.WriteLine("add albumart from embedded: error getting tag for " & files(0))
-        '                        End Try
-        '                        'check to see if the first file in the directory has album art.
-        '                        'if it does, use it as the album art
-        '                        If tagreader IsNot Nothing AndAlso tagreader.Tag.Pictures.Length > 0 Then
-        '                            Try
-        '                                tmpfile = IO.Path.GetTempFileName
-        '                                Dim file As New IO.FileStream(tmpfile, IO.FileMode.Truncate)
-        '                                file.Write(tagreader.Tag.Pictures(0).Data.Data, 0, tagreader.Tag.Pictures(0).Data.Data.Length)
-        '                                file.Close()
-
-        '                                'don't forget to delete this after.
-        '                                albumMetadata.AlbumArtPath = tmpfile
-
-        '                            Catch ex As Exception
-        '                                Trace.WriteLine("File " & files(0) & " had embedded album art but it was unable to be saved to " & tmpfile & " - " & ex.Message & "," & ex.Source)
-        '                            End Try
-        '                        End If
-
-        '                    End If
-        '                End If
-
-        '                'since this album is not yet on the player, we need a way to identify it
-        '                'so we can search the tree for it later
-        '                albumMetadata.ID = Now.Ticks.ToString
-
-        '                album.Tag = albumMetadata
-        '                album.Text = albumMetadata.AlbumTitle
-
-        '                tv.Nodes.Add(album)
-
-        '            Else
-        '                'Dir is not a leaf. search the subdirectories for all leaves
-        '                Dim subTv As TreeView
-        '                subTv = buildAlbumsListFromPaths(subDirs)
-        '                If subTv IsNot Nothing Then
-        '                    'add all returned albums to the main albums list
-        '                    For Each node As TreeNode In subTv.Nodes
-        '                        tv.Nodes.Add(node.Clone)
-        '                    Next
-        '                    subTv.Dispose()
-        '                    subTv = Nothing
-        '                End If
-        '            End If
-        '        End If
-        '    Next
-        'Catch ex As Exception
-        '    Trace.WriteLine("buildAlbumsListFromDirectory error - " & ex.Message & "," & ex.Source)
-        '    tv = Nothing
-        'End Try
-
-        'Return tv
-
+        
         Trace.WriteLine("buildAlbumsListFromDirectory...")
 
         Dim tv As New TreeView
@@ -3135,6 +2996,9 @@ Public Class Main
                                             foundAlbumMetadata.AlbumArtPath = nodeToMergeMetadata.AlbumArtPath
                                             foundAlbumMetadata.AlbumArtIsFromEmbedded = False
                                         End If
+
+                                        'update the album size
+                                        foundAlbumMetadata.Size += nodeToMergeMetadata.Size
 
                                         foundalbum.Tag = foundAlbumMetadata
                                         nodeToMerge = foundalbum.Clone
@@ -3692,4 +3556,36 @@ Public Class Main
 
 #End Region
 
+    Private Sub CleanUpEmptyFoldersToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles CleanUpEmptyFoldersToolStripMenuItem.Click
+        Dim str As String = ""
+        Dim musicFolder As TreeNode = Nothing
+        For Each node As TreeNode In fullFileListing.Nodes
+            musicFolder = findTreeNodeByName(node, "MUSIC")
+        Next
+        If musicFolder IsNot Nothing Then
+            deleteEmptyFolders(musicFolder)
+        End If
+
+    End Sub
+    Private Sub deleteEmptyFolders(ByVal tn As TreeNode)
+        'deletes all empty folders and subfolders in the given folder 
+        '(doesn't delete the topmost folder, even if it's empty)
+
+        For Each node As TreeNode In tn.Nodes
+            'check to see if the node is a folder
+            If (node.Tag.StorageType And MTPAxe.WMDM_FILE_ATTR_FOLDER) = MTPAxe.WMDM_FILE_ATTR_FOLDER Then
+                'if the specified subfolder is not empty, make a recursive call 
+                If node.Nodes.Count <> 0 Then
+                    'if it's not empty, check the sub folders (if any)
+                    deleteEmptyFolders(node)
+                End If
+
+                'if, after returning from the recursive call, the folder is now empty,
+                'delete it
+                If node.Nodes.Count = 0 Then
+                    Trace.WriteLine("delete node" & CType(node.Tag, StorageItem).FileName)
+                End If
+            End If
+        Next
+    End Sub
 End Class

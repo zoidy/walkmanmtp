@@ -125,11 +125,54 @@ Public Class Settings
             If str = "" Then
                 DeleteAlbumSongsOnAlbumDelete = True
             Else
-                ShowDeviceIcon = str
+                DeleteAlbumSongsOnAlbumDelete = str
             End If
         End Get
         Set(ByVal value As Boolean)
             theSettings.SetOption("DeleteAlbumSongsOnAlbumDelete", value)
+        End Set
+    End Property
+
+    Public Property AlbumPanelSplitterDistance() As Integer
+        Get
+            Dim str As String = theSettings.GetOption("AlbumPanelSplitterDistance")
+
+            If str = "" Then
+                AlbumPanelSplitterDistance = 419
+            Else
+                AlbumPanelSplitterDistance = str
+            End If
+        End Get
+        Set(ByVal value As Integer)
+            theSettings.SetOption("AlbumPanelSplitterDistance", value)
+        End Set
+    End Property
+    Public Property PlaylistsPanelSplitterDistance() As Integer
+        Get
+            Dim str As String = theSettings.GetOption("PlaylistsPanelSplitterDistance")
+
+            If str = "" Then
+                PlaylistsPanelSplitterDistance = 364
+            Else
+                PlaylistsPanelSplitterDistance = str
+            End If
+        End Get
+        Set(ByVal value As Integer)
+            theSettings.SetOption("PlaylistsPanelSplitterDistance", value)
+        End Set
+    End Property
+    Public Property FileManagementPanelSplitterDistance() As Integer
+        Get
+            Dim str As String = theSettings.GetOption("FileManagementPanelSplitterDistance")
+
+            If str = "" Then
+                FileManagementPanelSplitterDistance = 364
+            Else
+                FileManagementPanelSplitterDistance = str
+            End If
+        End Get
+        Set(ByVal value As Integer)
+            theSettings.SetOption("FileManagementPanelSplitterDistance", value)
         End Set
     End Property
 

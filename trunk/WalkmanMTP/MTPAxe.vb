@@ -706,6 +706,16 @@ Public Class MTPAxe
 
         If metadata Is Nothing Then metadata = New StorageItem
 
+        'do some checks on the albumTitle
+        'if the path ends in a period, remove the trailing period or there will be an error
+        albumTitle = albumTitle.Trim
+        If albumTitle.EndsWith(".") Then
+            albumTitle = albumTitle.Substring(0, albumTitle.Length - 2)
+        End If
+        If albumTitle.StartsWith(".") Then
+            albumTitle = albumTitle.Substring(1, albumTitle.Length - 1)
+        End If
+
         sOut.WriteLine(MTPAXE_M_DEVICE_CREATEALBUM)
         sOut.WriteLine(writeWideCharToPointer(albumTitle.Trim))
         sOut.WriteLine(writeWideCharToPointer(items.Trim))
@@ -718,7 +728,7 @@ Public Class MTPAxe
         s = sIn.ReadLine
 
         If s = "-1" Then
-            Trace.WriteLine("MTPAxe: creating album - " & sErr.ReadLine)
+            Trace.WriteLine("MTPAxe: error creating album - " & sErr.ReadLine)
             Return "-1"
         End If
 
@@ -760,7 +770,11 @@ Public Class MTPAxe
         'this argument is only valid for files, not folders. if metadatra is specified for a folder, it will be ignored
         'returns the persistientuniqueid of the created item on OK, -1 on error
 
-        Trace.WriteLine("MTPAxe: uploading file " & path)
+        If type = 0 Then
+            Trace.WriteLine("MTPAxe: uploading file " & path)
+        Else
+            Trace.WriteLine("MTPAxe: creating folder " & path)
+        End If
 
         Dim s As String
 
@@ -770,6 +784,16 @@ Public Class MTPAxe
         End If
 
         If metadata Is Nothing Then metadata = New StorageItem
+
+        'do some checks on the path
+        'if the path ends in a period, remove the trailing period or there will be an error
+        path = path.Trim
+        If path.EndsWith(".") Then
+            path = path.Substring(0, path.Length - 2)
+        End If
+        If path.StartsWith(".") Then
+            path = path.Substring(1, path.Length - 1)
+        End If
 
         sOut.WriteLine(MTPAXE_M_STORAGE_CREATEFROMFILE)
 
