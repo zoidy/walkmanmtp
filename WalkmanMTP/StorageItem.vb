@@ -42,6 +42,13 @@ Public Class StorageItem
             mLevel = value
         End Set
     End Property
+    ''' <summary>
+    ''' the type of the storage.
+    ''' usually MTPAxe.WMDM_FILE_ATTR_FILE for files
+    ''' </summary>
+    ''' <value></value>
+    ''' <returns></returns>
+    ''' <remarks></remarks>
     Public Property StorageType() As Integer
         Get
             StorageType = mtype
