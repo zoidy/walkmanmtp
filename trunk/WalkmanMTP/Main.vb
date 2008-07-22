@@ -83,8 +83,113 @@ Public Class Main
         pboxDevIcon.Visible = mnuOptionsShowDeviceIconToolStripMenuItem.Checked
         theSettings.ShowDeviceIcon = mnuOptionsShowDeviceIconToolStripMenuItem.Checked
     End Sub
+
+    Private Sub CleanUpEmptyFoldersToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles CleanUpEmptyFoldersToolStripMenuItem.Click
+        'deletes all empty folders and subfolders in the MUSIC directory
+
+        Dim str As String = ""
+        Dim musicFolder As TreeNode = Nothing
+        For Each node As TreeNode In fullFileListing.Nodes
+            musicFolder = findTreeNodeByName(node, "MUSIC")
+        Next
+        Dim listToDelete As New List(Of TreeNode)
+        If musicFolder IsNot Nothing Then
+            getEmptyFoldersToDelete(musicFolder, listToDelete)
+        End If
+        If MsgBox("Will delete " & listToDelete.Count & " folders and subfolders. Continue?", MsgBoxStyle.Exclamation Or MsgBoxStyle.SystemModal Or MsgBoxStyle.YesNo, "Are you sure?") = MsgBoxResult.No Then
+            Exit Sub
+        End If
+
+        Trace.WriteLine("Cleaning up " & listToDelete.Count & " empty folders...")
+
+        Windows.Forms.Cursor.Current = Cursors.WaitCursor
+
+        'now go through the list and delete each folder
+        Dim nodeFound As TreeNode
+        For Each node As TreeNode In listToDelete
+            'search for the node in the main tree and remove it
+            nodeFound = Nothing
+            nodeFound = findTreeNodeByID(fullFileListing.Nodes(0), node.Tag.ID)
+            If nodeFound IsNot Nothing Then
+                Trace.WriteLine("deleting " & node.Tag.filename)
+                If Not axe.deleteFile(node.Tag.id) = "-1" Then
+                    nodeFound.Remove()
+                Else
+                    Trace.WriteLine("error deleting " & node.Tag.filename)
+                End If
+            End If
+        Next
+
+        listToDelete.Clear()
+        listToDelete = Nothing
+
+        refreshFileTransfersDeviceFiles()
+        refreshPlaylistDeviceFiles()
+
+        Windows.Forms.Cursor.Current = Cursors.Default
+
+        Trace.WriteLine("Cleaning up empty folders...Done")
+        MsgBox("Deleting empty folders complete.", MsgBoxStyle.Information Or MsgBoxStyle.OkOnly Or MsgBoxStyle.SystemModal)
+    End Sub
+    Private Sub getEmptyFoldersToDelete(ByVal tn As TreeNode, ByRef listToDelete As List(Of TreeNode))
+        'deletes all empty folders and subfolders in the given folder 
+        '(doesn't delete the topmost folder, even if it's empty)
+        'listToDelete is the list of nodes scheduled for deletion. it must be created by the caller
+
+        For Each node As TreeNode In tn.Nodes
+            'check to see if the node is a subfolder of tn
+            If (node.Tag.StorageType And MTPAxe.WMDM_FILE_ATTR_FOLDER) = MTPAxe.WMDM_FILE_ATTR_FOLDER Then
+                'if the specified subfolder is not empty, make a recursive call 
+                If node.Nodes.Count <> 0 Then
+                    'if it's not empty, check the sub folders (if any)
+                    getEmptyFoldersToDelete(node, listToDelete)
+
+                    'if all of the subfolders of the subfolder 'node' are scheduled
+                    'for deletion, can also delete 'node'
+                    Dim subFolderFound As Boolean
+                    Dim allSubFoldersScheduledForDeletion As Boolean = True
+                    For Each subnode As TreeNode In node.Nodes
+                        subFolderFound = False
+                        'search for the subnode in the listToDelete
+                        For Each nodetodelete As TreeNode In listToDelete
+                            If subnode.Tag.id = nodetodelete.Tag.id Then
+                                'if found, set the flag
+                                subFolderFound = True
+                                Exit For
+                            End If
+                        Next
+
+                        'if the subfolder was not found, then it is not to be deleted
+                        'therefore the node 'node' cannot be deleted
+                        If subFolderFound = False Then
+                            allSubFoldersScheduledForDeletion = False
+                            Exit For
+                        End If
+                    Next
+
+                    'if there is any subfolder (this works for files too) not scheduled for
+                    'deletion, then we cannot delete the 'node' folder.
+                    If allSubFoldersScheduledForDeletion Then
+                        'if they are all scheduled for deletion, schedule the main 'node' folder too
+                        listToDelete.Add(node.Clone)
+                    End If
+                Else
+                    'if the folder 'node' is empty, schedule for deletion
+                    'clone the node since we don't want to remove it from the original list yet
+                    listToDelete.Add(node.Clone)
+
+                End If 'node.Nodes.Count <> 0 
+
+
+            End If
+        Next
+
+    End Sub
 #End Region
 
+
+
+#Region "main form"
     Private Sub Main_FormClosing(ByVal sender As Object, ByVal e As System.Windows.Forms.FormClosingEventArgs) Handles Me.FormClosing
         'delete temporary albumart icons
         removeAllAlbumsFromAlbumsList()
@@ -107,7 +212,6 @@ Public Class Main
         theSettings.FileManagementPanelSplitterDistance = Me.SplitContainer2.SplitterDistance
         theSettings.save()
     End Sub
- 
     Private Sub Main_Load(ByVal sender As Object, ByVal e As System.EventArgs) Handles Me.Load
         Me.btnAddPlaylist.Image = My.Resources.Playlist_add
         Me.btnDelPlaylist.Image = My.Resources.Playlist_delete
@@ -149,10 +253,6 @@ Public Class Main
         Catch ex As Exception
         End Try
     End Sub
-
-    Private Sub Main_Shown(ByVal sender As Object, ByVal e As System.EventArgs) ' Handles Me.Shown
-
-    End Sub
     Private Sub Main_VisibleChanged(ByVal sender As Object, ByVal e As System.EventArgs) Handles Me.VisibleChanged
         If Me.Visible Then
             'create the custom treeview
@@ -174,6 +274,8 @@ Public Class Main
             Trace.WriteLine("Application Starting...Completed")
         End If
     End Sub
+
+
     Private Sub btnDeviceDetails_LinkClicked(ByVal sender As System.Object, ByVal e As System.Windows.Forms.LinkLabelLinkClickedEventArgs) Handles btnDeviceDetails.LinkClicked
         If Not DeviceConnected Then
             MessageBox.Show("No device selected. Please select a device from the list and then retry.", "Walkman MTP", MessageBoxButtons.OK, MessageBoxIcon.Exclamation)
@@ -216,6 +318,7 @@ Public Class Main
 
         t.Abort()
     End Sub
+
 
     Private Sub initAndRefreshApp()
         Splash.Close()
@@ -364,6 +467,7 @@ Public Class Main
             Me.initSelectedDevice(Me.cmbDevices.SelectedItem.ToString)
         End If
     End Sub
+#End Region
 
 #Region "Playlists"
     Private Sub syncPlaylists()
@@ -861,7 +965,7 @@ Public Class Main
             strIDs = Nothing
         Next
 
-     
+
         createNewPlaylist(nameNewPlaylist, False)
 
 
@@ -2928,7 +3032,7 @@ Public Class Main
         'subnodes which are the files themselves.  The treeview will have a directory depth of 1 (starting
         'from 0 for the root). empty directories will not be added
 
-        
+
         Trace.WriteLine("buildAlbumsListFromDirectory...")
 
         Dim tv As New TreeView
@@ -3395,7 +3499,7 @@ Public Class Main
                     Exit For
                 End If
             Next
-            If isPlayer = False Then                
+            If isPlayer = False Then
                 Me.removeAllAlbumsFromAlbumsList(True)
                 Me.deleteAllPlaylists()
                 tvPlaylistsFilesOnDevice.Nodes.Clear()
@@ -3403,7 +3507,7 @@ Public Class Main
                 tvPlaylistsFilesOnDevice.Nodes.Clear()
                 Return False
             End If
-        Else            
+        Else
             Me.removeAllAlbumsFromAlbumsList(True)
             Me.deleteAllPlaylists()
             lvFileManagementDeviceFilesInFolder.Items.Clear()
@@ -3556,36 +3660,5 @@ Public Class Main
 
 #End Region
 
-    Private Sub CleanUpEmptyFoldersToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles CleanUpEmptyFoldersToolStripMenuItem.Click
-        Dim str As String = ""
-        Dim musicFolder As TreeNode = Nothing
-        For Each node As TreeNode In fullFileListing.Nodes
-            musicFolder = findTreeNodeByName(node, "MUSIC")
-        Next
-        If musicFolder IsNot Nothing Then
-            deleteEmptyFolders(musicFolder)
-        End If
 
-    End Sub
-    Private Sub deleteEmptyFolders(ByVal tn As TreeNode)
-        'deletes all empty folders and subfolders in the given folder 
-        '(doesn't delete the topmost folder, even if it's empty)
-
-        For Each node As TreeNode In tn.Nodes
-            'check to see if the node is a folder
-            If (node.Tag.StorageType And MTPAxe.WMDM_FILE_ATTR_FOLDER) = MTPAxe.WMDM_FILE_ATTR_FOLDER Then
-                'if the specified subfolder is not empty, make a recursive call 
-                If node.Nodes.Count <> 0 Then
-                    'if it's not empty, check the sub folders (if any)
-                    deleteEmptyFolders(node)
-                End If
-
-                'if, after returning from the recursive call, the folder is now empty,
-                'delete it
-                If node.Nodes.Count = 0 Then
-                    Trace.WriteLine("delete node" & CType(node.Tag, StorageItem).FileName)
-                End If
-            End If
-        Next
-    End Sub
 End Class

@@ -1,6 +1,8 @@
 Change log <release date>:<WalkmanMTP version> - <MTPAxe version>
 
 20-jul-08: 0.4.2.0 - 0.4.1.4
+	-added a tool (in the tools menu) to automatically delete empty folders (use at your
+	 own risk)
 	-fix a bug where if there was an error uploading an album, all subsequent albums
          wouldn't be created
 	-fix a bug where if an album title ended in "." creating the album would fail
