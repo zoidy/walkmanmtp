@@ -56,6 +56,11 @@ File management:
  there is enough space on the device.
 -To delete a file or folder, select it in the right hand pane. Note deleting a folder
  will delete everything inside it too.
+-If a video file is uploaded, a thumbnail will automatically be added. The thumbnail is taken
+ from the seventh second of the video file (user can change this behaviour).  
+ FFmpeg.exe must be in the same folder as WalkmanMTP.  Any recent version of the
+ ffmpeg binaries for win32 should work.  One such precompiled binary is the one from Gianluigi Tiesi
+ found here: http://oss.netfarm.it/mplayer-win32.php
 
 
 Troubleshooting

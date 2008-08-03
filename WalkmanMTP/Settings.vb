@@ -176,6 +176,34 @@ Public Class Settings
         End Set
     End Property
 
+    Public Property AddThumbnailToVideo() As Boolean
+        Get
+            Dim str As String = theSettings.GetOption("AddThumbnailToVideo")
+
+            If str = "" Then
+                AddThumbnailToVideo = True
+            Else
+                AddThumbnailToVideo = str
+            End If
+        End Get
+        Set(ByVal value As Boolean)
+            theSettings.SetOption("AddThumbnailToVideo", value)
+        End Set
+    End Property
+    Public Property ThumbnailTime() As Integer
+        Get
+            Dim str As String = theSettings.GetOption("ThumbnailTime")
+
+            If str = "" Then
+                ThumbnailTime = 7
+            Else
+                ThumbnailTime = str
+            End If
+        End Get
+        Set(ByVal value As Integer)
+            theSettings.SetOption("ThumbnailTime", value)
+        End Set
+    End Property
 #End Region
 
 
