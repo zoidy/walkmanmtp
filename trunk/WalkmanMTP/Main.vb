@@ -62,8 +62,36 @@ Public Class Main
         If axe IsNot Nothing Then
             mtpAxeVer = axe.getMTPAxeVersion
         End If
+
+        'try to get the ffmpeg version
+        Dim ffmpegVer As String = "FFmpeg: ffmpeg.exe is not installed"
+        Dim ffmpeg As New Process
+        Try
+            ffmpeg.StartInfo.FileName = IO.Path.Combine(Application.StartupPath, "ffmpeg.exe")
+            ffmpeg.StartInfo.Arguments = "-version"
+            ffmpeg.StartInfo.UseShellExecute = False
+            ffmpeg.StartInfo.RedirectStandardError = True
+            ffmpeg.StartInfo.CreateNoWindow = True
+
+            ffmpeg.Start()
+
+            If Not ffmpeg.WaitForExit(3000) Then
+                Throw New Exception("error getting ffmpeg.exe version (timeout)")
+            End If
+
+            ffmpegVer = "FFmpeg: " & ffmpeg.StandardError.ReadToEnd
+
+        Catch ex As Exception
+            ffmpegVer = "FFmpeg: " & ex.Message
+        End Try
+        Try
+            ffmpeg.Kill()
+        Catch
+        End Try
+
         MsgBox("WalkmanMTP by Dr. Zoidberg v" & Application.ProductVersion & vbCrLf & mtpAxeVer & vbCrLf & vbCrLf & _
                "Taglib# by Brian Nickel v" & System.Reflection.Assembly.GetAssembly(GetType(TagLib.File)).GetName.Version.ToString & vbCrLf & _
+               ffmpegVer & vbCrLf & _
                "Icons by Mark James (www.famfamfam.com/lab/icons/silk) and poggos", MsgBoxStyle.Information, "About")
 
     End Sub
@@ -82,6 +110,10 @@ Public Class Main
         mnuOptionsShowDeviceIconToolStripMenuItem.Checked = Not mnuOptionsShowDeviceIconToolStripMenuItem.Checked
         pboxDevIcon.Visible = mnuOptionsShowDeviceIconToolStripMenuItem.Checked
         theSettings.ShowDeviceIcon = mnuOptionsShowDeviceIconToolStripMenuItem.Checked
+    End Sub
+    Private Sub mnuAddThumbnailForUploadedVideosToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles mnuAddThumbnailForUploadedVideosToolStripMenuItem.Click
+        mnuAddThumbnailForUploadedVideosToolStripMenuItem.Checked = Not mnuAddThumbnailForUploadedVideosToolStripMenuItem.Checked
+        theSettings.AddThumbnailToVideo = mnuAddThumbnailForUploadedVideosToolStripMenuItem.Checked
     End Sub
 
     Private Sub CleanUpEmptyFoldersToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles CleanUpEmptyFoldersToolStripMenuItem.Click
@@ -210,6 +242,13 @@ Public Class Main
         theSettings.AlbumPanelSplitterDistance = Me.SplitContainer3.SplitterDistance
         theSettings.PlaylistsPanelSplitterDistance = Me.SplitContainer1.SplitterDistance
         theSettings.FileManagementPanelSplitterDistance = Me.SplitContainer2.SplitterDistance
+        Dim i As Integer
+        If Not Integer.TryParse(mnutxtThumbnailTimeToolStripMenuItem.Text, i) Then
+            theSettings.ThumbnailTime = 7
+        Else
+            theSettings.ThumbnailTime = i
+        End If
+
         theSettings.save()
     End Sub
     Private Sub Main_Load(ByVal sender As Object, ByVal e As System.EventArgs) Handles Me.Load
@@ -241,15 +280,17 @@ Public Class Main
 
         'set the form state from the settings
         Try
+            Me.mnuOptionsShowDeviceIconToolStripMenuItem.Checked = theSettings.ShowDeviceIcon
+            Me.chkDeleteSongsOnAlbumDelete.Checked = theSettings.DeleteAlbumSongsOnAlbumDelete
+            Me.mnuAddThumbnailForUploadedVideosToolStripMenuItem.Checked = theSettings.AddThumbnailToVideo
+            Me.mnutxtThumbnailTimeToolStripMenuItem.Text = theSettings.ThumbnailTime
+
             Me.WindowState = theSettings.MainFormWindowState
             Me.Width = theSettings.MainFormWindowWidth
             Me.Height = theSettings.MainFormWindowHeight
             Me.SplitContainer3.SplitterDistance = theSettings.AlbumPanelSplitterDistance
             Me.SplitContainer1.SplitterDistance = theSettings.PlaylistsPanelSplitterDistance
             Me.SplitContainer2.SplitterDistance = theSettings.FileManagementPanelSplitterDistance
-
-            Me.mnuOptionsShowDeviceIconToolStripMenuItem.Checked = theSettings.ShowDeviceIcon
-            Me.chkDeleteSongsOnAlbumDelete.Checked = theSettings.DeleteAlbumSongsOnAlbumDelete
         Catch ex As Exception
         End Try
     End Sub
@@ -2617,6 +2658,23 @@ Public Class Main
             End If
             newItem.ID = createdItemID
 
+            'if it's a video file we're uploading, try to get a frame and upload it, if it's enabled.
+            'no errors are shown to the user (except in the log file)
+            If ext.ToLower = ".mp4" Or ext.ToLower = ".m4v" Then
+                If mnuAddThumbnailForUploadedVideosToolStripMenuItem.Checked Then
+                    Splash.setText("Adding thumnail for '" & fname & "'")
+                    Dim img As String = getVideoThumbnail(path)
+                    If img <> "" Then
+                        axe.uploadFile(img, item.ID, 0)
+                        'attempt to delete the thumbnail now that we're done with it
+                        Try
+                            IO.File.Delete(img)
+                        Catch ex As Exception
+                        End Try
+                    End If
+                End If
+            End If
+
             If lvFileManagementDeviceFilesInFolder.Items.Count > 0 AndAlso lvFileManagementDeviceFilesInFolder.Items(0) IsNot Nothing Then
                 If lvFileManagementDeviceFilesInFolder.Items(0).Text = "No files found" Then
                     lvFileManagementDeviceFilesInFolder.Items.Clear()
@@ -3517,7 +3575,54 @@ Public Class Main
 
         Return True
     End Function
+    Private Function getVideoThumbnail(ByVal videoPath As String) As String
+        'for the specified video, tries to get a frame at the time specified
+        'by the settings.  returns the path to the thumbnail, or "" on error
+        'by default, the thumbnali is taken from the seventh second of the video
+        'this is because if the video is long, getting the frame from the middle of 
+        'the video will take too long
 
+        Trace.WriteLine("getting thumbnail for video " & videoPath)
+
+        Dim ss As Integer
+        If Not Integer.TryParse(mnutxtThumbnailTimeToolStripMenuItem.Text, ss) Then
+            Trace.WriteLine("Invalid video thumbnail time: " & mnutxtThumbnailTimeToolStripMenuItem.Text & " using t=7 instead")
+            ss = 7
+        End If
+
+        Dim imagepath As String = IO.Path.Combine(IO.Path.GetTempPath, IO.Path.GetFileNameWithoutExtension(videoPath) & ".jpg")
+
+        Dim ffmpeg As New Process()
+        ffmpeg.StartInfo.UseShellExecute = False
+        ffmpeg.StartInfo.CreateNoWindow = True
+        ffmpeg.StartInfo.WorkingDirectory = Application.StartupPath
+        ffmpeg.StartInfo.FileName = IO.Path.Combine(Application.StartupPath, "ffmpeg.exe")
+        ffmpeg.StartInfo.Arguments = "-i """ & videoPath & """ -vframes 1 -f mjpeg -ss " & ss & " """ & imagepath & """"
+        ffmpeg.StartInfo.RedirectStandardError = True
+
+        Try
+            ffmpeg.Start()
+
+            'wait 20 sec. for ffmpeg to finish extracting the thumbnail.
+            If Not ffmpeg.WaitForExit(20000) Then
+                ffmpeg.Kill()
+                Throw New Exception("timeout waiting for ffmpeg")
+            End If
+
+            'check whether ffmpeg finished successfully
+            If ffmpeg.ExitCode <> 0 Then
+                Throw New Exception("""" & ffmpeg.StandardError.ReadToEnd & """")
+            End If
+
+        Catch ex As Exception
+            Trace.WriteLine("error executing ffmpeg. " & ex.Message)
+            imagepath = ""
+        End Try
+
+
+        Trace.WriteLine("getting thumbnail for video " & videoPath & " done.")
+        Return imagepath
+    End Function
 
     'comparer for playlistitems listview sorting
     Private Class PlaylistListViewItemComparer
@@ -3659,6 +3764,7 @@ Public Class Main
     End Class
 
 #End Region
+
 
 
 End Class

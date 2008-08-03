@@ -31,7 +31,12 @@ Partial Class Main
         Me.mnuFileQuitToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem
         Me.OptionsStripMenuItem = New System.Windows.Forms.ToolStripMenuItem
         Me.mnuOptionsShowDeviceIconToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem
+        Me.mnuAddThumbnailForUploadedVideosToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem
+        Me.mnutxtThumbnailTimeToolStripMenuItem = New System.Windows.Forms.ToolStripTextBox
+        Me.ToolStripSeparator2 = New System.Windows.Forms.ToolStripSeparator
         Me.mnuOptionsShowDebugWindowToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem
+        Me.ToolsToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem
+        Me.CleanUpEmptyFoldersToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem
         Me.mnuHelpHelpToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem
         Me.mnuHelpInformationToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem
         Me.mnuHelpAboutToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem
@@ -71,6 +76,21 @@ Partial Class Main
         Me.lblAlbumArtDimensions = New System.Windows.Forms.Label
         Me.Label6 = New System.Windows.Forms.Label
         Me.tabpagePlaylists = New System.Windows.Forms.TabPage
+        Me.SplitContainer1 = New System.Windows.Forms.SplitContainer
+        Me.Label4 = New System.Windows.Forms.Label
+        Me.btnPlaylistsFilesOnDeviceRefresh = New System.Windows.Forms.LinkLabel
+        Me.btnRenamePlaylist = New System.Windows.Forms.Button
+        Me.btnDeleteAllLists = New System.Windows.Forms.LinkLabel
+        Me.btnDelPlaylist = New System.Windows.Forms.Button
+        Me.btnAddPlaylist = New System.Windows.Forms.Button
+        Me.tabPlaylists = New System.Windows.Forms.TabControl
+        Me.TabPage4 = New System.Windows.Forms.TabPage
+        Me.ListView1 = New System.Windows.Forms.ListView
+        Me.ColumnHeader1 = New System.Windows.Forms.ColumnHeader
+        Me.ColumnHeader2 = New System.Windows.Forms.ColumnHeader
+        Me.ColumnHeader3 = New System.Windows.Forms.ColumnHeader
+        Me.ColumnHeader4 = New System.Windows.Forms.ColumnHeader
+        Me.ColumnHeader5 = New System.Windows.Forms.ColumnHeader
         Me.tabpageFileManagement = New System.Windows.Forms.TabPage
         Me.SplitContainer2 = New System.Windows.Forms.SplitContainer
         Me.btnFileManagementRefresh = New System.Windows.Forms.LinkLabel
@@ -104,21 +124,6 @@ Partial Class Main
         Me.mnuTvFileManagementRightClick = New System.Windows.Forms.ContextMenuStrip(Me.components)
         Me.mnuTVFileManagementCollapseChildren = New System.Windows.Forms.ToolStripMenuItem
         Me.mnuTVFileManagementExpandChildren = New System.Windows.Forms.ToolStripMenuItem
-        Me.SplitContainer1 = New System.Windows.Forms.SplitContainer
-        Me.Label4 = New System.Windows.Forms.Label
-        Me.btnPlaylistsFilesOnDeviceRefresh = New System.Windows.Forms.LinkLabel
-        Me.btnRenamePlaylist = New System.Windows.Forms.Button
-        Me.btnDeleteAllLists = New System.Windows.Forms.LinkLabel
-        Me.btnDelPlaylist = New System.Windows.Forms.Button
-        Me.btnAddPlaylist = New System.Windows.Forms.Button
-        Me.tabPlaylists = New System.Windows.Forms.TabControl
-        Me.TabPage4 = New System.Windows.Forms.TabPage
-        Me.ListView1 = New System.Windows.Forms.ListView
-        Me.ColumnHeader1 = New System.Windows.Forms.ColumnHeader
-        Me.ColumnHeader2 = New System.Windows.Forms.ColumnHeader
-        Me.ColumnHeader3 = New System.Windows.Forms.ColumnHeader
-        Me.ColumnHeader4 = New System.Windows.Forms.ColumnHeader
-        Me.ColumnHeader5 = New System.Windows.Forms.ColumnHeader
         Me.lvAlbumItems = New WalkmanMTP.ListViewDnD.ListViewEx
         Me.lvAlbumItemsFileName = New System.Windows.Forms.ColumnHeader
         Me.lvAlbumItemsTrackNum = New System.Windows.Forms.ColumnHeader
@@ -137,8 +142,6 @@ Partial Class Main
         Me.year = New System.Windows.Forms.ColumnHeader
         Me.trackNum = New System.Windows.Forms.ColumnHeader
         Me.genre = New System.Windows.Forms.ColumnHeader
-        Me.ToolsToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem
-        Me.CleanUpEmptyFoldersToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem
         Me.MenuStrip1.SuspendLayout()
         Me.tabviewMain.SuspendLayout()
         Me.tabpageAlbums.SuspendLayout()
@@ -150,6 +153,11 @@ Partial Class Main
         Me.GroupBox3.SuspendLayout()
         CType(Me.pbAlbumArt, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.tabpagePlaylists.SuspendLayout()
+        Me.SplitContainer1.Panel1.SuspendLayout()
+        Me.SplitContainer1.Panel2.SuspendLayout()
+        Me.SplitContainer1.SuspendLayout()
+        Me.tabPlaylists.SuspendLayout()
+        Me.TabPage4.SuspendLayout()
         Me.tabpageFileManagement.SuspendLayout()
         Me.SplitContainer2.Panel1.SuspendLayout()
         Me.SplitContainer2.Panel2.SuspendLayout()
@@ -160,11 +168,6 @@ Partial Class Main
         Me.mnuLvFileManagementRightClick.SuspendLayout()
         Me.mnuTvPlaylistFilesRightClick.SuspendLayout()
         Me.mnuTvFileManagementRightClick.SuspendLayout()
-        Me.SplitContainer1.Panel1.SuspendLayout()
-        Me.SplitContainer1.Panel2.SuspendLayout()
-        Me.SplitContainer1.SuspendLayout()
-        Me.tabPlaylists.SuspendLayout()
-        Me.TabPage4.SuspendLayout()
         Me.SuspendLayout()
         '
         'MenuStrip1
@@ -204,7 +207,7 @@ Partial Class Main
         '
         'OptionsStripMenuItem
         '
-        Me.OptionsStripMenuItem.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.mnuOptionsShowDeviceIconToolStripMenuItem, Me.mnuOptionsShowDebugWindowToolStripMenuItem})
+        Me.OptionsStripMenuItem.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.mnuOptionsShowDeviceIconToolStripMenuItem, Me.mnuAddThumbnailForUploadedVideosToolStripMenuItem, Me.ToolStripSeparator2, Me.mnuOptionsShowDebugWindowToolStripMenuItem})
         Me.OptionsStripMenuItem.Name = "OptionsStripMenuItem"
         Me.OptionsStripMenuItem.Size = New System.Drawing.Size(56, 20)
         Me.OptionsStripMenuItem.Text = "&Options"
@@ -214,16 +217,53 @@ Partial Class Main
         Me.mnuOptionsShowDeviceIconToolStripMenuItem.Checked = True
         Me.mnuOptionsShowDeviceIconToolStripMenuItem.CheckState = System.Windows.Forms.CheckState.Checked
         Me.mnuOptionsShowDeviceIconToolStripMenuItem.Name = "mnuOptionsShowDeviceIconToolStripMenuItem"
-        Me.mnuOptionsShowDeviceIconToolStripMenuItem.Size = New System.Drawing.Size(169, 22)
+        Me.mnuOptionsShowDeviceIconToolStripMenuItem.Size = New System.Drawing.Size(251, 22)
         Me.mnuOptionsShowDeviceIconToolStripMenuItem.Text = "Show device Icon"
+        '
+        'mnuAddThumbnailForUploadedVideosToolStripMenuItem
+        '
+        Me.mnuAddThumbnailForUploadedVideosToolStripMenuItem.Checked = True
+        Me.mnuAddThumbnailForUploadedVideosToolStripMenuItem.CheckState = System.Windows.Forms.CheckState.Checked
+        Me.mnuAddThumbnailForUploadedVideosToolStripMenuItem.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.mnutxtThumbnailTimeToolStripMenuItem})
+        Me.mnuAddThumbnailForUploadedVideosToolStripMenuItem.Name = "mnuAddThumbnailForUploadedVideosToolStripMenuItem"
+        Me.mnuAddThumbnailForUploadedVideosToolStripMenuItem.Size = New System.Drawing.Size(251, 22)
+        Me.mnuAddThumbnailForUploadedVideosToolStripMenuItem.Text = "Add thumbnail for uploaded videos"
+        '
+        'mnutxtThumbnailTimeToolStripMenuItem
+        '
+        Me.mnutxtThumbnailTimeToolStripMenuItem.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle
+        Me.mnutxtThumbnailTimeToolStripMenuItem.Name = "mnutxtThumbnailTimeToolStripMenuItem"
+        Me.mnutxtThumbnailTimeToolStripMenuItem.Overflow = System.Windows.Forms.ToolStripItemOverflow.Never
+        Me.mnutxtThumbnailTimeToolStripMenuItem.Size = New System.Drawing.Size(50, 21)
+        Me.mnutxtThumbnailTimeToolStripMenuItem.Text = "7"
+        Me.mnutxtThumbnailTimeToolStripMenuItem.TextBoxTextAlign = System.Windows.Forms.HorizontalAlignment.Center
+        Me.mnutxtThumbnailTimeToolStripMenuItem.ToolTipText = "Enter the time in the video (in seconds) from which the frame will be taken"
+        '
+        'ToolStripSeparator2
+        '
+        Me.ToolStripSeparator2.Name = "ToolStripSeparator2"
+        Me.ToolStripSeparator2.Size = New System.Drawing.Size(248, 6)
         '
         'mnuOptionsShowDebugWindowToolStripMenuItem
         '
         Me.mnuOptionsShowDebugWindowToolStripMenuItem.CheckOnClick = True
         Me.mnuOptionsShowDebugWindowToolStripMenuItem.Name = "mnuOptionsShowDebugWindowToolStripMenuItem"
         Me.mnuOptionsShowDebugWindowToolStripMenuItem.ShortcutKeys = CType((System.Windows.Forms.Keys.Control Or System.Windows.Forms.Keys.B), System.Windows.Forms.Keys)
-        Me.mnuOptionsShowDebugWindowToolStripMenuItem.Size = New System.Drawing.Size(169, 22)
+        Me.mnuOptionsShowDebugWindowToolStripMenuItem.Size = New System.Drawing.Size(251, 22)
         Me.mnuOptionsShowDebugWindowToolStripMenuItem.Text = "Show Log"
+        '
+        'ToolsToolStripMenuItem
+        '
+        Me.ToolsToolStripMenuItem.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.CleanUpEmptyFoldersToolStripMenuItem})
+        Me.ToolsToolStripMenuItem.Name = "ToolsToolStripMenuItem"
+        Me.ToolsToolStripMenuItem.Size = New System.Drawing.Size(44, 20)
+        Me.ToolsToolStripMenuItem.Text = "&Tools"
+        '
+        'CleanUpEmptyFoldersToolStripMenuItem
+        '
+        Me.CleanUpEmptyFoldersToolStripMenuItem.Name = "CleanUpEmptyFoldersToolStripMenuItem"
+        Me.CleanUpEmptyFoldersToolStripMenuItem.Size = New System.Drawing.Size(196, 22)
+        Me.CleanUpEmptyFoldersToolStripMenuItem.Text = "&Clean up empty folders"
         '
         'mnuHelpHelpToolStripMenuItem
         '
@@ -235,13 +275,13 @@ Partial Class Main
         'mnuHelpInformationToolStripMenuItem
         '
         Me.mnuHelpInformationToolStripMenuItem.Name = "mnuHelpInformationToolStripMenuItem"
-        Me.mnuHelpInformationToolStripMenuItem.Size = New System.Drawing.Size(152, 22)
+        Me.mnuHelpInformationToolStripMenuItem.Size = New System.Drawing.Size(141, 22)
         Me.mnuHelpInformationToolStripMenuItem.Text = "Information"
         '
         'mnuHelpAboutToolStripMenuItem
         '
         Me.mnuHelpAboutToolStripMenuItem.Name = "mnuHelpAboutToolStripMenuItem"
-        Me.mnuHelpAboutToolStripMenuItem.Size = New System.Drawing.Size(152, 22)
+        Me.mnuHelpAboutToolStripMenuItem.Size = New System.Drawing.Size(141, 22)
         Me.mnuHelpAboutToolStripMenuItem.Text = "&About"
         '
         'cmbDevices
@@ -650,6 +690,154 @@ Partial Class Main
         Me.tabpagePlaylists.Text = "Playlists"
         Me.tabpagePlaylists.UseVisualStyleBackColor = True
         '
+        'SplitContainer1
+        '
+        Me.SplitContainer1.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D
+        Me.SplitContainer1.Dock = System.Windows.Forms.DockStyle.Fill
+        Me.SplitContainer1.Location = New System.Drawing.Point(0, 0)
+        Me.SplitContainer1.Margin = New System.Windows.Forms.Padding(0)
+        Me.SplitContainer1.Name = "SplitContainer1"
+        '
+        'SplitContainer1.Panel1
+        '
+        Me.SplitContainer1.Panel1.Controls.Add(Me.tvPlaylistsFilesOnDevice)
+        Me.SplitContainer1.Panel1.Controls.Add(Me.Label4)
+        Me.SplitContainer1.Panel1.Controls.Add(Me.btnPlaylistsFilesOnDeviceRefresh)
+        '
+        'SplitContainer1.Panel2
+        '
+        Me.SplitContainer1.Panel2.Controls.Add(Me.btnRenamePlaylist)
+        Me.SplitContainer1.Panel2.Controls.Add(Me.btnDeleteAllLists)
+        Me.SplitContainer1.Panel2.Controls.Add(Me.btnDelPlaylist)
+        Me.SplitContainer1.Panel2.Controls.Add(Me.btnAddPlaylist)
+        Me.SplitContainer1.Panel2.Controls.Add(Me.tabPlaylists)
+        Me.SplitContainer1.Size = New System.Drawing.Size(906, 500)
+        Me.SplitContainer1.SplitterDistance = 364
+        Me.SplitContainer1.SplitterWidth = 2
+        Me.SplitContainer1.TabIndex = 0
+        '
+        'Label4
+        '
+        Me.Label4.AutoSize = True
+        Me.Label4.Font = New System.Drawing.Font("Tahoma", 8.25!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.Label4.Location = New System.Drawing.Point(1, 0)
+        Me.Label4.Name = "Label4"
+        Me.Label4.Size = New System.Drawing.Size(82, 13)
+        Me.Label4.TabIndex = 7
+        Me.Label4.Text = "Files on Device:"
+        '
+        'btnPlaylistsFilesOnDeviceRefresh
+        '
+        Me.btnPlaylistsFilesOnDeviceRefresh.Anchor = CType((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
+        Me.btnPlaylistsFilesOnDeviceRefresh.AutoSize = True
+        Me.btnPlaylistsFilesOnDeviceRefresh.Font = New System.Drawing.Font("Tahoma", 8.25!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.btnPlaylistsFilesOnDeviceRefresh.Location = New System.Drawing.Point(312, 0)
+        Me.btnPlaylistsFilesOnDeviceRefresh.Name = "btnPlaylistsFilesOnDeviceRefresh"
+        Me.btnPlaylistsFilesOnDeviceRefresh.Size = New System.Drawing.Size(45, 13)
+        Me.btnPlaylistsFilesOnDeviceRefresh.TabIndex = 5
+        Me.btnPlaylistsFilesOnDeviceRefresh.TabStop = True
+        Me.btnPlaylistsFilesOnDeviceRefresh.Text = "Refresh"
+        '
+        'btnRenamePlaylist
+        '
+        Me.btnRenamePlaylist.Location = New System.Drawing.Point(4, 78)
+        Me.btnRenamePlaylist.Name = "btnRenamePlaylist"
+        Me.btnRenamePlaylist.Size = New System.Drawing.Size(25, 25)
+        Me.btnRenamePlaylist.TabIndex = 2
+        Me.ToolTip1.SetToolTip(Me.btnRenamePlaylist, "Rename Playlist")
+        Me.btnRenamePlaylist.UseVisualStyleBackColor = True
+        '
+        'btnDeleteAllLists
+        '
+        Me.btnDeleteAllLists.Anchor = CType((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
+        Me.btnDeleteAllLists.AutoSize = True
+        Me.btnDeleteAllLists.Location = New System.Drawing.Point(445, 0)
+        Me.btnDeleteAllLists.Name = "btnDeleteAllLists"
+        Me.btnDeleteAllLists.Size = New System.Drawing.Size(93, 13)
+        Me.btnDeleteAllLists.TabIndex = 1
+        Me.btnDeleteAllLists.TabStop = True
+        Me.btnDeleteAllLists.Text = "Delete All Playlists"
+        Me.ToolTip1.SetToolTip(Me.btnDeleteAllLists, "Deletes ALL playlists")
+        '
+        'btnDelPlaylist
+        '
+        Me.btnDelPlaylist.Location = New System.Drawing.Point(4, 47)
+        Me.btnDelPlaylist.Name = "btnDelPlaylist"
+        Me.btnDelPlaylist.Size = New System.Drawing.Size(25, 25)
+        Me.btnDelPlaylist.TabIndex = 1
+        Me.ToolTip1.SetToolTip(Me.btnDelPlaylist, "Delete active playlist")
+        Me.btnDelPlaylist.UseVisualStyleBackColor = True
+        '
+        'btnAddPlaylist
+        '
+        Me.btnAddPlaylist.Location = New System.Drawing.Point(4, 16)
+        Me.btnAddPlaylist.Name = "btnAddPlaylist"
+        Me.btnAddPlaylist.Size = New System.Drawing.Size(25, 25)
+        Me.btnAddPlaylist.TabIndex = 1
+        Me.ToolTip1.SetToolTip(Me.btnAddPlaylist, "Add New Playlist")
+        Me.btnAddPlaylist.UseVisualStyleBackColor = True
+        '
+        'tabPlaylists
+        '
+        Me.tabPlaylists.Anchor = CType((((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Bottom) _
+                    Or System.Windows.Forms.AnchorStyles.Left) _
+                    Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
+        Me.tabPlaylists.Controls.Add(Me.TabPage4)
+        Me.tabPlaylists.Font = New System.Drawing.Font("Microsoft Sans Serif", 7.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.tabPlaylists.Location = New System.Drawing.Point(33, 16)
+        Me.tabPlaylists.Name = "tabPlaylists"
+        Me.tabPlaylists.SelectedIndex = 0
+        Me.tabPlaylists.Size = New System.Drawing.Size(508, 485)
+        Me.tabPlaylists.TabIndex = 0
+        '
+        'TabPage4
+        '
+        Me.TabPage4.Controls.Add(Me.ListView1)
+        Me.TabPage4.Location = New System.Drawing.Point(4, 21)
+        Me.TabPage4.Name = "TabPage4"
+        Me.TabPage4.Padding = New System.Windows.Forms.Padding(3)
+        Me.TabPage4.Size = New System.Drawing.Size(500, 460)
+        Me.TabPage4.TabIndex = 0
+        Me.TabPage4.Text = "New Playlist*"
+        Me.TabPage4.UseVisualStyleBackColor = True
+        '
+        'ListView1
+        '
+        Me.ListView1.Columns.AddRange(New System.Windows.Forms.ColumnHeader() {Me.ColumnHeader1, Me.ColumnHeader2, Me.ColumnHeader3, Me.ColumnHeader4, Me.ColumnHeader5})
+        Me.ListView1.Dock = System.Windows.Forms.DockStyle.Fill
+        Me.ListView1.GridLines = True
+        Me.ListView1.Location = New System.Drawing.Point(3, 3)
+        Me.ListView1.Name = "ListView1"
+        Me.ListView1.ShowItemToolTips = True
+        Me.ListView1.Size = New System.Drawing.Size(494, 454)
+        Me.ListView1.TabIndex = 0
+        Me.ListView1.UseCompatibleStateImageBehavior = False
+        Me.ListView1.View = System.Windows.Forms.View.Details
+        '
+        'ColumnHeader1
+        '
+        Me.ColumnHeader1.Text = "File Name"
+        Me.ColumnHeader1.Width = 131
+        '
+        'ColumnHeader2
+        '
+        Me.ColumnHeader2.Text = "Title"
+        Me.ColumnHeader2.Width = 86
+        '
+        'ColumnHeader3
+        '
+        Me.ColumnHeader3.Text = "Artist"
+        Me.ColumnHeader3.Width = 79
+        '
+        'ColumnHeader4
+        '
+        Me.ColumnHeader4.Text = "Album"
+        Me.ColumnHeader4.Width = 88
+        '
+        'ColumnHeader5
+        '
+        Me.ColumnHeader5.Text = "Year"
+        '
         'tabpageFileManagement
         '
         Me.tabpageFileManagement.Controls.Add(Me.SplitContainer2)
@@ -927,154 +1115,6 @@ Partial Class Main
         Me.mnuTVFileManagementExpandChildren.Size = New System.Drawing.Size(167, 22)
         Me.mnuTVFileManagementExpandChildren.Text = "Expand Children"
         '
-        'SplitContainer1
-        '
-        Me.SplitContainer1.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D
-        Me.SplitContainer1.Dock = System.Windows.Forms.DockStyle.Fill
-        Me.SplitContainer1.Location = New System.Drawing.Point(0, 0)
-        Me.SplitContainer1.Margin = New System.Windows.Forms.Padding(0)
-        Me.SplitContainer1.Name = "SplitContainer1"
-        '
-        'SplitContainer1.Panel1
-        '
-        Me.SplitContainer1.Panel1.Controls.Add(Me.tvPlaylistsFilesOnDevice)
-        Me.SplitContainer1.Panel1.Controls.Add(Me.Label4)
-        Me.SplitContainer1.Panel1.Controls.Add(Me.btnPlaylistsFilesOnDeviceRefresh)
-        '
-        'SplitContainer1.Panel2
-        '
-        Me.SplitContainer1.Panel2.Controls.Add(Me.btnRenamePlaylist)
-        Me.SplitContainer1.Panel2.Controls.Add(Me.btnDeleteAllLists)
-        Me.SplitContainer1.Panel2.Controls.Add(Me.btnDelPlaylist)
-        Me.SplitContainer1.Panel2.Controls.Add(Me.btnAddPlaylist)
-        Me.SplitContainer1.Panel2.Controls.Add(Me.tabPlaylists)
-        Me.SplitContainer1.Size = New System.Drawing.Size(906, 500)
-        Me.SplitContainer1.SplitterDistance = 364
-        Me.SplitContainer1.SplitterWidth = 2
-        Me.SplitContainer1.TabIndex = 0
-        '
-        'Label4
-        '
-        Me.Label4.AutoSize = True
-        Me.Label4.Font = New System.Drawing.Font("Tahoma", 8.25!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.Label4.Location = New System.Drawing.Point(1, 0)
-        Me.Label4.Name = "Label4"
-        Me.Label4.Size = New System.Drawing.Size(82, 13)
-        Me.Label4.TabIndex = 7
-        Me.Label4.Text = "Files on Device:"
-        '
-        'btnPlaylistsFilesOnDeviceRefresh
-        '
-        Me.btnPlaylistsFilesOnDeviceRefresh.Anchor = CType((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
-        Me.btnPlaylistsFilesOnDeviceRefresh.AutoSize = True
-        Me.btnPlaylistsFilesOnDeviceRefresh.Font = New System.Drawing.Font("Tahoma", 8.25!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.btnPlaylistsFilesOnDeviceRefresh.Location = New System.Drawing.Point(312, 0)
-        Me.btnPlaylistsFilesOnDeviceRefresh.Name = "btnPlaylistsFilesOnDeviceRefresh"
-        Me.btnPlaylistsFilesOnDeviceRefresh.Size = New System.Drawing.Size(45, 13)
-        Me.btnPlaylistsFilesOnDeviceRefresh.TabIndex = 5
-        Me.btnPlaylistsFilesOnDeviceRefresh.TabStop = True
-        Me.btnPlaylistsFilesOnDeviceRefresh.Text = "Refresh"
-        '
-        'btnRenamePlaylist
-        '
-        Me.btnRenamePlaylist.Location = New System.Drawing.Point(4, 78)
-        Me.btnRenamePlaylist.Name = "btnRenamePlaylist"
-        Me.btnRenamePlaylist.Size = New System.Drawing.Size(25, 25)
-        Me.btnRenamePlaylist.TabIndex = 2
-        Me.ToolTip1.SetToolTip(Me.btnRenamePlaylist, "Rename Playlist")
-        Me.btnRenamePlaylist.UseVisualStyleBackColor = True
-        '
-        'btnDeleteAllLists
-        '
-        Me.btnDeleteAllLists.Anchor = CType((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
-        Me.btnDeleteAllLists.AutoSize = True
-        Me.btnDeleteAllLists.Location = New System.Drawing.Point(445, 0)
-        Me.btnDeleteAllLists.Name = "btnDeleteAllLists"
-        Me.btnDeleteAllLists.Size = New System.Drawing.Size(93, 13)
-        Me.btnDeleteAllLists.TabIndex = 1
-        Me.btnDeleteAllLists.TabStop = True
-        Me.btnDeleteAllLists.Text = "Delete All Playlists"
-        Me.ToolTip1.SetToolTip(Me.btnDeleteAllLists, "Deletes ALL playlists")
-        '
-        'btnDelPlaylist
-        '
-        Me.btnDelPlaylist.Location = New System.Drawing.Point(4, 47)
-        Me.btnDelPlaylist.Name = "btnDelPlaylist"
-        Me.btnDelPlaylist.Size = New System.Drawing.Size(25, 25)
-        Me.btnDelPlaylist.TabIndex = 1
-        Me.ToolTip1.SetToolTip(Me.btnDelPlaylist, "Delete active playlist")
-        Me.btnDelPlaylist.UseVisualStyleBackColor = True
-        '
-        'btnAddPlaylist
-        '
-        Me.btnAddPlaylist.Location = New System.Drawing.Point(4, 16)
-        Me.btnAddPlaylist.Name = "btnAddPlaylist"
-        Me.btnAddPlaylist.Size = New System.Drawing.Size(25, 25)
-        Me.btnAddPlaylist.TabIndex = 1
-        Me.ToolTip1.SetToolTip(Me.btnAddPlaylist, "Add New Playlist")
-        Me.btnAddPlaylist.UseVisualStyleBackColor = True
-        '
-        'tabPlaylists
-        '
-        Me.tabPlaylists.Anchor = CType((((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Bottom) _
-                    Or System.Windows.Forms.AnchorStyles.Left) _
-                    Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
-        Me.tabPlaylists.Controls.Add(Me.TabPage4)
-        Me.tabPlaylists.Font = New System.Drawing.Font("Microsoft Sans Serif", 7.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.tabPlaylists.Location = New System.Drawing.Point(33, 16)
-        Me.tabPlaylists.Name = "tabPlaylists"
-        Me.tabPlaylists.SelectedIndex = 0
-        Me.tabPlaylists.Size = New System.Drawing.Size(508, 485)
-        Me.tabPlaylists.TabIndex = 0
-        '
-        'TabPage4
-        '
-        Me.TabPage4.Controls.Add(Me.ListView1)
-        Me.TabPage4.Location = New System.Drawing.Point(4, 21)
-        Me.TabPage4.Name = "TabPage4"
-        Me.TabPage4.Padding = New System.Windows.Forms.Padding(3)
-        Me.TabPage4.Size = New System.Drawing.Size(500, 460)
-        Me.TabPage4.TabIndex = 0
-        Me.TabPage4.Text = "New Playlist*"
-        Me.TabPage4.UseVisualStyleBackColor = True
-        '
-        'ListView1
-        '
-        Me.ListView1.Columns.AddRange(New System.Windows.Forms.ColumnHeader() {Me.ColumnHeader1, Me.ColumnHeader2, Me.ColumnHeader3, Me.ColumnHeader4, Me.ColumnHeader5})
-        Me.ListView1.Dock = System.Windows.Forms.DockStyle.Fill
-        Me.ListView1.GridLines = True
-        Me.ListView1.Location = New System.Drawing.Point(3, 3)
-        Me.ListView1.Name = "ListView1"
-        Me.ListView1.ShowItemToolTips = True
-        Me.ListView1.Size = New System.Drawing.Size(494, 454)
-        Me.ListView1.TabIndex = 0
-        Me.ListView1.UseCompatibleStateImageBehavior = False
-        Me.ListView1.View = System.Windows.Forms.View.Details
-        '
-        'ColumnHeader1
-        '
-        Me.ColumnHeader1.Text = "File Name"
-        Me.ColumnHeader1.Width = 131
-        '
-        'ColumnHeader2
-        '
-        Me.ColumnHeader2.Text = "Title"
-        Me.ColumnHeader2.Width = 86
-        '
-        'ColumnHeader3
-        '
-        Me.ColumnHeader3.Text = "Artist"
-        Me.ColumnHeader3.Width = 79
-        '
-        'ColumnHeader4
-        '
-        Me.ColumnHeader4.Text = "Album"
-        Me.ColumnHeader4.Width = 88
-        '
-        'ColumnHeader5
-        '
-        Me.ColumnHeader5.Text = "Year"
-        '
         'lvAlbumItems
         '
         Me.lvAlbumItems.AllowReorder = False
@@ -1211,19 +1251,6 @@ Partial Class Main
         Me.genre.Text = "Genre"
         Me.genre.Width = 80
         '
-        'ToolsToolStripMenuItem
-        '
-        Me.ToolsToolStripMenuItem.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.CleanUpEmptyFoldersToolStripMenuItem})
-        Me.ToolsToolStripMenuItem.Name = "ToolsToolStripMenuItem"
-        Me.ToolsToolStripMenuItem.Size = New System.Drawing.Size(44, 20)
-        Me.ToolsToolStripMenuItem.Text = "&Tools"
-        '
-        'CleanUpEmptyFoldersToolStripMenuItem
-        '
-        Me.CleanUpEmptyFoldersToolStripMenuItem.Name = "CleanUpEmptyFoldersToolStripMenuItem"
-        Me.CleanUpEmptyFoldersToolStripMenuItem.Size = New System.Drawing.Size(196, 22)
-        Me.CleanUpEmptyFoldersToolStripMenuItem.Text = "&Clean up empty folders"
-        '
         'Main
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
@@ -1261,6 +1288,13 @@ Partial Class Main
         Me.GroupBox3.ResumeLayout(False)
         CType(Me.pbAlbumArt, System.ComponentModel.ISupportInitialize).EndInit()
         Me.tabpagePlaylists.ResumeLayout(False)
+        Me.SplitContainer1.Panel1.ResumeLayout(False)
+        Me.SplitContainer1.Panel1.PerformLayout()
+        Me.SplitContainer1.Panel2.ResumeLayout(False)
+        Me.SplitContainer1.Panel2.PerformLayout()
+        Me.SplitContainer1.ResumeLayout(False)
+        Me.tabPlaylists.ResumeLayout(False)
+        Me.TabPage4.ResumeLayout(False)
         Me.tabpageFileManagement.ResumeLayout(False)
         Me.SplitContainer2.Panel1.ResumeLayout(False)
         Me.SplitContainer2.Panel1.PerformLayout()
@@ -1273,13 +1307,6 @@ Partial Class Main
         Me.mnuLvFileManagementRightClick.ResumeLayout(False)
         Me.mnuTvPlaylistFilesRightClick.ResumeLayout(False)
         Me.mnuTvFileManagementRightClick.ResumeLayout(False)
-        Me.SplitContainer1.Panel1.ResumeLayout(False)
-        Me.SplitContainer1.Panel1.PerformLayout()
-        Me.SplitContainer1.Panel2.ResumeLayout(False)
-        Me.SplitContainer1.Panel2.PerformLayout()
-        Me.SplitContainer1.ResumeLayout(False)
-        Me.tabPlaylists.ResumeLayout(False)
-        Me.TabPage4.ResumeLayout(False)
         Me.ResumeLayout(False)
         Me.PerformLayout()
 
@@ -1399,4 +1426,7 @@ Partial Class Main
     Friend WithEvents Label14 As System.Windows.Forms.Label
     Friend WithEvents ToolsToolStripMenuItem As System.Windows.Forms.ToolStripMenuItem
     Friend WithEvents CleanUpEmptyFoldersToolStripMenuItem As System.Windows.Forms.ToolStripMenuItem
+    Friend WithEvents ToolStripSeparator2 As System.Windows.Forms.ToolStripSeparator
+    Friend WithEvents mnuAddThumbnailForUploadedVideosToolStripMenuItem As System.Windows.Forms.ToolStripMenuItem
+    Friend WithEvents mnutxtThumbnailTimeToolStripMenuItem As System.Windows.Forms.ToolStripTextBox
 End Class
