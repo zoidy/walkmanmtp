@@ -1,4 +1,4 @@
-This file is the project description from Google Code
+This file is the project description from Google Code https://code.google.com/archive/p/walkmanmtp/
 
 #WalkmanMTP
 
